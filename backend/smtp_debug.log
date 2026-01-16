@@ -1,0 +1,1237 @@
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [106.76.190.227]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [106.76.190.227]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: YWxiaW5zdW5ueTA0MjBAZ21haWwuY29t
+S: 334 UGFzc3dvcmQ6
+
+C: bGVlbGFtbWEzNjQw
+S: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials 98e67ed59e1d1-34e9219f180sm1096492a91.2 - gsmtp
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [106.76.190.227]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [106.76.190.227]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: c3VubnlhbGJpbjM2NDBAZ21haWwuY29t
+S: 334 UGFzc3dvcmQ6
+
+C: amJpYiBmcGVmIHl0ZWkgeXl6aA==
+S: 235 2.7.0 Accepted
+
+C: MAIL FROM: <sunnyalbin3640@gmail.com>
+S: 250 2.1.0 OK d9443c01a7336-2a2f3c82aa8sm10496135ad.31 - gsmtp
+
+C: RCPT TO: <albinsunny90808@gmail.com>
+S: 250 2.1.5 OK d9443c01a7336-2a2f3c82aa8sm10496135ad.31 - gsmtp
+
+C: DATA
+S: 354 Go ahead d9443c01a7336-2a2f3c82aa8sm10496135ad.31 - gsmtp
+
+C: MIME-Version: 1.0
+Content-type: text/html; charset=UTF-8
+From: FinSight <sunnyalbin3640@gmail.com>
+To: albinsunny90808@gmail.com
+Subject: Reset Your Password - FinSight
+
+
+            <h2>Password Reset Request</h2>
+            <p>Hello,</p>
+            <p>We received a request to reset your password for your FinSight account.</p>
+            <p>Click the button below to reset your password:</p>
+            <p>
+                <a href='http://localhost/finsight/frontend/pages/reset-password.html?token=6610a0b0be8e4a0cc7faf8c3275dc9eb19b6ddafee43700d5541895242ed5b36' style='background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>Reset Password</a>
+            </p>
+            <p>Or copy and paste this link in your browser:</p>
+            <p>http://localhost/finsight/frontend/pages/reset-password.html?token=6610a0b0be8e4a0cc7faf8c3275dc9eb19b6ddafee43700d5541895242ed5b36</p>
+            <p>This link will expire in 1 hour.</p>
+            <p>If you didn't request this, you can safely ignore this email.</p>
+            <br>
+            <p>Best regards,<br>FinSight Team</p>
+        
+.
+S: 250 2.0.0 OK  1766123284 d9443c01a7336-2a2f3c82aa8sm10496135ad.31 - gsmtp
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [106.76.190.227]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [106.76.190.227]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: c3VubnlhbGJpbjM2NDBAZ21haWwuY29t
+S: 334 UGFzc3dvcmQ6
+
+C: amJpYiBmcGVmIHl0ZWkgeXl6aA==
+S: 235 2.7.0 Accepted
+
+C: MAIL FROM: <sunnyalbin3640@gmail.com>
+S: 250 2.1.0 OK d2e1a72fcca58-7ff7a8442edsm1138067b3a.12 - gsmtp
+
+C: RCPT TO: <albinsunny90808@gmail.com>
+S: 250 2.1.5 OK d2e1a72fcca58-7ff7a8442edsm1138067b3a.12 - gsmtp
+
+C: DATA
+S: 354 Go ahead d2e1a72fcca58-7ff7a8442edsm1138067b3a.12 - gsmtp
+
+C: MIME-Version: 1.0
+Content-type: text/html; charset=UTF-8
+From: FinSight <sunnyalbin3640@gmail.com>
+To: albinsunny90808@gmail.com
+Subject: Reset Your Password - FinSight
+
+
+            <h2>Password Reset Request</h2>
+            <p>Hello,</p>
+            <p>We received a request to reset your password for your FinSight account.</p>
+            <p>Click the button below to reset your password:</p>
+            <p>
+                <a href='http://localhost/finsight/frontend/pages/reset-password.html?token=5cd7c303881ea3d82af48669e8d378dae30f55a354b7ec0d4155e7487f15cb73' style='background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>Reset Password</a>
+            </p>
+            <p>Or copy and paste this link in your browser:</p>
+            <p>http://localhost/finsight/frontend/pages/reset-password.html?token=5cd7c303881ea3d82af48669e8d378dae30f55a354b7ec0d4155e7487f15cb73</p>
+            <p>This link will expire in 1 hour.</p>
+            <p>If you didn't request this, you can safely ignore this email.</p>
+            <br>
+            <p>Best regards,<br>FinSight Team</p>
+        
+.
+S: 250 2.0.0 OK  1766123548 d2e1a72fcca58-7ff7a8442edsm1138067b3a.12 - gsmtp
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [106.76.190.227]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [106.76.190.227]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: c3VubnlhbGJpbjM2NDBAZ21haWwuY29t
+S: 334 UGFzc3dvcmQ6
+
+C: amJpYiBmcGVmIHl0ZWkgeXl6aA==
+S: 235 2.7.0 Accepted
+
+C: MAIL FROM: <sunnyalbin3640@gmail.com>
+S: 250 2.1.0 OK 98e67ed59e1d1-34e7722726esm1467586a91.8 - gsmtp
+
+C: RCPT TO: <albinsunny90808@gmail.com>
+S: 250 2.1.5 OK 98e67ed59e1d1-34e7722726esm1467586a91.8 - gsmtp
+
+C: DATA
+S: 354 Go ahead 98e67ed59e1d1-34e7722726esm1467586a91.8 - gsmtp
+
+C: MIME-Version: 1.0
+Content-type: text/html; charset=UTF-8
+From: FinSight <sunnyalbin3640@gmail.com>
+To: albinsunny90808@gmail.com
+Subject: Reset Your Password - FinSight
+
+
+            <h2>Password Reset Request</h2>
+            <p>Hello,</p>
+            <p>We received a request to reset your password for your FinSight account.</p>
+            <p>Click the button below to reset your password:</p>
+            <p>
+                <a href='http://localhost/finsight/frontend/pages/reset-password.html?token=84cb69c121b3e3f66b17e3f405735d30c61bf2a7760f1cdf54d492d449eaac07' style='background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>Reset Password</a>
+            </p>
+            <p>Or copy and paste this link in your browser:</p>
+            <p>http://localhost/finsight/frontend/pages/reset-password.html?token=84cb69c121b3e3f66b17e3f405735d30c61bf2a7760f1cdf54d492d449eaac07</p>
+            <p>This link will expire in 1 hour.</p>
+            <p>If you didn't request this, you can safely ignore this email.</p>
+            <br>
+            <p>Best regards,<br>FinSight Team</p>
+        
+.
+S: 250 2.0.0 OK  1766123705 98e67ed59e1d1-34e7722726esm1467586a91.8 - gsmtp
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [106.76.190.227]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [106.76.190.227]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: c3VubnlhbGJpbjM2NDBAZ21haWwuY29t
+S: 334 UGFzc3dvcmQ6
+
+C: amJpYiBmcGVmIHl0ZWkgeXl6aA==
+S: 235 2.7.0 Accepted
+
+C: MAIL FROM: <sunnyalbin3640@gmail.com>
+S: 250 2.1.0 OK d2e1a72fcca58-7ff7e48f258sm1113440b3a.47 - gsmtp
+
+C: RCPT TO: <albinsunny90808@gmail.com>
+S: 250 2.1.5 OK d2e1a72fcca58-7ff7e48f258sm1113440b3a.47 - gsmtp
+
+C: DATA
+S: 354 Go ahead d2e1a72fcca58-7ff7e48f258sm1113440b3a.47 - gsmtp
+
+C: MIME-Version: 1.0
+Content-type: text/html; charset=UTF-8
+From: FinSight <sunnyalbin3640@gmail.com>
+To: albinsunny90808@gmail.com
+Subject: Reset Your Password - FinSight
+
+
+            <h2>Password Reset Request</h2>
+            <p>Hello,</p>
+            <p>We received a request to reset your password for your FinSight account.</p>
+            <p>Click the button below to reset your password:</p>
+            <p>
+                <a href='http://localhost/finsight/frontend/pages/reset-password.html?token=2311d1686abbc06e5765cbe549dde8fb2def7658f587f9bbf3f100f41cf40e45' style='background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>Reset Password</a>
+            </p>
+            <p>Or copy and paste this link in your browser:</p>
+            <p>http://localhost/finsight/frontend/pages/reset-password.html?token=2311d1686abbc06e5765cbe549dde8fb2def7658f587f9bbf3f100f41cf40e45</p>
+            <p>This link will expire in 1 hour.</p>
+            <p>If you didn't request this, you can safely ignore this email.</p>
+            <br>
+            <p>Best regards,<br>FinSight Team</p>
+        
+.
+S: 250 2.0.0 OK  1766123836 d2e1a72fcca58-7ff7e48f258sm1113440b3a.47 - gsmtp
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [106.76.190.227]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [106.76.190.227]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: c3VubnlhbGJpbjM2NDBAZ21haWwuY29t
+S: 334 UGFzc3dvcmQ6
+
+C: amJpYiBmcGVmIHl0ZWkgeXl6aA==
+S: 235 2.7.0 Accepted
+
+C: MAIL FROM: <sunnyalbin3640@gmail.com>
+S: 250 2.1.0 OK d2e1a72fcca58-7ff7e797aadsm1148865b3a.61 - gsmtp
+
+C: RCPT TO: <albinsunny90808@gmail.com>
+S: 250 2.1.5 OK d2e1a72fcca58-7ff7e797aadsm1148865b3a.61 - gsmtp
+
+C: DATA
+S: 354 Go ahead d2e1a72fcca58-7ff7e797aadsm1148865b3a.61 - gsmtp
+
+C: MIME-Version: 1.0
+Content-type: text/html; charset=UTF-8
+From: FinSight <sunnyalbin3640@gmail.com>
+To: albinsunny90808@gmail.com
+Subject: Reset Your Password - FinSight
+
+
+            <h2>Password Reset Request</h2>
+            <p>Hello,</p>
+            <p>We received a request to reset your password for your FinSight account.</p>
+            <p>Click the button below to reset your password:</p>
+            <p>
+                <a href='http://localhost/finsight/frontend/pages/reset-password.html?token=227cfdad23b87444df5b04889cda41daf8ee0ec62276c63da4e6c7f3d17a2006' style='background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>Reset Password</a>
+            </p>
+            <p>Or copy and paste this link in your browser:</p>
+            <p>http://localhost/finsight/frontend/pages/reset-password.html?token=227cfdad23b87444df5b04889cda41daf8ee0ec62276c63da4e6c7f3d17a2006</p>
+            <p>This link will expire in 1 hour.</p>
+            <p>If you didn't request this, you can safely ignore this email.</p>
+            <br>
+            <p>Best regards,<br>FinSight Team</p>
+        
+.
+S: 250 2.0.0 OK  1766124204 d2e1a72fcca58-7ff7e797aadsm1148865b3a.61 - gsmtp
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [136.232.57.110]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [136.232.57.110]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: c3VubnlhbGJpbjM2NDBAZ21haWwuY29t
+S: 334 UGFzc3dvcmQ6
+
+C: amJpYiBmcGVmIHl0ZWkgeXl6aA==
+S: 235 2.7.0 Accepted
+
+C: MAIL FROM: <sunnyalbin3640@gmail.com>
+S: 250 2.1.0 OK d9443c01a7336-2a2f3c9b51esm36345985ad.43 - gsmtp
+
+C: RCPT TO: <albinsunny90808@gmail.com>
+S: 250 2.1.5 OK d9443c01a7336-2a2f3c9b51esm36345985ad.43 - gsmtp
+
+C: DATA
+S: 354 Go ahead d9443c01a7336-2a2f3c9b51esm36345985ad.43 - gsmtp
+
+C: MIME-Version: 1.0
+Content-type: text/html; charset=UTF-8
+From: FinSight <sunnyalbin3640@gmail.com>
+To: albinsunny90808@gmail.com
+Subject: Reset Your Password - FinSight
+
+
+            <h2>Password Reset Request</h2>
+            <p>Hello,</p>
+            <p>We received a request to reset your password for your FinSight account.</p>
+            <p>Click the button below to reset your password:</p>
+            <p>
+                <a href='http://localhost/finsight/frontend/pages/reset-password.html?token=7df59e27233fe72351684f5b0cb46875746c955fc38b9c1ca515d01eead9cbf6' style='background-color: #2563eb; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;'>Reset Password</a>
+            </p>
+            <p>Or copy and paste this link in your browser:</p>
+            <p>http://localhost/finsight/frontend/pages/reset-password.html?token=7df59e27233fe72351684f5b0cb46875746c955fc38b9c1ca515d01eead9cbf6</p>
+            <p>This link will expire in 1 hour.</p>
+            <p>If you didn't request this, you can safely ignore this email.</p>
+            <br>
+            <p>Best regards,<br>FinSight Team</p>
+        
+.
+S: 250 2.0.0 OK  1766205258 d9443c01a7336-2a2f3c9b51esm36345985ad.43 - gsmtp
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: c3VubnlhbGJpbjM2NDBAZ21haWwuY29t
+S: 334 UGFzc3dvcmQ6
+
+C: amJpYiBmcGVmIHl0ZWkgeXl6aA==
+S: 235 2.7.0 Accepted
+
+C: MAIL FROM: <sunnyalbin3640@gmail.com>
+S: 250 2.1.0 OK 98e67ed59e1d1-34f5fa93f30sm18741989a91.5 - gsmtp
+
+C: RCPT TO: <albinsunny2028@mca.ajce.in>
+S: 250 2.1.5 OK 98e67ed59e1d1-34f5fa93f30sm18741989a91.5 - gsmtp
+
+C: DATA
+S: 354 Go ahead 98e67ed59e1d1-34f5fa93f30sm18741989a91.5 - gsmtp
+
+C: MIME-Version: 1.0
+Content-type: text/html; charset=UTF-8
+From: FinSight <sunnyalbin3640@gmail.com>
+To: albinsunny2028@mca.ajce.in
+Subject: Voucher Approved - V-20260113-7294
+
+
+                    <html>
+                    <head>
+                        <style>
+                            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                            .header { background: #22c55e; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+                            .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
+                            .voucher-number { font-size: 20px; font-weight: bold; color: #22c55e; margin: 15px 0; }
+                            .footer { margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class='container'>
+                            <div class='header'>
+                                <h2 style='margin: 0;'>✓ Voucher Approved</h2>
+                            </div>
+                            <div class='content'>
+                                <p>Dear Albin Sunny,</p>
+                                <p>Your voucher has been <strong>approved</strong> and posted to the general ledger.</p>
+                                <div class='voucher-number'>Voucher: V-20260113-7294</div>
+                                <p>The voucher has been successfully processed and is now part of the financial records.</p>
+                                <p>You can view the voucher details in your dashboard.</p>
+                                <div class='footer'>
+                                    <p>This is an automated notification from FinSight Accounting System.</p>
+                                    <p>Please do not reply to this email.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                
+.
+S: 250 2.0.0 OK  1768287350 98e67ed59e1d1-34f5fa93f30sm18741989a91.5 - gsmtp
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [136.232.57.110]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [136.232.57.110]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: c3VubnlhbGJpbjM2NDBAZ21haWwuY29t
+S: 334 UGFzc3dvcmQ6
+
+C: amJpYiBmcGVmIHl0ZWkgeXl6aA==
+S: 235 2.7.0 Accepted
+
+C: MAIL FROM: <sunnyalbin3640@gmail.com>
+S: 250 2.1.0 OK d9443c01a7336-2a3e3c3a2f7sm196558625ad.16 - gsmtp
+
+C: RCPT TO: <albinsunny2028@mca.ajce.in>
+S: 250 2.1.5 OK d9443c01a7336-2a3e3c3a2f7sm196558625ad.16 - gsmtp
+
+C: DATA
+S: 354 Go ahead d9443c01a7336-2a3e3c3a2f7sm196558625ad.16 - gsmtp
+
+C: MIME-Version: 1.0
+Content-type: text/html; charset=UTF-8
+From: FinSight <sunnyalbin3640@gmail.com>
+To: albinsunny2028@mca.ajce.in
+Subject: Voucher Approved - V-20260113-2934
+
+
+                    <html>
+                    <head>
+                        <style>
+                            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                            .header { background: #22c55e; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+                            .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
+                            .voucher-number { font-size: 20px; font-weight: bold; color: #22c55e; margin: 15px 0; }
+                            .footer { margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class='container'>
+                            <div class='header'>
+                                <h2 style='margin: 0;'>✓ Voucher Approved</h2>
+                            </div>
+                            <div class='content'>
+                                <p>Dear Albin Sunny,</p>
+                                <p>Your voucher has been <strong>approved</strong> and posted to the general ledger.</p>
+                                <div class='voucher-number'>Voucher: V-20260113-2934</div>
+                                <p>The voucher has been successfully processed and is now part of the financial records.</p>
+                                <p>You can view the voucher details in your dashboard.</p>
+                                <div class='footer'>
+                                    <p>This is an automated notification from FinSight Accounting System.</p>
+                                    <p>Please do not reply to this email.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                
+.
+S: 250 2.0.0 OK  1768290295 d9443c01a7336-2a3e3c3a2f7sm196558625ad.16 - gsmtp
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [136.232.57.110]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [136.232.57.110]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: c3VubnlhbGJpbjM2NDBAZ21haWwuY29t
+S: 334 UGFzc3dvcmQ6
+
+C: amJpYiBmcGVmIHl0ZWkgeXl6aA==
+S: 235 2.7.0 Accepted
+
+C: MAIL FROM: <sunnyalbin3640@gmail.com>
+S: 250 2.1.0 OK 41be03b00d2f7-c4cc8d2932bsm20013932a12.21 - gsmtp
+
+C: RCPT TO: <albinsunny2028@mca.ajce.in>
+S: 250 2.1.5 OK 41be03b00d2f7-c4cc8d2932bsm20013932a12.21 - gsmtp
+
+C: DATA
+S: 354 Go ahead 41be03b00d2f7-c4cc8d2932bsm20013932a12.21 - gsmtp
+
+C: MIME-Version: 1.0
+Content-type: text/html; charset=UTF-8
+From: FinSight <sunnyalbin3640@gmail.com>
+To: albinsunny2028@mca.ajce.in
+Subject: Voucher Approved - V-20260113-2934
+
+
+                    <html>
+                    <head>
+                        <style>
+                            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                            .header { background: #22c55e; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+                            .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
+                            .voucher-number { font-size: 20px; font-weight: bold; color: #22c55e; margin: 15px 0; }
+                            .footer { margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class='container'>
+                            <div class='header'>
+                                <h2 style='margin: 0;'>✓ Voucher Approved</h2>
+                            </div>
+                            <div class='content'>
+                                <p>Dear Albin Sunny,</p>
+                                <p>Your voucher has been <strong>approved</strong> and posted to the general ledger.</p>
+                                <div class='voucher-number'>Voucher: V-20260113-2934</div>
+                                <p>The voucher has been successfully processed and is now part of the financial records.</p>
+                                <p>You can view the voucher details in your dashboard.</p>
+                                <div class='footer'>
+                                    <p>This is an automated notification from FinSight Accounting System.</p>
+                                    <p>Please do not reply to this email.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                
+.
+S: 250 2.0.0 OK  1768290300 41be03b00d2f7-c4cc8d2932bsm20013932a12.21 - gsmtp
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: c3VubnlhbGJpbjM2NDBAZ21haWwuY29t
+S: 334 UGFzc3dvcmQ6
+
+C: amJpYiBmcGVmIHl0ZWkgeXl6aA==
+S: 235 2.7.0 Accepted
+
+C: MAIL FROM: <sunnyalbin3640@gmail.com>
+S: 250 2.1.0 OK d9443c01a7336-2a3e3c4893dsm191588425ad.28 - gsmtp
+
+C: RCPT TO: <albinsunny2028@mca.ajce.in>
+S: 250 2.1.5 OK d9443c01a7336-2a3e3c4893dsm191588425ad.28 - gsmtp
+
+C: DATA
+S: 354 Go ahead d9443c01a7336-2a3e3c4893dsm191588425ad.28 - gsmtp
+
+C: MIME-Version: 1.0
+Content-type: text/html; charset=UTF-8
+From: FinSight <sunnyalbin3640@gmail.com>
+To: albinsunny2028@mca.ajce.in
+Subject: Voucher Rejected - V-20260113-6235
+
+
+                    <html>
+                    <head>
+                        <style>
+                            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                            .header { background: #ef4444; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+                            .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
+                            .voucher-number { font-size: 20px; font-weight: bold; color: #ef4444; margin: 15px 0; }
+                            .reason-box { background: #fee2e2; border-left: 4px solid #ef4444; padding: 15px; margin: 20px 0; border-radius: 4px; }
+                            .footer { margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class='container'>
+                            <div class='header'>
+                                <h2 style='margin: 0;'>✗ Voucher Rejected</h2>
+                            </div>
+                            <div class='content'>
+                                <p>Dear Albin Sunny,</p>
+                                <p>Your voucher has been <strong>rejected</strong> by the approver.</p>
+                                <div class='voucher-number'>Voucher: V-20260113-6235</div>
+                                <div class='reason-box'>
+                                    <strong>Rejection Reason:</strong><br>
+                                    not propper
+                                </div>
+                                <p>Please review the rejection reason and make necessary corrections before resubmitting.</p>
+                                <p>You can edit and resubmit the voucher from your dashboard.</p>
+                                <div class='footer'>
+                                    <p>This is an automated notification from FinSight Accounting System.</p>
+                                    <p>Please do not reply to this email.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                
+.
+S: 250 2.0.0 OK  1768290312 d9443c01a7336-2a3e3c4893dsm191588425ad.28 - gsmtp
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: c3VubnlhbGJpbjM2NDBAZ21haWwuY29t
+S: 334 UGFzc3dvcmQ6
+
+C: amJpYiBmcGVmIHl0ZWkgeXl6aA==
+S: 235 2.7.0 Accepted
+
+C: MAIL FROM: <sunnyalbin3640@gmail.com>
+S: 250 2.1.0 OK d9443c01a7336-2a3e3c3a51dsm200413595ad.18 - gsmtp
+
+C: RCPT TO: <albinsunny2028@mca.ajce.in>
+S: 250 2.1.5 OK d9443c01a7336-2a3e3c3a51dsm200413595ad.18 - gsmtp
+
+C: DATA
+S: 354 Go ahead d9443c01a7336-2a3e3c3a51dsm200413595ad.18 - gsmtp
+
+C: MIME-Version: 1.0
+Content-type: text/html; charset=UTF-8
+From: FinSight <sunnyalbin3640@gmail.com>
+To: albinsunny2028@mca.ajce.in
+Subject: Voucher Approved - V-20260113-7686
+
+
+                    <html>
+                    <head>
+                        <style>
+                            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                            .header { background: #22c55e; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+                            .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
+                            .voucher-number { font-size: 20px; font-weight: bold; color: #22c55e; margin: 15px 0; }
+                            .footer { margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class='container'>
+                            <div class='header'>
+                                <h2 style='margin: 0;'>✓ Voucher Approved</h2>
+                            </div>
+                            <div class='content'>
+                                <p>Dear Albin Sunny,</p>
+                                <p>Your voucher has been <strong>approved</strong> and posted to the general ledger.</p>
+                                <div class='voucher-number'>Voucher: V-20260113-7686</div>
+                                <p>The voucher has been successfully processed and is now part of the financial records.</p>
+                                <p>You can view the voucher details in your dashboard.</p>
+                                <div class='footer'>
+                                    <p>This is an automated notification from FinSight Accounting System.</p>
+                                    <p>Please do not reply to this email.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                
+.
+S: 250 2.0.0 OK  1768299739 d9443c01a7336-2a3e3c3a51dsm200413595ad.18 - gsmtp
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: c3VubnlhbGJpbjM2NDBAZ21haWwuY29t
+S: 334 UGFzc3dvcmQ6
+
+C: amJpYiBmcGVmIHl0ZWkgeXl6aA==
+S: 235 2.7.0 Accepted
+
+C: MAIL FROM: <sunnyalbin3640@gmail.com>
+S: 250 2.1.0 OK 41be03b00d2f7-c4cbf28faa9sm19620995a12.2 - gsmtp
+
+C: RCPT TO: <albinsunny2028@mca.ajce.in>
+S: 250 2.1.5 OK 41be03b00d2f7-c4cbf28faa9sm19620995a12.2 - gsmtp
+
+C: DATA
+S: 354 Go ahead 41be03b00d2f7-c4cbf28faa9sm19620995a12.2 - gsmtp
+
+C: MIME-Version: 1.0
+Content-type: text/html; charset=UTF-8
+From: FinSight <sunnyalbin3640@gmail.com>
+To: albinsunny2028@mca.ajce.in
+Subject: Voucher Approved - V-20260113-3990
+
+
+                    <html>
+                    <head>
+                        <style>
+                            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                            .header { background: #22c55e; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+                            .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
+                            .voucher-number { font-size: 20px; font-weight: bold; color: #22c55e; margin: 15px 0; }
+                            .footer { margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class='container'>
+                            <div class='header'>
+                                <h2 style='margin: 0;'>✓ Voucher Approved</h2>
+                            </div>
+                            <div class='content'>
+                                <p>Dear Albin Sunny,</p>
+                                <p>Your voucher has been <strong>approved</strong> and posted to the general ledger.</p>
+                                <div class='voucher-number'>Voucher: V-20260113-3990</div>
+                                <p>The voucher has been successfully processed and is now part of the financial records.</p>
+                                <p>You can view the voucher details in your dashboard.</p>
+                                <div class='footer'>
+                                    <p>This is an automated notification from FinSight Accounting System.</p>
+                                    <p>Please do not reply to this email.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                
+.
+S: 250 2.0.0 OK  1768299743 41be03b00d2f7-c4cbf28faa9sm19620995a12.2 - gsmtp
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: c3VubnlhbGJpbjM2NDBAZ21haWwuY29t
+S: 334 UGFzc3dvcmQ6
+
+C: amJpYiBmcGVmIHl0ZWkgeXl6aA==
+S: 235 2.7.0 Accepted
+
+C: MAIL FROM: <sunnyalbin3640@gmail.com>
+S: 250 2.1.0 OK d2e1a72fcca58-81e4633957bsm5234807b3a.18 - gsmtp
+
+C: RCPT TO: <albinsunny2028@mca.ajce.in>
+S: 250 2.1.5 OK d2e1a72fcca58-81e4633957bsm5234807b3a.18 - gsmtp
+
+C: DATA
+S: 354 Go ahead d2e1a72fcca58-81e4633957bsm5234807b3a.18 - gsmtp
+
+C: MIME-Version: 1.0
+Content-type: text/html; charset=UTF-8
+From: FinSight <sunnyalbin3640@gmail.com>
+To: albinsunny2028@mca.ajce.in
+Subject: Voucher Approved - V-20260113-4539
+
+
+                    <html>
+                    <head>
+                        <style>
+                            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                            .header { background: #22c55e; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+                            .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
+                            .voucher-number { font-size: 20px; font-weight: bold; color: #22c55e; margin: 15px 0; }
+                            .footer { margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class='container'>
+                            <div class='header'>
+                                <h2 style='margin: 0;'>✓ Voucher Approved</h2>
+                            </div>
+                            <div class='content'>
+                                <p>Dear Albin Sunny,</p>
+                                <p>Your voucher has been <strong>approved</strong> and posted to the general ledger.</p>
+                                <div class='voucher-number'>Voucher: V-20260113-4539</div>
+                                <p>The voucher has been successfully processed and is now part of the financial records.</p>
+                                <p>You can view the voucher details in your dashboard.</p>
+                                <div class='footer'>
+                                    <p>This is an automated notification from FinSight Accounting System.</p>
+                                    <p>Please do not reply to this email.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                
+.
+S: 250 2.0.0 OK  1768299747 d2e1a72fcca58-81e4633957bsm5234807b3a.18 - gsmtp
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [136.232.57.110]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [136.232.57.110]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: c3VubnlhbGJpbjM2NDBAZ21haWwuY29t
+S: 334 UGFzc3dvcmQ6
+
+C: amJpYiBmcGVmIHl0ZWkgeXl6aA==
+S: 235 2.7.0 Accepted
+
+C: MAIL FROM: <sunnyalbin3640@gmail.com>
+S: 250 2.1.0 OK 98e67ed59e1d1-35107b5fff3sm511757a91.5 - gsmtp
+
+C: RCPT TO: <albinsunny2028@mca.ajce.in>
+S: 250 2.1.5 OK 98e67ed59e1d1-35107b5fff3sm511757a91.5 - gsmtp
+
+C: DATA
+S: 354 Go ahead 98e67ed59e1d1-35107b5fff3sm511757a91.5 - gsmtp
+
+C: MIME-Version: 1.0
+Content-type: text/html; charset=UTF-8
+From: FinSight <sunnyalbin3640@gmail.com>
+To: albinsunny2028@mca.ajce.in
+Subject: Voucher Approved - V-20260114-6862
+
+
+                    <html>
+                    <head>
+                        <style>
+                            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                            .header { background: #22c55e; color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+                            .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
+                            .voucher-number { font-size: 20px; font-weight: bold; color: #22c55e; margin: 15px 0; }
+                            .footer { margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #6b7280; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class='container'>
+                            <div class='header'>
+                                <h2 style='margin: 0;'>✓ Voucher Approved</h2>
+                            </div>
+                            <div class='content'>
+                                <p>Dear Albin Sunny,</p>
+                                <p>Your voucher has been <strong>approved</strong> and posted to the general ledger.</p>
+                                <div class='voucher-number'>Voucher: V-20260114-6862</div>
+                                <p>The voucher has been successfully processed and is now part of the financial records.</p>
+                                <p>You can view the voucher details in your dashboard.</p>
+                                <div class='footer'>
+                                    <p>This is an automated notification from FinSight Accounting System.</p>
+                                    <p>Please do not reply to this email.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                
+.
+S: 250 2.0.0 OK  1768363094 98e67ed59e1d1-35107b5fff3sm511757a91.5 - gsmtp
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: c3VubnlhbGJpbjM2NDBAZ21haWwuY29t
+S: 334 UGFzc3dvcmQ6
+
+C: amJpYiBmcGVmIHl0ZWkgeXl6aA==
+S: 235 2.7.0 Accepted
+
+C: MAIL FROM: <sunnyalbin3640@gmail.com>
+S: 250 2.1.0 OK 41be03b00d2f7-c5edf35c1b9sm785630a12.26 - gsmtp
+
+C: RCPT TO: <sunnyalbin3640@gmail.com>
+S: 250 2.1.5 OK 41be03b00d2f7-c5edf35c1b9sm785630a12.26 - gsmtp
+
+C: DATA
+S: 354 Go ahead 41be03b00d2f7-c5edf35c1b9sm785630a12.26 - gsmtp
+
+C: MIME-Version: 1.0
+Content-type: text/html; charset=UTF-8
+From: FinSight <sunnyalbin3640@gmail.com>
+To: sunnyalbin3640@gmail.com
+Subject: Feedback: the vouchers are perfectily alright
+
+<h3>Feedback from User</h3><p>The accounts and the voucher trasactions are perfectly alright. good job !!!!</p><hr><small>Sent via FinSight Feedback System</small>
+.
+S: 250 2.0.0 OK  1768538503 41be03b00d2f7-c5edf35c1b9sm785630a12.26 - gsmtp
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [136.232.57.110]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [136.232.57.110]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: c3VubnlhbGJpbjM2NDBAZ21haWwuY29t
+S: 334 UGFzc3dvcmQ6
+
+C: amJpYiBmcGVmIHl0ZWkgeXl6aA==
+S: 235 2.7.0 Accepted
+
+C: MAIL FROM: <sunnyalbin3640@gmail.com>
+S: 250 2.1.0 OK 41be03b00d2f7-c5edf24dd20sm873909a12.14 - gsmtp
+
+C: RCPT TO: <admin@finsight.com>
+S: 250 2.1.5 OK 41be03b00d2f7-c5edf24dd20sm873909a12.14 - gsmtp
+
+C: DATA
+S: 354 Go ahead 41be03b00d2f7-c5edf24dd20sm873909a12.14 - gsmtp
+
+C: MIME-Version: 1.0
+Content-type: text/html; charset=UTF-8
+From: FinSight <sunnyalbin3640@gmail.com>
+To: admin@finsight.com
+Subject: Feedback: the vouchers are perfectily alright
+
+<h3>Feedback from Albin Sunny (albinsunny90808@gmail.com)</h3><p>sample message</p><hr><small>Sent via FinSight Feedback System at 2026-01-16 04:59:36</small>
+.
+S: 250 2.0.0 OK  1768539583 41be03b00d2f7-c5edf24dd20sm873909a12.14 - gsmtp
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: c3VubnlhbGJpbjM2NDBAZ21haWwuY29t
+S: 334 UGFzc3dvcmQ6
+
+C: amJpYiBmcGVmIHl0ZWkgeXl6aA==
+S: 235 2.7.0 Accepted
+
+C: MAIL FROM: <sunnyalbin3640@gmail.com>
+S: 250 2.1.0 OK d9443c01a7336-2a719412d37sm8174445ad.87 - gsmtp
+
+C: RCPT TO: <albinsunny90808@gmail.com>
+S: 250 2.1.5 OK d9443c01a7336-2a719412d37sm8174445ad.87 - gsmtp
+
+C: DATA
+S: 354 Go ahead d9443c01a7336-2a719412d37sm8174445ad.87 - gsmtp
+
+C: MIME-Version: 1.0
+Content-type: text/html; charset=UTF-8
+From: FinSight <sunnyalbin3640@gmail.com>
+To: albinsunny90808@gmail.com
+Subject: Feedback: the vouchers are perfectily alright
+
+<h3>Feedback from Albin Sunny (albinsunny90808@gmail.com)</h3><p>sample message</p><hr><small>Sent via FinSight Feedback System at 2026-01-16 04:59:51</small>
+.
+S: 250 2.0.0 OK  1768539601 d9443c01a7336-2a719412d37sm8174445ad.87 - gsmtp
+
