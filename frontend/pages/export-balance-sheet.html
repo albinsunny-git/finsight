@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Balance Sheet Export</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 40px;
+            color: #333;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            margin: 0;
+            color: #004d7a;
+            font-size: 24px;
+        }
+
+        .header h2 {
+            margin: 5px 0;
+            font-size: 18px;
+            font-weight: normal;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-logo-name {
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th {
+            background-color: #004d7a;
+            color: white;
+            padding: 12px;
+            border: 1px solid #ddd;
+        }
+
+        td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            vertical-align: top;
+        }
+
+        .category-header {
+            font-weight: bold;
+            padding-top: 15px;
+        }
+
+        .account-row {
+            padding-left: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .total-row {
+            font-weight: bold;
+            background-color: #f9f9f9;
+        }
+
+        @media print {
+            .no-print {
+                display: none;
+            }
+
+            body {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="no-print" style="margin-bottom: 20px;">
+        <button onclick="window.print()"
+            style="padding: 10px 20px; background: #004d7a; color: white; border: none; border-radius: 4px; cursor: pointer;">Print
+            / Save as PDF</button>
+    </div>
+
+    <div class="header">
+        <div class="brand-logo" style="justify-content: center; margin-bottom: 10px;">
+            <svg class="brand-logo-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"
+                style="width: 32px; height: 32px; color: #1e3a8a;">
+                <path d="M15 85 L40 85 L85 20 L100 20 L100 50 L85 50 L85 35 L40 85 L15 85 Z" fill="currentColor" />
+                <rect x="35" y="60" width="10" height="20" fill="currentColor" />
+                <rect x="52" y="45" width="10" height="35" fill="currentColor" />
+                <rect x="69" y="30" width="10" height="50" fill="currentColor" />
+            </svg>
+            <div class="brand-logo-text" style="text-align: left;">
+                <span class="brand-logo-name" style="font-size: 18px; color: #1e3a8a;">FINSIGHT</span>
+            </div>
+        </div>
+        <h2>Balance Sheet as on <span id="as-on-date"></span></h2>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 35%;">Liabilities</th>
+                <th style="width: 15%;">Amount</th>
+                <th style="width: 35%;">Assets</th>
+                <th style="width: 15%;">Amount</th>
+            </tr>
+        </thead>
+        <tbody id="bs-body">
+            <!-- Data will be injected here -->
+        </tbody>
+        <tfoot>
+            <tr class="total-row">
+                <td>Total</td>
+                <td id="total-liabilities">0.00</td>
+                <td>Total</td>
+                <td id="total-assets">0.00</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <script>
+        const API_URL = '../../backend/api';
+
+        async function fetchBalanceSheet() {
+            const date = new URLSearchParams(window.location.search).get('date') || new Date().toISOString().split('T')[0];
+            document.getElementById('as-on-date').textContent = date;
+
+            try {
+                // 1. Fetch Balance Sheet Data
+                const bsRes = await fetch(`${API_URL}/reports.php?type=balance-sheet&as_on_date=${date}`);
+                const bsData = await bsRes.json();
+
+                // 2. Fetch P&L Data for Net Profit
+                const plRes = await fetch(`${API_URL}/reports.php?type=profit-loss&to_date=${date}`);
+                const plData = await plRes.json();
+
+                if (bsData.success && plData.success) {
+                    renderBalanceSheet(bsData.data, plData.data);
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        function renderBalanceSheet(bs, pl) {
+            // Calculate Net Profit
+            const netProfit = pl.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+
+            // Group by category
+            const assets = bs.filter(a => a.type === 'Asset');
+            const liabilities = bs.filter(a => a.type === 'Liability');
+            const equity = bs.filter(a => a.type === 'Equity');
+
+            const liabGroups = {
+                'Current Liabilities': liabilities.filter(l => l.category === 'Current Liabilities'),
+                'Non-Current Liabilities': liabilities.filter(l => l.category === 'Non-Current Liabilities'),
+                'Capital': equity
+            };
+
+            const assetGroups = {
+                'Current Assets': assets.filter(a => a.category === 'Current Assets'),
+                'Fixed Assets': assets.filter(a => a.category === 'Fixed Assets')
+            };
+
+            const body = document.getElementById('bs-body');
+
+            // Helper to get rows for a side
+            const getSideRows = (groups, isLiabilitySide = false) => {
+                const rows = [];
+                for (const [cat, accounts] of Object.entries(groups)) {
+                    rows.push({ type: 'header', text: cat });
+                    accounts.forEach(acc => {
+                        rows.push({ type: 'account', name: acc.name, amount: Math.abs(acc.balance) });
+                    });
+                    if (isLiabilitySide && cat === 'Capital') {
+                        rows.push({ type: 'account', name: 'Add: Net Profit', amount: netProfit > 0 ? netProfit : 0 });
+                        if (netProfit < 0) {
+                            rows.push({ type: 'account', name: 'Less: Net Loss', amount: Math.abs(netProfit) });
+                        }
+                    }
+                }
+                return rows;
+            };
+
+            const leftRows = getSideRows(liabGroups, true);
+            const rightRows = getSideRows(assetGroups);
+
+            const rowCount = Math.max(leftRows.length, rightRows.length);
+
+            let html = '';
+            for (let i = 0; i < rowCount; i++) {
+                const left = leftRows[i] || {};
+                const right = rightRows[i] || {};
+
+                html += '<tr>';
+                // Left side
+                if (left.type === 'header') {
+                    html += `<td class="category-header">${left.text}</td><td></td>`;
+                } else if (left.type === 'account') {
+                    html += `<td>${left.name}</td><td style="text-align:right;">${formatCurrency(left.amount)}</td>`;
+                } else {
+                    html += '<td></td><td></td>';
+                }
+
+                // Right side
+                if (right.type === 'header') {
+                    html += `<td class="category-header">${right.text}</td><td></td>`;
+                } else if (right.type === 'account') {
+                    html += `<td>${right.name}</td><td style="text-align:right;">${formatCurrency(right.amount)}</td>`;
+                } else {
+                    html += '<td></td><td></td>';
+                }
+                html += '</tr>';
+            }
+
+            body.innerHTML = html;
+
+            // Totals
+            const totalLiabilities = liabilities.reduce((sum, l) => sum + Math.abs(l.balance), 0) +
+                equity.reduce((sum, e) => sum + Math.abs(e.balance), 0) + netProfit;
+            const totalAssets = assets.reduce((sum, a) => sum + Math.abs(a.balance), 0);
+
+            document.getElementById('total-liabilities').textContent = formatCurrency(totalLiabilities);
+            document.getElementById('total-assets').textContent = formatCurrency(totalAssets);
+        }
+
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-IN', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount);
+        }
+
+        fetchBalanceSheet();
+    </script>
+</body>
+
+</html>

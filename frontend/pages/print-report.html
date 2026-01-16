@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Report - FinSight</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1e293b;
+            --secondary-color: #334155;
+            --border-color: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: #f1f5f9;
+            padding: 40px;
+            color: var(--text-main);
+        }
+
+        .print-container {
+            background: white;
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            padding: 20mm;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .print-container {
+                width: 100%;
+                margin: 0;
+                box-shadow: none;
+                padding: 10mm;
+            }
+
+            .no-print {
+                display: none;
+            }
+        }
+
+        /* Company Header */
+        .company-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-section i {
+            font-size: 32px;
+            color: var(--primary-color);
+        }
+
+        .brand-name {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--primary-color);
+        }
+
+        .company-details {
+            text-align: right;
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text-muted);
+        }
+
+        .company-details strong {
+            color: var(--text-main);
+            font-size: 14px;
+        }
+
+        /* Report Header */
+        .report-title-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .report-title-section h1 {
+            font-size: 24px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--primary-color);
+            margin-bottom: 5px;
+        }
+
+        .report-period {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+
+        th {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            text-align: left;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        td {
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            font-size: 14px;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .font-bold {
+            font-weight: 700;
+        }
+
+        .bg-light {
+            background: #f8fafc;
+        }
+
+        .total-row {
+            background: var(--primary-color) !important;
+            color: white !important;
+            font-weight: 700;
+        }
+
+        /* Signature Section */
+        .signature-section {
+            margin-top: 80px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .sig-box {
+            width: 200px;
+            text-align: center;
+        }
+
+        .sig-line {
+            border-top: 1px solid var(--text-main);
+            margin-bottom: 10px;
+        }
+
+        .sig-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        /* Controls */
+        .controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
+
+        .btn-print {
+            background: #1e293b;
+            color: white;
+        }
+
+        .btn-close {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="controls no-print">
+        <button class="btn btn-close" onclick="window.close()">
+            <i class="fas fa-times"></i> Close
+        </button>
+        <button class="btn btn-print" onclick="window.print()">
+            <i class="fas fa-print"></i> Print as PDF
+        </button>
+    </div>
+
+    <div class="print-container">
+        <!-- Header -->
+        <div class="company-header">
+            <div class="brand-section">
+                <i class="fas fa-chart-line"></i>
+                <span class="brand-name">FINSIGHT</span>
+            </div>
+            <div class="company-details">
+                <strong>FINSIGHT TECHNOLOGIES PVT LTD</strong><br>
+                Corporate Office: 123, Business Hub, BKC, Mumbai - 400051<br>
+                GSTIN: 27AAAAA0000A1Z5 | PAN: AAAAA0000A<br>
+                Email: accounts@finsight.com | Web: www.finsight.com
+            </div>
+        </div>
+
+        <!-- Title -->
+        <div class="report-title-section">
+            <h1 id="reportTitle">BALANCE SHEET</h1>
+            <p class="report-period" id="reportDate">As of June 15, 2025</p>
+        </div>
+
+        <!-- Content -->
+        <div id="reportContent">
+            <!-- Dynamic Content Here -->
+        </div>
+
+        <!-- Signatures -->
+        <div class="signature-section">
+            <div class="sig-box">
+                <div class="sig-line"></div>
+                <div class="sig-label">Prepared By</div>
+            </div>
+            <div class="sig-box">
+                <div class="sig-line"></div>
+                <div class="sig-label">Authorized Signatory</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/admin-dashboard.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const type = urlParams.get('type') || 'balance-sheet';
+
+            // Set Titles
+            const titles = {
+                'balance-sheet': 'Statement of Financial Position (Balance Sheet)',
+                'profit-loss': 'Statement of Profit and Loss',
+                'trial-balance': 'Trial Balance Summary'
+            };
+            document.getElementById('reportTitle').textContent = titles[type] || 'Financial Report';
+            document.getElementById('reportDate').textContent = 'As of ' + new Date().toLocaleDateString('en-IN', {
+                year: 'numeric', month: 'long', day: 'numeric'
+            });
+
+            // Re-use logic but modify container
+            // We'll slightly adapt the formatCurrency to be cleaner for print
+            const originalFormat = window.formatCurrency;
+            window.formatCurrency = (num) => {
+                return new Intl.NumberFormat('en-IN', {
+                    style: 'currency',
+                    currency: 'INR',
+                    minimumFractionDigits: 2
+                }).format(num);
+            };
+
+            // Custom render for print
+            await renderPrintReport(type);
+        });
+
+        async function renderPrintReport(type) {
+            const container = document.getElementById('reportContent');
+
+            // Fetch data (same logic as generateDynamicReport)
+            let accounts = [];
+            try {
+                const res = await fetch(`${API_URL}/accounts.php?action=list`);
+                const data = await res.json();
+                if (data.success) accounts = data.data;
+            } catch (e) {
+                accounts = JSON.parse(localStorage.getItem('mock_accounts') || '[]');
+            }
+
+            if (type === 'trial-balance') {
+                let totalD = 0, totalC = 0;
+                let rows = accounts.map(a => {
+                    const bal = parseFloat(a.balance) || 0;
+                    const isD = (a.type === 'Asset' || a.type === 'Expense');
+                    if (isD) totalD += bal; else totalC += bal;
+                    return `<tr><td>${a.code} - ${a.name}</td><td class="text-right">${isD ? formatCurrency(bal) : '-'}</td><td class="text-right">${!isD ? formatCurrency(bal) : '-'}</td></tr>`;
+                }).join('');
+
+                container.innerHTML = `
+                    <table class="report-table">
+                        <thead>
+                            <tr><th>Account Description</th><th class="text-right">Debit Balance</th><th class="text-right">Credit Balance</th></tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                        <tfoot>
+                            <tr class="total-row"><td>GRAND TOTAL</td><td class="text-right">${formatCurrency(totalD)}</td><td class="text-right">${formatCurrency(totalC)}</td></tr>
+                        </tfoot>
+                    </table>`;
+            } else if (type === 'profit-loss') {
+                const inc = accounts.filter(a => a.type === 'Income');
+                const exp = accounts.filter(a => a.type === 'Expense');
+                const tInc = inc.reduce((s, a) => s + (parseFloat(a.balance) || 0), 0);
+                const tExp = exp.reduce((s, a) => s + (parseFloat(a.balance) || 0), 0);
+                const net = tInc - tExp;
+
+                container.innerHTML = `
+                    <h3>INCOME</h3>
+                    <table>
+                        ${inc.map(a => `<tr><td>${a.name}</td><td class="text-right">${formatCurrency(a.balance)}</td></tr>`).join('')}
+                        <tr class="bg-light font-bold"><td>Total Income (A)</td><td class="text-right">${formatCurrency(tInc)}</td></tr>
+                    </table>
+                    <h3 style="margin-top:20px;">EXPENDITURE</h3>
+                    <table>
+                        ${exp.map(a => `<tr><td>${a.name}</td><td class="text-right">${formatCurrency(a.balance)}</td></tr>`).join('')}
+                        <tr class="bg-light font-bold"><td>Total Expenditure (B)</td><td class="text-right">${formatCurrency(tExp)}</td></tr>
+                    </table>
+                    <table style="margin-top:30px;">
+                        <tr class="total-row">
+                            <td style="font-size:18px;">NET ${net >= 0 ? 'PROFIT' : 'LOSS'} FOR THE PERIOD (A - B)</td>
+                            <td class="text-right" style="font-size:18px;">${formatCurrency(net)}</td>
+                        </tr>
+                    </table>`;
+            } else if (type === 'balance-sheet') {
+                const assets = accounts.filter(a => a.type === 'Asset');
+                const liab = accounts.filter(a => a.type === 'Liability');
+                const equ = accounts.filter(a => a.type === 'Equity');
+                const tInc = accounts.filter(a => a.type === 'Income').reduce((s, a) => s + (parseFloat(a.balance) || 0), 0);
+                const tExp = accounts.filter(a => a.type === 'Expense').reduce((s, a) => s + (parseFloat(a.balance) || 0), 0);
+                const net = tInc - tExp;
+
+                const tAssets = assets.reduce((s, a) => s + (parseFloat(a.balance) || 0), 0);
+                const tLiabEqu = liab.reduce((s, a) => s + (parseFloat(a.balance) || 0), 0) +
+                    equ.reduce((s, a) => s + (parseFloat(a.balance) || 0), 0) + net;
+
+                container.innerHTML = `
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+                        <div>
+                            <h3>ASSETS</h3>
+                            <table>
+                                ${assets.map(a => `<tr><td>${a.name}</td><td class="text-right">${formatCurrency(a.balance)}</td></tr>`).join('')}
+                                <tr class="total-row"><td>TOTAL ASSETS</td><td class="text-right">${formatCurrency(tAssets)}</td></tr>
+                            </table>
+                        </div>
+                        <div>
+                            <h3>LIABILITIES & EQUITY</h3>
+                            <table>
+                                <tr class="bg-light"><td><strong>Liabilities</strong></td><td></td></tr>
+                                ${liab.map(a => `<tr><td>${a.name}</td><td class="text-right">${formatCurrency(a.balance)}</td></tr>`).join('')}
+                                <tr class="bg-light"><td><strong>Equity</strong></td><td></td></tr>
+                                ${equ.map(a => `<tr><td>${a.name}</td><td class="text-right">${formatCurrency(a.balance)}</td></tr>`).join('')}
+                                <tr><td>Reserves & Surplus (Net Profit)</td><td class="text-right">${formatCurrency(net)}</td></tr>
+                                <tr class="total-row"><td>TOTAL LIABILITIES & EQUITY</td><td class="text-right">${formatCurrency(tLiabEqu)}</td></tr>
+                            </table>
+                        </div>
+                    </div>`;
+            }
+        }
+    </script>
+</body>
+
+</html>
