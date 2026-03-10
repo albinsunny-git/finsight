@@ -274,123 +274,42 @@
             const urlParams = new URLSearchParams(window.location.search);
             const type = urlParams.get('type') || 'balance-sheet';
 
-            // Set Titles
-            const titles = {
-                'balance-sheet': 'Statement of Financial Position (Balance Sheet)',
-                'profit-loss': 'Statement of Profit and Loss',
-                'trial-balance': 'Trial Balance Summary'
-            };
-            document.getElementById('reportTitle').textContent = titles[type] || 'Financial Report';
-            document.getElementById('reportDate').textContent = 'As of ' + new Date().toLocaleDateString('en-IN', {
-                year: 'numeric', month: 'long', day: 'numeric'
-            });
-
-            // Re-use logic but modify container
-            // We'll slightly adapt the formatCurrency to be cleaner for print
-            const originalFormat = window.formatCurrency;
-            window.formatCurrency = (num) => {
-                return new Intl.NumberFormat('en-IN', {
-                    style: 'currency',
-                    currency: 'INR',
-                    minimumFractionDigits: 2
-                }).format(num);
-            };
-
-            // Custom render for print
-            await renderPrintReport(type);
-        });
-
-        async function renderPrintReport(type) {
-            const container = document.getElementById('reportContent');
-
-            // Fetch data (same logic as generateDynamicReport)
-            let accounts = [];
+            // Fetch data from API
             try {
-                const res = await fetch(`${API_URL}/accounts.php?action=list`);
-                const data = await res.json();
-                if (data.success) accounts = data.data;
+                const res = await fetch(`${API_URL}/reports.php?type=${type}`, { credentials: 'include' });
+                const json = await res.json();
+
+                if (json.success) {
+                    const today = new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
+                    let content = '';
+
+                    if (type === 'balance-sheet') {
+                        content = renderNewBalanceSheet(json.data, today);
+                    } else if (type === 'profit-loss') {
+                        content = renderNewProfitLoss(json.data, today);
+                    } else if (type === 'trial-balance') {
+                        content = renderNewTrialBalance(json.data, today);
+                    }
+
+                    const container = document.getElementById('reportContent');
+                    container.innerHTML = content;
+
+                    // Remove some styles for print to fit container
+                    const reportView = container.querySelector('.report-view');
+                    if (reportView) {
+                        reportView.style.boxShadow = 'none';
+                        reportView.style.padding = '0';
+                    }
+
+                    // Hide the header inside reportView since print-container already has it
+                    const innerHeader = container.querySelector('.report-header');
+                    if (innerHeader) innerHeader.style.display = 'none';
+                }
             } catch (e) {
-                accounts = JSON.parse(localStorage.getItem('mock_accounts') || '[]');
+                console.error('Print Error:', e);
+                document.getElementById('reportContent').innerHTML = '<p class="text-center">Failed to load report data.</p>';
             }
-
-            if (type === 'trial-balance') {
-                let totalD = 0, totalC = 0;
-                let rows = accounts.map(a => {
-                    const bal = parseFloat(a.balance) || 0;
-                    const isD = (a.type === 'Asset' || a.type === 'Expense');
-                    if (isD) totalD += bal; else totalC += bal;
-                    return `<tr><td>${a.code} - ${a.name}</td><td class="text-right">${isD ? formatCurrency(bal) : '-'}</td><td class="text-right">${!isD ? formatCurrency(bal) : '-'}</td></tr>`;
-                }).join('');
-
-                container.innerHTML = `
-                    <table class="report-table">
-                        <thead>
-                            <tr><th>Account Description</th><th class="text-right">Debit Balance</th><th class="text-right">Credit Balance</th></tr>
-                        </thead>
-                        <tbody>${rows}</tbody>
-                        <tfoot>
-                            <tr class="total-row"><td>GRAND TOTAL</td><td class="text-right">${formatCurrency(totalD)}</td><td class="text-right">${formatCurrency(totalC)}</td></tr>
-                        </tfoot>
-                    </table>`;
-            } else if (type === 'profit-loss') {
-                const inc = accounts.filter(a => a.type === 'Income');
-                const exp = accounts.filter(a => a.type === 'Expense');
-                const tInc = inc.reduce((s, a) => s + (parseFloat(a.balance) || 0), 0);
-                const tExp = exp.reduce((s, a) => s + (parseFloat(a.balance) || 0), 0);
-                const net = tInc - tExp;
-
-                container.innerHTML = `
-                    <h3>INCOME</h3>
-                    <table>
-                        ${inc.map(a => `<tr><td>${a.name}</td><td class="text-right">${formatCurrency(a.balance)}</td></tr>`).join('')}
-                        <tr class="bg-light font-bold"><td>Total Income (A)</td><td class="text-right">${formatCurrency(tInc)}</td></tr>
-                    </table>
-                    <h3 style="margin-top:20px;">EXPENDITURE</h3>
-                    <table>
-                        ${exp.map(a => `<tr><td>${a.name}</td><td class="text-right">${formatCurrency(a.balance)}</td></tr>`).join('')}
-                        <tr class="bg-light font-bold"><td>Total Expenditure (B)</td><td class="text-right">${formatCurrency(tExp)}</td></tr>
-                    </table>
-                    <table style="margin-top:30px;">
-                        <tr class="total-row">
-                            <td style="font-size:18px;">NET ${net >= 0 ? 'PROFIT' : 'LOSS'} FOR THE PERIOD (A - B)</td>
-                            <td class="text-right" style="font-size:18px;">${formatCurrency(net)}</td>
-                        </tr>
-                    </table>`;
-            } else if (type === 'balance-sheet') {
-                const assets = accounts.filter(a => a.type === 'Asset');
-                const liab = accounts.filter(a => a.type === 'Liability');
-                const equ = accounts.filter(a => a.type === 'Equity');
-                const tInc = accounts.filter(a => a.type === 'Income').reduce((s, a) => s + (parseFloat(a.balance) || 0), 0);
-                const tExp = accounts.filter(a => a.type === 'Expense').reduce((s, a) => s + (parseFloat(a.balance) || 0), 0);
-                const net = tInc - tExp;
-
-                const tAssets = assets.reduce((s, a) => s + (parseFloat(a.balance) || 0), 0);
-                const tLiabEqu = liab.reduce((s, a) => s + (parseFloat(a.balance) || 0), 0) +
-                    equ.reduce((s, a) => s + (parseFloat(a.balance) || 0), 0) + net;
-
-                container.innerHTML = `
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
-                        <div>
-                            <h3>ASSETS</h3>
-                            <table>
-                                ${assets.map(a => `<tr><td>${a.name}</td><td class="text-right">${formatCurrency(a.balance)}</td></tr>`).join('')}
-                                <tr class="total-row"><td>TOTAL ASSETS</td><td class="text-right">${formatCurrency(tAssets)}</td></tr>
-                            </table>
-                        </div>
-                        <div>
-                            <h3>LIABILITIES & EQUITY</h3>
-                            <table>
-                                <tr class="bg-light"><td><strong>Liabilities</strong></td><td></td></tr>
-                                ${liab.map(a => `<tr><td>${a.name}</td><td class="text-right">${formatCurrency(a.balance)}</td></tr>`).join('')}
-                                <tr class="bg-light"><td><strong>Equity</strong></td><td></td></tr>
-                                ${equ.map(a => `<tr><td>${a.name}</td><td class="text-right">${formatCurrency(a.balance)}</td></tr>`).join('')}
-                                <tr><td>Reserves & Surplus (Net Profit)</td><td class="text-right">${formatCurrency(net)}</td></tr>
-                                <tr class="total-row"><td>TOTAL LIABILITIES & EQUITY</td><td class="text-right">${formatCurrency(tLiabEqu)}</td></tr>
-                            </table>
-                        </div>
-                    </div>`;
-            }
-        }
+        });
     </script>
 </body>
 

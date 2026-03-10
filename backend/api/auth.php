@@ -78,7 +78,7 @@ class AuthController {
         
         // Normalize input and perform case-insensitive lookup for email/username
         $emailOrUsername = trim($data['email_or_username']);
-        $stmt = $this->db->prepare("SELECT id, email, username, password_hash, first_name, last_name, role, is_active, profile_image FROM users WHERE (LOWER(email) = LOWER(?) OR LOWER(username) = LOWER(?))");
+        $stmt = $this->db->prepare("SELECT id, email, username, password_hash, first_name, last_name, role, phone, is_active, profile_image FROM users WHERE (LOWER(email) = LOWER(?) OR LOWER(username) = LOWER(?))");
         $stmt->bind_param("ss", $emailOrUsername, $emailOrUsername);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -389,9 +389,9 @@ class AuthController {
             sendResponse(false, null, 'Invalid token payload from Google', 400);
         }
 
-        // Validate audience
-        if ($payload['aud'] !== GOOGLE_CLIENT_ID) {
-            sendResponse(false, null, 'Token audience mismatch', 403);
+        // Validate audience (Allow both OAuth Client ID and Firebase Project ID)
+        if ($payload['aud'] !== GOOGLE_CLIENT_ID && $payload['aud'] !== FIREBASE_PROJECT_ID) {
+            sendResponse(false, null, 'Token audience mismatch: ' . $payload['aud'], 403);
         }
 
         $email = $payload['email'] ?? null;
@@ -437,49 +437,8 @@ class AuthController {
                 $uStmt->close();
             }
         } else {
-            // Create new user (default role: accountant)
             $stmt->close();
-
-            // Create safe username (base on local part of email)
-            $base = preg_replace('/[^a-z0-9._-]/i', '', strtolower(strtok($email, '@')));
-            $username = $base;
-            $i = 1;
-            while (true) {
-                $check = $this->db->prepare("SELECT id FROM users WHERE username = ?");
-                $check->bind_param('s', $username);
-                $check->execute();
-                $resCheck = $check->get_result();
-                $check->close();
-                if ($resCheck->num_rows === 0) break;
-                $username = $base . $i; $i++;
-            }
-
-            $firstName = $payload['given_name'] ?? strtok($payload['name'] ?? '', ' ');
-            $lastName = $payload['family_name'] ?? trim(str_replace($firstName, '', ($payload['name'] ?? '')));
-            $picture = $payload['picture'] ?? null;
-
-            // Generate a random password since external auth is used; store a hash for safety
-            $randomPassword = bin2hex(random_bytes(8));
-            $passwordHash = hashPassword($randomPassword);
-
-            $role = 'accountant';
-            $stmtIns = $this->db->prepare("INSERT INTO users (email, username, password_hash, first_name, last_name, role, profile_image) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            $stmtIns->bind_param('sssssss', $email, $username, $passwordHash, $firstName, $lastName, $role, $picture);
-
-            if (!$stmtIns->execute()) {
-                sendResponse(false, null, 'Failed to create user from Google profile', 500);
-            }
-
-            $newId = $this->db->getConnection()->insert_id;
-            logAudit(0, 'USER_CREATED_VIA_GOOGLE', 'users', $newId);
-
-            // Reload user
-            $stmt2 = $this->db->prepare("SELECT id, email, username, first_name, last_name, role, is_active, profile_image FROM users WHERE id = ?");
-            $stmt2->bind_param('i', $newId);
-            $stmt2->execute();
-            $res2 = $stmt2->get_result();
-            $user = $res2->fetch_assoc();
-            $stmt2->close();
+            sendResponse(false, null, 'Access blocked for unknown users, contact admin', 403);
         }
 
         // Set session and update last_login

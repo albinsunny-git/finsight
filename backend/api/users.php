@@ -1,23 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/Database.php';
-
-// Check if user is authenticated
-function checkAuth() {
-    if (!isset($_SESSION['user_id'])) {
-        sendResponse(false, null, 'Unauthorized', 401);
-    }
-}
-
-// Check user role
-function checkRole($requiredRoles) {
-    checkAuth();
-    $userRole = strtolower(trim($_SESSION['role'] ?? ''));
-    $required = array_map('strtolower', (array)$requiredRoles);
-    
-    if (!in_array($userRole, $required)) {
-        sendResponse(false, null, 'Forbidden: Insufficient permissions', 403);
-    }
-}
+require_once __DIR__ . '/../config/AuthMiddleware.php';
 
 class UserController {
     private $db;
@@ -25,12 +8,10 @@ class UserController {
     public function __construct() {
         $this->db = new Database();
     }
-    
     public function getUsers() {
-        checkAuth(); // Allow all authenticated users to view directory for feedback
-
+        checkAuth(); // Allow all authenticated users to view directory
         
-        $sql = "SELECT id, email, username, first_name, last_name, phone, role, department, is_active, last_login, created_at
+        $sql = "SELECT id, email, username, first_name, last_name, phone, role, department, is_active, last_login, created_at, profile_image
                 FROM users
                 ORDER BY created_at DESC";
         
@@ -51,7 +32,7 @@ class UserController {
         $userId = intval($_GET['id'] ?? 0);
         if (!$userId) sendResponse(false, null, 'User ID is required', 400);
 
-        $stmt = $this->db->prepare("SELECT id, email, username, first_name, last_name, phone, role, department, is_active, last_login, created_at
+        $stmt = $this->db->prepare("SELECT id, email, username, first_name, last_name, phone, role, department, is_active, last_login, created_at, profile_image
                                    FROM users WHERE id = ?");
         $stmt->bind_param("i", $userId);
         $stmt->execute();
@@ -221,6 +202,127 @@ class UserController {
             sendResponse(false, null, 'Database error: ' . $this->db->getConnection()->error, 500);
         }
     }
+    
+    // Update own profile
+    public function updateProfile() {
+        checkAuth();
+        
+        $data = json_decode(file_get_contents('php://input'), true);
+        $userId = $_SESSION['user_id'];
+        
+        $updateFields = [];
+        $params = [];
+        $types = '';
+        
+        if (!empty($data['first_name'])) {
+            $updateFields[] = 'first_name = ?';
+            $params[] = $data['first_name'];
+            $types .= 's';
+        }
+        
+        if (!empty($data['last_name'])) {
+            $updateFields[] = 'last_name = ?';
+            $params[] = $data['last_name'];
+            $types .= 's';
+        }
+        
+        if (isset($data['phone'])) {
+            $updateFields[] = 'phone = ?';
+            $params[] = $data['phone'];
+            $types .= 's';
+        }
+        
+        if (!empty($data['department'])) {
+            $updateFields[] = 'department = ?';
+            $params[] = $data['department'];
+            $types .= 's';
+        }
+        
+        if (empty($updateFields)) {
+            sendResponse(false, null, 'No fields to update', 400);
+        }
+        
+        $params[] = $userId;
+        $types .= 'i';
+        
+        $sql = "UPDATE users SET " . implode(', ', $updateFields) . " WHERE id = ?";
+        $stmt = $this->db->prepare($sql);
+        if ($stmt) {
+            $stmt->bind_param($types, ...$params);
+            if ($stmt->execute()) {
+                logAudit($userId, 'PROFILE_UPDATED', 'users', $userId);
+                sendResponse(true, null, 'Profile updated successfully');
+            } else {
+                sendResponse(false, null, 'Failed to update profile', 500);
+            }
+            $stmt->close();
+        } else {
+            sendResponse(false, null, 'Database error', 500);
+        }
+    }
+
+    public function uploadProfileImage() {
+        checkAuth();
+        
+        $userId = $_SESSION['user_id'];
+        
+        if (!isset($_FILES['profile_image']) || $_FILES['profile_image']['error'] !== UPLOAD_ERR_OK) {
+            sendResponse(false, null, 'No valid image uploaded', 400);
+        }
+        
+        $file = $_FILES['profile_image'];
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        
+        if (!in_array($ext, $allowed)) {
+            sendResponse(false, null, 'Invalid file type. Only JPG, PNG, GIF, WEBP allowed.', 400);
+        }
+        
+        $filename = 'user_' . $userId . '_' . time() . '.' . $ext;
+        $uploadDir = __DIR__ . '/../uploads/profiles/';
+        
+        if (!file_exists($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+        
+        $destPath = $uploadDir . $filename;
+        
+        if (move_uploaded_file($file['tmp_name'], $destPath)) {
+            // Update db
+            $dbPath = 'uploads/profiles/' . $filename;
+            
+            // Delete old one if exists
+            $stmt = $this->db->prepare("SELECT profile_image FROM users WHERE id = ?");
+            $stmt->bind_param("i", $userId);
+            $stmt->execute();
+            $res = $stmt->get_result();
+            if ($row = $res->fetch_assoc()) {
+                if (!empty($row['profile_image'])) {
+                     $oldPath = __DIR__ . '/../' . $row['profile_image'];
+                     if (file_exists($oldPath)) unlink($oldPath);
+                }
+            }
+            $stmt->close();
+
+            $stmt = $this->db->prepare("UPDATE users SET profile_image = ? WHERE id = ?");
+            if ($stmt) {
+                $stmt->bind_param("si", $dbPath, $userId);
+                if ($stmt->execute()) {
+                    logAudit($userId, 'PROFILE_IMAGE_UPDATED', 'users', $userId);
+                    // generate full url for mobile response if possible, but relative path is ok too
+                    sendResponse(true, ['profile_image' => $dbPath], 'Profile image updated');
+                } else {
+                    sendResponse(false, null, 'Database update failed', 500);
+                }
+                $stmt->close();
+            } else {
+                sendResponse(false, null, 'Database error', 500);
+            }
+        } else {
+            sendResponse(false, null, 'Failed to save uploaded file', 500);
+        }
+    }
+
 
     // Deactivate (or activate) a user
     public function deactivateUser() {
@@ -266,12 +368,22 @@ class UserController {
         $stmt = $this->db->prepare("DELETE FROM users WHERE id = ?");
         $stmt->bind_param("i", $userId);
         
-        if ($stmt->execute()) {
-             logAudit($_SESSION['user_id'], 'USER_DELETED', 'users', $userId);
-             sendResponse(true, null, 'User deleted successfully');
-        } else {
-             sendResponse(false, null, 'Failed to delete user', 500);
+        try {
+            if ($stmt->execute()) {
+                 logAudit($_SESSION['user_id'], 'USER_DELETED', 'users', $userId);
+                 sendResponse(true, null, 'User deleted successfully');
+            } else {
+                 sendResponse(false, null, 'Failed to delete user', 500);
+            }
+        } catch (Exception $e) {
+            $msg = strtolower($e->getMessage());
+            if (strpos($msg, 'foreign key constraint') !== false || strpos($msg, 'cannot delete or update a parent row') !== false) {
+                 sendResponse(false, null, 'Cannot delete user: user is linked to existing records (like accounts or vouchers). Please deactivate them instead.', 400);
+            } else {
+                 sendResponse(false, null, 'Database error: ' . $e->getMessage(), 500);
+            }
         }
+        
         $stmt->close();
     }
 }
@@ -299,6 +411,12 @@ switch ($action) {
     case 'deactivate':
     case 'activate':
         $user->deactivateUser();
+        break;
+    case 'update-profile':
+        $user->updateProfile();
+        break;
+    case 'upload-profile-image':
+        $user->uploadProfileImage();
         break;
 
     case 'delete':

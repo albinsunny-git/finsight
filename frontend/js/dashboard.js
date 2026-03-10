@@ -2,6 +2,88 @@
 const DB_API_URL = 'http://localhost/finsight/backend/api';
 
 // ============================================
+// GLOBAL ALERT OVERRIDE
+// ============================================
+window.alert = function (message) {
+    if (document.getElementById('customAlertModal')) return;
+
+    // Detect message type roughly
+    let type = 'info';
+    let icon = 'fa-info-circle';
+    let iconColor = 'var(--primary-color)';
+    let iconBg = 'var(--primary-light)';
+    let title = 'Notification';
+
+    const msgLower = (message || '').toLowerCase();
+    if (msgLower.includes('fail') || msgLower.includes('error') || msgLower.includes('required') || message.includes('❌')) {
+        type = 'error';
+        icon = 'fa-exclamation-triangle';
+        iconColor = '#ef4444';
+        iconBg = '#fee2e2';
+        title = 'Wait a moment';
+    } else if (msgLower.includes('success') || message.includes('✓')) {
+        type = 'success';
+        icon = 'fa-check-circle';
+        iconColor = '#10b981';
+        iconBg = '#d1fae5';
+        title = 'Success!';
+    } else if (msgLower.includes('warning') || msgLower.includes('careful')) {
+        type = 'warning';
+        icon = 'fa-exclamation-circle';
+        iconColor = '#f59e0b';
+        iconBg = '#fef3c7';
+        title = 'Warning';
+    }
+
+    // Clean up Emojis from string if they exist to prevent double visual cues
+    const cleanMessage = message.replace(/[❌✓]/g, '').trim();
+
+    const alertHtml = `
+        <div id="customAlertModal" class="modal active" style="z-index: 9999; backdrop-filter: blur(8px); background: rgba(15, 23, 42, 0.4);">
+            <div class="modal-content" style="max-width: 420px; padding: 40px 30px; text-align: center; border-radius: 24px; animation: alertPopIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); border: 1px solid rgba(255,255,255,0.7);">
+                
+                <div style="width: 80px; height: 80px; background: ${iconBg}; color: ${iconColor}; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 34px; margin: 0 auto 24px auto; box-shadow: 0 8px 24px ${iconBg}; border: 4px solid white;">
+                    <i class="fas ${icon}"></i>
+                </div>
+                
+                <h3 style="margin: 0 0 12px 0; font-size: 1.4rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.5px;">${title}</h3>
+                
+                <p style="color: var(--text-muted); font-size: 1.05rem; line-height: 1.6; margin: 0 0 30px 0;">${cleanMessage}</p>
+                
+                <button id="customAlertBtn" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 14px; font-weight: 700; font-size: 1.05rem; border-radius: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: all 0.2s; background: ${iconColor}; border-color: ${iconColor};">
+                    Okay, got it
+                </button>
+            </div>
+            <style>
+                @keyframes alertPopIn { 
+                    0% { transform: scale(0.7) translateY(30px); opacity: 0; } 
+                    60% { transform: scale(1.05) translateY(-5px); opacity: 1; }
+                    100% { transform: scale(1) translateY(0); opacity: 1; } 
+                }
+            </style>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', alertHtml);
+
+    const btn = document.getElementById('customAlertBtn');
+    if (btn) btn.focus();
+
+    const closeModalLogic = () => {
+        const modal = document.getElementById('customAlertModal');
+        if (modal) {
+            modal.style.animation = 'none';
+            modal.style.opacity = '0';
+            modal.style.transform = 'scale(0.95)';
+            modal.style.transition = 'all 0.2s ease-out';
+            setTimeout(() => modal.remove(), 200);
+        }
+    };
+
+    if (btn) btn.addEventListener('click', closeModalLogic);
+};
+
+// ============================================
 // GLOBAL SETTINGS APPLIER
 // ============================================
 
@@ -329,7 +411,7 @@ function updateUserProfile(user) {
     // Update header avatars
     avatarEls.forEach(el => {
         if (profilePhoto) {
-            el.innerHTML = `<img src="${profilePhoto}" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+            el.innerHTML = `<img src="${profilePhoto}" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;">`;
         } else {
             el.textContent = (user.first_name || 'U').charAt(0).toUpperCase();
             el.innerHTML = el.textContent;
@@ -339,7 +421,7 @@ function updateUserProfile(user) {
     // Update sidebar avatars
     sidebarAvatarEls.forEach(el => {
         if (profilePhoto) {
-            el.innerHTML = `<img src="${profilePhoto}" alt="Profile">`;
+            el.innerHTML = `<img src="${profilePhoto}" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;">`;
         } else {
             el.textContent = (user.first_name || 'U').charAt(0).toUpperCase();
             el.innerHTML = el.textContent;
@@ -391,6 +473,68 @@ function closeModal(modalId) {
         modal.classList.remove('active');
     }
 }
+
+// Global Confirm with Dynamic Modal (like logout)
+window.customConfirm = function (message, onConfirm, onCancel, options = {}) {
+    let modal = document.getElementById('globalConfirmModal');
+
+    if (!modal) {
+        const modalHtml = `
+            <div id="globalConfirmModal" class="modal">
+                <div class="modal-content" style="max-width: 400px; padding: 40px; text-align: center; border-radius: 24px;">
+                    <div style="width: 80px; height: 80px; background: #fee2e2; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 24px auto;">
+                        <i id="globalConfirmIcon" class="fas fa-question-circle"></i>
+                    </div>
+                    <h2 id="globalConfirmTitle" style="font-size: 24px; font-weight: 800; color: var(--text-main); margin-bottom: 12px;">Confirm Action</h2>
+                    <p id="globalConfirmMessage" style="color: var(--text-muted); margin-bottom: 32px; font-size: 15px; line-height: 1.6;"></p>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <button id="globalConfirmCancelBtn" class="btn" style="padding: 12px; border-radius: 12px; font-weight: 600; background: var(--bg-body); color: var(--text-main); border: 1px solid transparent; cursor: pointer; transition: all 0.2s;">Cancel</button>
+                        <button id="globalConfirmOkBtn" class="btn" style="padding: 12px; border-radius: 12px; font-weight: 600; background: #ef4444; color: white; border: 1px solid #ef4444; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);">Yes</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        modal = document.getElementById('globalConfirmModal');
+    }
+
+    document.getElementById('globalConfirmMessage').textContent = message;
+    if (options.title) document.getElementById('globalConfirmTitle').textContent = options.title;
+    if (options.icon) document.getElementById('globalConfirmIcon').className = options.icon;
+    if (options.confirmText) document.getElementById('globalConfirmOkBtn').textContent = options.confirmText;
+    if (options.cancelText) document.getElementById('globalConfirmCancelBtn').textContent = options.cancelText;
+
+    const okBtn = document.getElementById('globalConfirmOkBtn');
+    const cancelBtn = document.getElementById('globalConfirmCancelBtn');
+
+    // Remove old listeners by cloning
+    const newOk = okBtn.cloneNode(true);
+    okBtn.parentNode.replaceChild(newOk, okBtn);
+    const newCancel = cancelBtn.cloneNode(true);
+    cancelBtn.parentNode.replaceChild(newCancel, cancelBtn);
+
+    newCancel.addEventListener('click', () => {
+        closeModal('globalConfirmModal');
+        if (onCancel) onCancel();
+    });
+
+    newOk.addEventListener('click', () => {
+        closeModal('globalConfirmModal');
+        if (onConfirm) onConfirm();
+    });
+
+    setTimeout(() => {
+        modal.classList.add('active');
+    }, 10);
+};
+
+// Async wrapper for Global Confirm
+window.customConfirmAsync = function (message, options = {}) {
+    return new Promise((resolve) => {
+        window.customConfirm(message, () => resolve(true), () => resolve(false), options);
+    });
+};
 
 // --- Stats & Charts (Dashboard Page) ---
 async function loadDashboardStats() {

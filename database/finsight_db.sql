@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
     phone VARCHAR(20),
-    role ENUM('admin', 'manager', 'accountant', 'auditor') DEFAULT 'accountant',
+    role ENUM('admin', 'manager', 'accountant') DEFAULT 'accountant',
     department VARCHAR(100),
     is_active BOOLEAN DEFAULT TRUE,
     google_id VARCHAR(255) UNIQUE,
@@ -57,6 +57,8 @@ CREATE TABLE IF NOT EXISTS vouchers (
     id INT PRIMARY KEY AUTO_INCREMENT,
     voucher_number VARCHAR(50) UNIQUE NOT NULL,
     voucher_type_id INT NOT NULL,
+    from_account_id INT,
+    to_account_id INT,
     voucher_date DATE NOT NULL,
     reference_number VARCHAR(100),
     narration TEXT,
@@ -71,6 +73,8 @@ CREATE TABLE IF NOT EXISTS vouchers (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (voucher_type_id) REFERENCES voucher_types(id),
+    FOREIGN KEY (from_account_id) REFERENCES account_chart(id) ON DELETE SET NULL,
+    FOREIGN KEY (to_account_id) REFERENCES account_chart(id) ON DELETE SET NULL,
     FOREIGN KEY (posted_by) REFERENCES users(id) ON DELETE SET NULL,
     FOREIGN KEY (rejected_by) REFERENCES users(id) ON DELETE SET NULL,
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE RESTRICT,
@@ -200,3 +204,4 @@ CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_account_chart_type ON account_chart(type);
 CREATE INDEX idx_vouchers_created_by ON vouchers(created_by);
 CREATE INDEX idx_voucher_details_voucher ON voucher_details(voucher_id);
+

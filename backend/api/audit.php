@@ -1,18 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/Database.php';
-
-function checkAuth() {
-    if (!isset($_SESSION['user_id'])) {
-        sendResponse(false, null, 'Unauthorized', 401);
-    }
-}
-
-function checkRole($requiredRoles) {
-    checkAuth();
-    if (!in_array($_SESSION['role'], (array)$requiredRoles)) {
-        sendResponse(false, null, 'Forbidden: Insufficient permissions', 403);
-    }
-}
+require_once __DIR__ . '/../config/AuthMiddleware.php';
 
 class AuditController {
     private $db;
@@ -22,7 +10,7 @@ class AuditController {
     }
     
     public function getAuditTrail() {
-        checkRole(['admin', 'auditor']);
+        checkRole(['admin']);
         
         $userId = $_GET['user_id'] ?? null;
         $fromDate = $_GET['from_date'] ?? null;
@@ -106,7 +94,7 @@ class AuditController {
     }
     
     public function getEntityChanges() {
-        checkRole(['admin', 'auditor']);
+        checkRole(['admin']);
         
         $entityType = $_GET['entity_type'] ?? null;
         $entityId = $_GET['entity_id'] ?? null;

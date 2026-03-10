@@ -1235,3 +1235,762 @@ Subject: Feedback: the vouchers are perfectily alright
 .
 S: 250 2.0.0 OK  1768539601 d9443c01a7336-2a719412d37sm8174445ad.87 - gsmtp
 
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO LAPTOP-I3ODQ7RB
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: eW91cl9lbWFpbEBnbWFpbC5jb20=
+S: 334 UGFzc3dvcmQ6
+
+C: eW91cl9hcHBfcGFzc3dvcmQ=
+S: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-2a8dc225543sm10774665ad.73 - gsmtp
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: eW91cl9lbWFpbEBnbWFpbC5jb20=
+S: 334 UGFzc3dvcmQ6
+
+C: eW91cl9hcHBfcGFzc3dvcmQ=
+S: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials 98e67ed59e1d1-353f612917csm17726401a91.8 - gsmtp
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [136.232.57.110]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [136.232.57.110]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: eW91cl9lbWFpbEBnbWFpbC5jb20=
+S: 334 UGFzc3dvcmQ6
+
+C: eW91cl9hcHBfcGFzc3dvcmQ=
+S: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials d2e1a72fcca58-82379c1eeebsm14685536b3a.45 - gsmtp
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: eW91cl9lbWFpbEBnbWFpbC5jb20=
+S: 334 UGFzc3dvcmQ6
+
+C: eW91cl9hcHBfcGFzc3dvcmQ=
+S: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-2ad1a713ac9sm133455935ad.26 - gsmtp
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: eW91cl9lbWFpbEBnbWFpbC5jb20=
+S: 334 UGFzc3dvcmQ6
+
+C: eW91cl9hcHBfcGFzc3dvcmQ=
+S: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-2ad1aae9fb4sm131055695ad.84 - gsmtp
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [136.232.57.110]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [136.232.57.110]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: eW91cl9lbWFpbEBnbWFpbC5jb20=
+S: 334 UGFzc3dvcmQ6
+
+C: eW91cl9hcHBfcGFzc3dvcmQ=
+S: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-2ad7503d406sm107075755ad.75 - gsmtp
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: eW91cl9lbWFpbEBnbWFpbC5jb20=
+S: 334 UGFzc3dvcmQ6
+
+C: eW91cl9hcHBfcGFzc3dvcmQ=
+S: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials d2e1a72fcca58-826dd8ee244sm11186596b3a.63 - gsmtp
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [136.232.57.110]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [136.232.57.110]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: eW91cl9lbWFpbEBnbWFpbC5jb20=
+S: 334 UGFzc3dvcmQ6
+
+C: eW91cl9hcHBfcGFzc3dvcmQ=
+S: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-2ad74e350c0sm127188645ad.17 - gsmtp
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: eW91cl9lbWFpbEBnbWFpbC5jb20=
+S: 334 UGFzc3dvcmQ6
+
+C: eW91cl9hcHBfcGFzc3dvcmQ=
+S: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-2ad75173903sm133585595ad.81 - gsmtp
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [136.232.57.110]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [136.232.57.110]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: eW91cl9lbWFpbEBnbWFpbC5jb20=
+S: 334 UGFzc3dvcmQ6
+
+C: eW91cl9hcHBfcGFzc3dvcmQ=
+S: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-2adfb6df578sm109868585ad.81 - gsmtp
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: eW91cl9lbWFpbEBnbWFpbC5jb20=
+S: 334 UGFzc3dvcmQ6
+
+C: eW91cl9hcHBfcGFzc3dvcmQ=
+S: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials d2e1a72fcca58-82739ff324esm11007190b3a.38 - gsmtp
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: eW91cl9lbWFpbEBnbWFpbC5jb20=
+S: 334 UGFzc3dvcmQ6
+
+C: eW91cl9hcHBfcGFzc3dvcmQ=
+S: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-2adfb5dbaafsm153966215ad.36 - gsmtp
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: eW91cl9lbWFpbEBnbWFpbC5jb20=
+S: 334 UGFzc3dvcmQ6
+
+C: eW91cl9hcHBfcGFzc3dvcmQ=
+S: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials 98e67ed59e1d1-3597dfea2e7sm3856431a91.12 - gsmtp
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: eW91cl9lbWFpbEBnbWFpbC5jb20=
+S: 334 UGFzc3dvcmQ6
+
+C: eW91cl9hcHBfcGFzc3dvcmQ=
+S: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials 98e67ed59e1d1-359b2c1daa6sm2875619a91.0 - gsmtp
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [136.232.57.110]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [136.232.57.110]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: eW91cl9lbWFpbEBnbWFpbC5jb20=
+S: 334 UGFzc3dvcmQ6
+
+C: eW91cl9hcHBfcGFzc3dvcmQ=
+S: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials 98e67ed59e1d1-359b2e10cecsm2520335a91.16 - gsmtp
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: eW91cl9lbWFpbEBnbWFpbC5jb20=
+S: 334 UGFzc3dvcmQ6
+
+C: eW91cl9hcHBfcGFzc3dvcmQ=
+S: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials d2e1a72fcca58-8297faf677bsm3020761b3a.60 - gsmtp
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [136.232.57.110]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [136.232.57.110]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: eW91cl9lbWFpbEBnbWFpbC5jb20=
+S: 334 UGFzc3dvcmQ6
+
+C: eW91cl9hcHBfcGFzc3dvcmQ=
+S: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-2adfb6c4dd0sm232009425ad.70 - gsmtp
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: eW91cl9lbWFpbEBnbWFpbC5jb20=
+S: 334 UGFzc3dvcmQ6
+
+C: eW91cl9hcHBfcGFzc3dvcmQ=
+S: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials 98e67ed59e1d1-359b2de7c33sm2336976a91.11 - gsmtp
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: eW91cl9lbWFpbEBnbWFpbC5jb20=
+S: 334 UGFzc3dvcmQ6
+
+C: eW91cl9hcHBfcGFzc3dvcmQ=
+S: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials d2e1a72fcca58-82739d8805esm23001370b3a.16 - gsmtp
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: eW91cl9lbWFpbEBnbWFpbC5jb20=
+S: 334 UGFzc3dvcmQ6
+
+C: eW91cl9hcHBfcGFzc3dvcmQ=
+S: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials d2e1a72fcca58-8273a081a14sm20545498b3a.64 - gsmtp
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [136.232.57.110]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [136.232.57.110]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: eW91cl9lbWFpbEBnbWFpbC5jb20=
+S: 334 UGFzc3dvcmQ6
+
+C: eW91cl9hcHBfcGFzc3dvcmQ=
+S: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials d2e1a72fcca58-82992259c3esm905354b3a.22 - gsmtp
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [117.193.79.225]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: eW91cl9lbWFpbEBnbWFpbC5jb20=
+S: 334 UGFzc3dvcmQ6
+
+C: eW91cl9hcHBfcGFzc3dvcmQ=
+S: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-2adfb5c9f79sm244349475ad.33 - gsmtp
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [136.232.57.110]
+250-SIZE 35882577
+250-8BITMIME
+250-STARTTLS
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: STARTTLS
+S: 220 2.0.0 Ready to start TLS
+
+C: EHLO Albin-Sunny
+S: 250-smtp.gmail.com at your service, [136.232.57.110]
+250-SIZE 35882577
+250-8BITMIME
+250-AUTH LOGIN PLAIN XOAUTH2 PLAIN-CLIENTTOKEN OAUTHBEARER XOAUTH
+250-ENHANCEDSTATUSCODES
+250-PIPELINING
+250-CHUNKING
+250 SMTPUTF8
+
+C: AUTH LOGIN
+S: 334 VXNlcm5hbWU6
+
+C: eW91cl9lbWFpbEBnbWFpbC5jb20=
+S: 334 UGFzc3dvcmQ6
+
+C: eW91cl9hcHBfcGFzc3dvcmQ=
+S: 535-5.7.8 Username and Password not accepted. For more information, go to
+535 5.7.8  https://support.google.com/mail/?p=BadCredentials d9443c01a7336-2adfb5c2e4bsm314919225ad.32 - gsmtp
+

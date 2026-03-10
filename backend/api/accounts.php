@@ -1,18 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/Database.php';
-
-function checkAuth() {
-    if (!isset($_SESSION['user_id'])) {
-        sendResponse(false, null, 'Unauthorized', 401);
-    }
-}
-
-function checkRole($requiredRoles) {
-    checkAuth();
-    if (!in_array($_SESSION['role'], (array)$requiredRoles)) {
-        sendResponse(false, null, 'Forbidden: Insufficient permissions', 403);
-    }
-}
+require_once __DIR__ . '/../config/AuthMiddleware.php';
 
 class AccountController {
     private $db;

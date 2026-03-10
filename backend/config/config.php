@@ -23,19 +23,19 @@ define('MAIL_PASS', 'your_app_password');
 define('MAIL_FROM', 'noreply@finsight.com');
 
 // Google OAuth Configuration (Update with your Google OAuth credentials)
-define('GOOGLE_CLIENT_ID', 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com');
+define('GOOGLE_CLIENT_ID', '235402120316-oi9307meejpv5jlbtt7b4lfr4remn8js.apps.googleusercontent.com');
 define('GOOGLE_CLIENT_SECRET', 'YOUR_GOOGLE_CLIENT_SECRET');
 define('GOOGLE_REDIRECT_URI', APP_URL . '/backend/api/auth/google-callback.php');
 
 // Firebase Configuration (for Firebase Authentication)
-define('FIREBASE_API_KEY', 'YOUR_FIREBASE_API_KEY');
+define('FIREBASE_API_KEY', 'AIzaSyBIchbChhsl1arZvzUGjAZc4K2q-UAxXDM');
 define('FIREBASE_AUTH_DOMAIN', 'finsight-159e0.firebaseapp.com');
 define('FIREBASE_DATABASE_URL', 'https://your-project.firebaseio.com');
 define('FIREBASE_PROJECT_ID', 'finsight-159e0');
 define('FIREBASE_STORAGE_BUCKET', 'finsight-159e0.firebasestorage.app');
 define('FIREBASE_MESSAGING_SENDER_ID', '235402120316');
 define('FIREBASE_APP_ID', '1:235402120316:web:86248fc504288e10b54df9');
-define('FIREBASE_WEB_CLIENT_ID', 'YOUR_FIREBASE_WEB_CLIENT_ID');
+define('FIREBASE_WEB_CLIENT_ID', '235402120316-oi9307meejpv5jlbtt7b4lfr4remn8js.apps.googleusercontent.com');
 
 // File Upload Configuration
 define('MAX_FILE_SIZE', 5242880); // 5MB

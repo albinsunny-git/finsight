@@ -7,507 +7,8 @@
   <title>Settings - FinSight</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="../css/interactive-dashboard.css?v=8">
-  <style>
-    .settings-container {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
+  <link rel="stylesheet" href="../css/modern-dashboard.css?v=13">
 
-    .settings-grid {
-      display: grid;
-      grid-template-columns: 300px 1fr;
-      gap: 30px;
-      margin-top: 30px;
-    }
-
-    .settings-sidebar {
-      background: var(--bg-card);
-      border-radius: var(--radius-lg);
-      padding: 20px;
-      height: fit-content;
-      border: 1px solid var(--border-color);
-    }
-
-    .settings-nav-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px 16px;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all 0.2s;
-      margin-bottom: 8px;
-      font-weight: 500;
-      color: var(--text-muted);
-    }
-
-    .settings-nav-item:hover {
-      background: var(--bg-body);
-      color: var(--text-main);
-    }
-
-    .settings-nav-item.active {
-      background: var(--primary-color);
-      color: white;
-    }
-
-    .settings-nav-item i {
-      font-size: 18px;
-      width: 24px;
-    }
-
-    .settings-content {
-      background: var(--bg-card);
-      border-radius: var(--radius-lg);
-      padding: 40px;
-      border: 1px solid var(--border-color);
-    }
-
-    .settings-section {
-      display: none;
-    }
-
-    .settings-section.active {
-      display: block;
-    }
-
-    .profile-photo-section {
-      display: flex;
-      align-items: center;
-      gap: 30px;
-      padding: 30px;
-      background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
-      border-radius: 12px;
-      margin-bottom: 30px;
-    }
-
-    .profile-photo-preview {
-      position: relative;
-    }
-
-    .profile-photo-avatar {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      background: var(--secondary-color);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 48px;
-      font-weight: 700;
-      border: 4px solid white;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .profile-photo-avatar img {
-      width: 100%;
-      height: 100%;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-
-    .photo-upload-btn {
-      position: absolute;
-      bottom: 0;
-      right: 0;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: var(--primary-color);
-      color: white;
-      border: 3px solid white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .photo-upload-btn:hover {
-      transform: scale(1.1);
-    }
-
-    .section-title {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--text-main);
-      margin-bottom: 20px;
-      padding-bottom: 15px;
-      border-bottom: 2px solid var(--border-color);
-    }
-
-    .info-card {
-      background: #f9fafb;
-      padding: 16px;
-      border-radius: 10px;
-      border-left: 4px solid var(--info-color);
-      margin-bottom: 20px;
-    }
-
-    .info-card i {
-      color: var(--info-color);
-      margin-right: 8px;
-    }
-
-    /* Toggle Switch Styles */
-    .toggle-switch {
-      position: relative;
-      width: 52px;
-      height: 28px;
-      flex-shrink: 0;
-    }
-
-    .toggle-switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .toggle-slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #cbd5e1;
-      transition: 0.3s;
-      border-radius: 28px;
-    }
-
-    .toggle-slider:before {
-      position: absolute;
-      content: "";
-      height: 22px;
-      width: 22px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: 0.3s;
-      border-radius: 50%;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    }
-
-    .toggle-switch input:checked+.toggle-slider {
-      background-color: var(--primary-color);
-    }
-
-    .toggle-switch input:checked+.toggle-slider:before {
-      transform: translateX(24px);
-    }
-
-    /* Preference Row */
-    .pref-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px;
-      background: #f9fafb;
-      border-radius: 12px;
-      margin-bottom: 16px;
-      border: 1px solid var(--border-color);
-      transition: all 0.2s;
-    }
-
-    .pref-row:hover {
-      border-color: var(--primary-color);
-      background: #fef2f2;
-    }
-
-    .pref-info h4 {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--text-main);
-      margin-bottom: 4px;
-    }
-
-    .pref-info p {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin: 0;
-    }
-
-    .pref-control select {
-      padding: 10px 16px;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      background: white;
-      font-size: 14px;
-      min-width: 180px;
-      cursor: pointer;
-    }
-
-    .pref-control select:focus {
-      outline: none;
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
-    }
-
-    /* Theme Cards */
-    .theme-cards {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-      margin-top: 20px;
-    }
-
-    .theme-card {
-      padding: 20px;
-      border-radius: 12px;
-      border: 2px solid var(--border-color);
-      cursor: pointer;
-      transition: all 0.2s;
-      position: relative;
-    }
-
-    .theme-card:hover {
-      border-color: var(--primary-color);
-    }
-
-    .theme-card.active {
-      border-color: var(--primary-color);
-      background: #fef2f2;
-    }
-
-    .theme-card.active::after {
-      content: '\f00c';
-      font-family: 'Font Awesome 6 Free';
-      font-weight: 900;
-      position: absolute;
-      top: 12px;
-      right: 12px;
-      color: var(--primary-color);
-      font-size: 16px;
-    }
-
-    .theme-preview {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-
-    .theme-preview-bar {
-      height: 40px;
-      border-radius: 6px;
-      flex: 1;
-    }
-
-    .theme-card-light .theme-preview-bar:first-child {
-      background: #f3f4f6;
-    }
-
-    .theme-card-light .theme-preview-bar:last-child {
-      background: white;
-      border: 1px solid #e5e7eb;
-    }
-
-    .theme-card-dark .theme-preview-bar:first-child {
-      background: #1f2937;
-    }
-
-    .theme-card-dark .theme-preview-bar:last-child {
-      background: #111827;
-    }
-
-    .theme-name {
-      font-weight: 600;
-      font-size: 15px;
-      color: var(--text-main);
-    }
-
-    /* Color Options */
-    .color-options {
-      display: flex;
-      gap: 12px;
-      margin-top: 16px;
-      flex-wrap: wrap;
-    }
-
-    .color-option {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      cursor: pointer;
-      border: 3px solid transparent;
-      transition: all 0.2s;
-      position: relative;
-    }
-
-    .color-option:hover {
-      transform: scale(1.1);
-    }
-
-    .color-option.active {
-      border-color: var(--text-main);
-    }
-
-    .color-option.active::after {
-      content: '\f00c';
-      font-family: 'Font Awesome 6 Free';
-      font-weight: 900;
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: white;
-      font-size: 14px;
-    }
-
-    /* Font Size Preview */
-    .font-size-preview {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-top: 16px;
-    }
-
-    .font-size-preview input[type="range"] {
-      flex: 1;
-      height: 6px;
-      -webkit-appearance: none;
-      appearance: none;
-      background: linear-gradient(to right, var(--primary-color) 0%, var(--primary-color) var(--value), #e5e7eb var(--value), #e5e7eb 100%);
-      border-radius: 3px;
-      outline: none;
-    }
-
-    .font-size-preview input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 20px;
-      height: 20px;
-      background: var(--primary-color);
-      border-radius: 50%;
-      cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-    }
-
-    .font-size-label {
-      font-size: 14px;
-      color: var(--text-muted);
-      min-width: 40px;
-    }
-
-    .subsection-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--text-main);
-      margin: 30px 0 16px 0;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .subsection-title i {
-      color: var(--primary-color);
-    }
-
-    /* Toast Notifications */
-    .toast-container {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .toast {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      background: white;
-      padding: 16px 20px;
-      border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-      min-width: 320px;
-      animation: slideIn 0.3s ease;
-      border-left: 4px solid var(--primary-color);
-    }
-
-    .toast.success {
-      border-left-color: #10b981;
-    }
-
-    .toast.error {
-      border-left-color: #ef4444;
-    }
-
-    .toast.warning {
-      border-left-color: #f59e0b;
-    }
-
-    .toast i {
-      font-size: 20px;
-    }
-
-    .toast.success i {
-      color: #10b981;
-    }
-
-    .toast.error i {
-      color: #ef4444;
-    }
-
-    .toast.warning i {
-      color: #f59e0b;
-    }
-
-    .toast-content {
-      flex: 1;
-    }
-
-    .toast-title {
-      font-weight: 600;
-      font-size: 15px;
-      color: var(--text-main);
-      margin-bottom: 2px;
-    }
-
-    .toast-message {
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-
-    .toast-close {
-      background: none;
-      border: none;
-      font-size: 18px;
-      color: var(--text-muted);
-      cursor: pointer;
-      padding: 4px;
-    }
-
-    .toast-close:hover {
-      color: var(--text-main);
-    }
-
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateX(100px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
-    @keyframes slideOut {
-      from {
-        opacity: 1;
-        transform: translateX(0);
-      }
-
-      to {
-        opacity: 0;
-        transform: translateX(100px);
-      }
-    }
-  </style>
 </head>
 
 <body>
@@ -525,10 +26,7 @@
       </div>
 
       <nav class="sidebar-nav">
-        <a href="../index.html" class="nav-link">
-          <i class="fas fa-home"></i>
-          <span>Home</span>
-        </a>
+
         <a href="dashboard.html" class="nav-link">
           <i class="fas fa-columns"></i>
           <span>Dashboard</span>
@@ -607,429 +105,192 @@
                 <i class="fas fa-palette"></i>
                 <span>Appearance</span>
               </div>
-              <div class="settings-nav-item" data-section="preferences">
-                <i class="fas fa-sliders-h"></i>
-                <span>App Preferences</span>
-              </div>
-              <div class="settings-nav-item" data-section="notifications">
-                <i class="fas fa-bell"></i>
-                <span>Notifications</span>
-              </div>
             </div>
+          </div>
 
-            <!-- Settings Content -->
-            <div class="settings-content">
-              <!-- Profile Settings -->
-              <div class="settings-section active" id="profile">
-                <h2 class="section-title"><i class="fas fa-user-circle"></i> Profile Information</h2>
+          <!-- Settings Content -->
+          <div class="settings-content">
+            <!-- Profile Settings -->
+            <div class="settings-section active" id="profile">
+              <h2 class="section-title"><i class="fas fa-user-circle"></i> Profile Information</h2>
 
-                <!-- Profile Photo -->
-                <div class="profile-photo-section">
-                  <div class="profile-photo-preview">
-                    <div class="profile-photo-avatar" id="profilePhotoPreview">
-                      <span id="profileInitial">A</span>
-                    </div>
-                    <label for="profilePhotoInput" class="photo-upload-btn">
-                      <i class="fas fa-camera"></i>
-                    </label>
-                    <input type="file" id="profilePhotoInput" accept="image/*" style="display: none;">
+              <!-- Profile Photo -->
+              <div class="profile-photo-section">
+                <div class="profile-photo-preview">
+                  <div class="profile-photo-avatar" id="profilePhotoPreview">
+                    <span id="profileInitial">A</span>
                   </div>
-                  <div>
-                    <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Profile Photo</h3>
-                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 12px;">Upload a professional
-                      photo for your profile</p>
-                    <button class="btn btn-secondary btn-sm"
-                      onclick="document.getElementById('profilePhotoInput').click()">
-                      <i class="fas fa-upload"></i> Choose Photo
-                    </button>
-                    <button class="btn btn-sm" onclick="removeProfilePhoto()"
-                      style="margin-left: 8px; color: var(--danger-color); background: #fee2e2;">
-                      <i class="fas fa-trash"></i> Remove
-                    </button>
-                  </div>
+                  <label for="profilePhotoInput" class="photo-upload-btn">
+                    <i class="fas fa-camera"></i>
+                  </label>
+                  <input type="file" id="profilePhotoInput" accept="image/*" style="display: none;">
                 </div>
-
-                <!-- Profile Form -->
-                <form id="profileForm">
-                  <div class="form-grid">
-                    <div class="form-group">
-                      <label><i class="fas fa-user"></i> First Name</label>
-                      <input type="text" id="profileFirstName" required>
-                    </div>
-                    <div class="form-group">
-                      <label><i class="fas fa-user"></i> Last Name</label>
-                      <input type="text" id="profileLastName" required>
-                    </div>
-                    <div class="form-group full-width">
-                      <label><i class="fas fa-envelope"></i> Email Address</label>
-                      <input type="email" id="profileEmail" required>
-                    </div>
-                    <div class="form-group">
-                      <label><i class="fas fa-phone"></i> Phone Number</label>
-                      <input type="tel" id="profilePhone" placeholder="+91 98765 43210">
-                    </div>
-                    <div class="form-group">
-                      <label><i class="fas fa-building"></i> Department</label>
-                      <input type="text" id="profileDepartment">
-                    </div>
-                  </div>
-                  <button type="submit" class="btn btn-primary" style="margin-top: 20px; padding: 14px 28px;">
-                    <i class="fas fa-save"></i> Save Profile Changes
+                <div>
+                  <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Profile Photo</h3>
+                  <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 12px;">Upload a professional
+                    photo for your profile</p>
+                  <button class="btn btn-secondary btn-sm"
+                    onclick="document.getElementById('profilePhotoInput').click()">
+                    <i class="fas fa-upload"></i> Choose Photo
                   </button>
-                </form>
+                  <button class="btn btn-sm" onclick="removeProfilePhoto()"
+                    style="margin-left: 8px; color: var(--danger-color); background: #fee2e2;">
+                    <i class="fas fa-trash"></i> Remove
+                  </button>
+                </div>
               </div>
 
-              <!-- Security Settings -->
-              <div class="settings-section" id="security">
-                <h2 class="section-title"><i class="fas fa-shield-alt"></i> Security & Password</h2>
-
-                <div class="info-card">
-                  <i class="fas fa-info-circle"></i>
-                  <strong>Password Requirements:</strong> Minimum 8 characters, including uppercase, lowercase, number,
-                  and special character.
-                </div>
-
-                <form id="passwordForm">
+              <!-- Profile Form -->
+              <form id="profileForm">
+                <div class="form-grid">
                   <div class="form-group">
-                    <label><i class="fas fa-lock"></i> Current Password</label>
-                    <input type="password" id="currentPassword" required>
+                    <label><i class="fas fa-user"></i> First Name</label>
+                    <input type="text" id="profileFirstName" required>
                   </div>
-                  <div class="form-grid">
-                    <div class="form-group">
-                      <label><i class="fas fa-key"></i> New Password</label>
-                      <input type="password" id="newPassword" required minlength="8">
-                    </div>
-                    <div class="form-group">
-                      <label><i class="fas fa-check-circle"></i> Confirm New Password</label>
-                      <input type="password" id="confirmPassword" required minlength="8">
-                    </div>
+                  <div class="form-group">
+                    <label><i class="fas fa-user"></i> Last Name</label>
+                    <input type="text" id="profileLastName" required>
                   </div>
-                  <button type="submit" class="btn btn-primary" style="margin-top: 20px; padding: 14px 28px;">
-                    <i class="fas fa-shield-alt"></i> Update Password
-                  </button>
-                </form>
-              </div>
-
-              <!-- Appearance Settings -->
-              <div class="settings-section" id="appearance">
-                <h2 class="section-title"><i class="fas fa-palette"></i> Appearance Settings</h2>
-
-                <div class="subsection-title">
-                  <i class="fas fa-moon"></i> Theme Mode
-                </div>
-                <div class="theme-cards">
-                  <div class="theme-card theme-card-light active" data-theme="light" onclick="setTheme('light')">
-                    <div class="theme-preview">
-                      <div class="theme-preview-bar"></div>
-                      <div class="theme-preview-bar"></div>
-                    </div>
-                    <div class="theme-name">Light Mode</div>
+                  <div class="form-group full-width">
+                    <label><i class="fas fa-envelope"></i> Email Address</label>
+                    <input type="email" id="profileEmail" required>
                   </div>
-                  <div class="theme-card theme-card-dark" data-theme="dark" onclick="setTheme('dark')">
-                    <div class="theme-preview">
-                      <div class="theme-preview-bar"></div>
-                      <div class="theme-preview-bar"></div>
-                    </div>
-                    <div class="theme-name">Dark Mode</div>
+                  <div class="form-group">
+                    <label><i class="fas fa-phone"></i> Phone Number</label>
+                    <input type="tel" id="profilePhone" placeholder="+91 98765 43210">
+                  </div>
+                  <div class="form-group">
+                    <label><i class="fas fa-building"></i> Department</label>
+                    <input type="text" id="profileDepartment">
                   </div>
                 </div>
-
-                <div class="subsection-title">
-                  <i class="fas fa-fill-drip"></i> Accent Color
-                </div>
-                <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 8px;">Choose your preferred accent
-                  color for buttons and highlights</p>
-                <div class="color-options">
-                  <div class="color-option active" style="background: #ef4444;" data-color="#ef4444"
-                    title="Red (Default)" onclick="setAccentColor('#ef4444')"></div>
-                  <div class="color-option" style="background: #3b82f6;" data-color="#3b82f6" title="Blue"
-                    onclick="setAccentColor('#3b82f6')"></div>
-                  <div class="color-option" style="background: #10b981;" data-color="#10b981" title="Green"
-                    onclick="setAccentColor('#10b981')"></div>
-                  <div class="color-option" style="background: #8b5cf6;" data-color="#8b5cf6" title="Purple"
-                    onclick="setAccentColor('#8b5cf6')"></div>
-                  <div class="color-option" style="background: #f59e0b;" data-color="#f59e0b" title="Orange"
-                    onclick="setAccentColor('#f59e0b')"></div>
-                  <div class="color-option" style="background: #ec4899;" data-color="#ec4899" title="Pink"
-                    onclick="setAccentColor('#ec4899')"></div>
-                  <div class="color-option" style="background: #14b8a6;" data-color="#14b8a6" title="Teal"
-                    onclick="setAccentColor('#14b8a6')"></div>
-                </div>
-
-                <div class="subsection-title">
-                  <i class="fas fa-text-height"></i> Font Size
-                </div>
-                <div class="font-size-preview">
-                  <span class="font-size-label">A</span>
-                  <input type="range" id="fontSizeSlider" min="12" max="20" value="14"
-                    oninput="setFontSize(this.value)">
-                  <span class="font-size-label" style="font-size: 18px;">A</span>
-                  <span id="fontSizeValue"
-                    style="font-weight: 600; color: var(--primary-color); min-width: 50px;">14px</span>
-                </div>
-
-                <div class="pref-row" style="margin-top: 30px;">
-                  <div class="pref-info">
-                    <h4>Compact Mode</h4>
-                    <p>Reduce spacing and padding for more content on screen</p>
-                  </div>
-                  <label class="toggle-switch">
-                    <input type="checkbox" id="compactMode" onchange="toggleCompactMode()">
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-
-                <div class="pref-row">
-                  <div class="pref-info">
-                    <h4>Sidebar Always Open</h4>
-                    <p>Keep the sidebar expanded on all screen sizes</p>
-                  </div>
-                  <label class="toggle-switch">
-                    <input type="checkbox" id="sidebarExpanded" checked onchange="toggleSidebarSetting()">
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-
-                <button class="btn btn-primary" style="margin-top: 20px; padding: 14px 28px;"
-                  onclick="saveAppearanceSettings()">
-                  <i class="fas fa-save"></i> Save Appearance Settings
+                <button type="submit" class="btn btn-primary" style="margin-top: 20px; padding: 14px 28px;">
+                  <i class="fas fa-save"></i> Save Profile Changes
                 </button>
-              </div>
-
-              <!-- App Preferences -->
-              <div class="settings-section" id="preferences">
-                <h2 class="section-title"><i class="fas fa-sliders-h"></i> Application Preferences</h2>
-
-                <div class="subsection-title">
-                  <i class="fas fa-globe"></i> Regional Settings
-                </div>
-
-                <div class="pref-row">
-                  <div class="pref-info">
-                    <h4>Currency</h4>
-                    <p>Select your preferred currency for displaying amounts</p>
-                  </div>
-                  <div class="pref-control">
-                    <select id="prefCurrency">
-                      <option value="INR" selected>₹ Indian Rupee (INR)</option>
-                      <option value="USD">$ US Dollar (USD)</option>
-                      <option value="EUR">€ Euro (EUR)</option>
-                      <option value="GBP">£ British Pound (GBP)</option>
-                      <option value="AED">د.إ UAE Dirham (AED)</option>
-                      <option value="JPY">¥ Japanese Yen (JPY)</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div class="pref-row">
-                  <div class="pref-info">
-                    <h4>Date Format</h4>
-                    <p>Choose how dates are displayed throughout the app</p>
-                  </div>
-                  <div class="pref-control">
-                    <select id="prefDateFormat">
-                      <option value="DD/MM/YYYY" selected>DD/MM/YYYY (31/12/2025)</option>
-                      <option value="MM/DD/YYYY">MM/DD/YYYY (12/31/2025)</option>
-                      <option value="YYYY-MM-DD">YYYY-MM-DD (2025-12-31)</option>
-                      <option value="DD-MMM-YYYY">DD-MMM-YYYY (31-Dec-2025)</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div class="pref-row">
-                  <div class="pref-info">
-                    <h4>Time Zone</h4>
-                    <p>Set your local timezone for accurate timestamps</p>
-                  </div>
-                  <div class="pref-control">
-                    <select id="prefTimezone">
-                      <option value="Asia/Kolkata" selected>Asia/Kolkata (IST, +5:30)</option>
-                      <option value="UTC">UTC (Coordinated Universal Time)</option>
-                      <option value="America/New_York">America/New_York (EST/EDT)</option>
-                      <option value="Europe/London">Europe/London (GMT/BST)</option>
-                      <option value="Asia/Dubai">Asia/Dubai (GST, +4:00)</option>
-                      <option value="Asia/Singapore">Asia/Singapore (SGT, +8:00)</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div class="pref-row">
-                  <div class="pref-info">
-                    <h4>Language</h4>
-                    <p>Select your preferred language for the interface</p>
-                  </div>
-                  <div class="pref-control">
-                    <select id="prefLanguage">
-                      <option value="en" selected>English</option>
-                      <option value="hi">हिंदी (Hindi)</option>
-                      <option value="mr">मराठी (Marathi)</option>
-                      <option value="gu">ગુજરાતી (Gujarati)</option>
-                      <option value="ta">தமிழ் (Tamil)</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div class="subsection-title">
-                  <i class="fas fa-cogs"></i> General Settings
-                </div>
-
-                <div class="pref-row">
-                  <div class="pref-info">
-                    <h4>Default Start Page</h4>
-                    <p>Choose where to land after logging in</p>
-                  </div>
-                  <div class="pref-control">
-                    <select id="prefDefaultPage">
-                      <option value="dashboard" selected>Dashboard</option>
-                      <option value="accounts">Accounts</option>
-                      <option value="vouchers">Vouchers</option>
-                      <option value="reports">Reports</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div class="pref-row">
-                  <div class="pref-info">
-                    <h4>Financial Year Start</h4>
-                    <p>Set the start month of your financial year</p>
-                  </div>
-                  <div class="pref-control">
-                    <select id="prefFYStart">
-                      <option value="4" selected>April (Indian FY)</option>
-                      <option value="1">January (Calendar Year)</option>
-                      <option value="7">July (Australian FY)</option>
-                      <option value="10">October (US Federal FY)</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div class="pref-row">
-                  <div class="pref-info">
-                    <h4>Auto-save Drafts</h4>
-                    <p>Automatically save voucher drafts while editing</p>
-                  </div>
-                  <label class="toggle-switch">
-                    <input type="checkbox" id="prefAutoSave" checked>
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-
-                <div class="pref-row">
-                  <div class="pref-info">
-                    <h4>Show Account Codes</h4>
-                    <p>Display account codes alongside account names</p>
-                  </div>
-                  <label class="toggle-switch">
-                    <input type="checkbox" id="prefShowCodes" checked>
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-
-                <button class="btn btn-primary" style="margin-top: 20px; padding: 14px 28px;"
-                  onclick="savePreferences()">
-                  <i class="fas fa-save"></i> Save Preferences
-                </button>
-              </div>
-
-              <!-- Notifications -->
-              <div class="settings-section" id="notifications">
-                <h2 class="section-title"><i class="fas fa-bell"></i> Notification Settings</h2>
-
-                <div class="subsection-title">
-                  <i class="fas fa-envelope"></i> Email Notifications
-                </div>
-
-                <div class="pref-row">
-                  <div class="pref-info">
-                    <h4>Daily Summary</h4>
-                    <p>Receive a daily email with your activity summary</p>
-                  </div>
-                  <label class="toggle-switch">
-                    <input type="checkbox" id="notifyDailySummary">
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-
-                <div class="pref-row">
-                  <div class="pref-info">
-                    <h4>Voucher Approval Alerts</h4>
-                    <p>Get notified when vouchers need your approval</p>
-                  </div>
-                  <label class="toggle-switch">
-                    <input type="checkbox" id="notifyVoucherApproval" checked>
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-
-                <div class="pref-row">
-                  <div class="pref-info">
-                    <h4>Payment Reminders</h4>
-                    <p>Receive reminders for upcoming payments</p>
-                  </div>
-                  <label class="toggle-switch">
-                    <input type="checkbox" id="notifyPaymentReminder" checked>
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-
-                <div class="pref-row">
-                  <div class="pref-info">
-                    <h4>Monthly Reports</h4>
-                    <p>Get monthly financial reports delivered to your inbox</p>
-                  </div>
-                  <label class="toggle-switch">
-                    <input type="checkbox" id="notifyMonthlyReport" checked>
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-
-                <div class="subsection-title">
-                  <i class="fas fa-desktop"></i> In-App Notifications
-                </div>
-
-                <div class="pref-row">
-                  <div class="pref-info">
-                    <h4>Sound Alerts</h4>
-                    <p>Play a sound when new notifications arrive</p>
-                  </div>
-                  <label class="toggle-switch">
-                    <input type="checkbox" id="notifySound">
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-
-                <div class="pref-row">
-                  <div class="pref-info">
-                    <h4>Desktop Notifications</h4>
-                    <p>Show browser desktop notifications</p>
-                  </div>
-                  <label class="toggle-switch">
-                    <input type="checkbox" id="notifyDesktop">
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-
-                <div class="pref-row">
-                  <div class="pref-info">
-                    <h4>Real-time Updates</h4>
-                    <p>Show live updates when data changes</p>
-                  </div>
-                  <label class="toggle-switch">
-                    <input type="checkbox" id="notifyRealtime" checked>
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-
-                <button class="btn btn-primary" style="margin-top: 20px; padding: 14px 28px;"
-                  onclick="saveNotificationSettings()">
-                  <i class="fas fa-save"></i> Save Notification Settings
-                </button>
-              </div>
+              </form>
             </div>
+
+            <!-- Security Settings -->
+            <div class="settings-section" id="security">
+              <h2 class="section-title"><i class="fas fa-shield-alt"></i> Security & Password</h2>
+
+              <div class="info-card">
+                <i class="fas fa-info-circle"></i>
+                <strong>Password Requirements:</strong> Minimum 8 characters, including uppercase, lowercase, number,
+                and special character.
+              </div>
+
+              <form id="passwordForm">
+                <div class="form-group">
+                  <label><i class="fas fa-lock"></i> Current Password</label>
+                  <input type="password" id="currentPassword" required>
+                </div>
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label><i class="fas fa-key"></i> New Password</label>
+                    <input type="password" id="newPassword" required minlength="8">
+                  </div>
+                  <div class="form-group">
+                    <label><i class="fas fa-check-circle"></i> Confirm New Password</label>
+                    <input type="password" id="confirmPassword" required minlength="8">
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 20px; padding: 14px 28px;">
+                  <i class="fas fa-shield-alt"></i> Update Password
+                </button>
+              </form>
+            </div>
+
+            <!-- Appearance Settings -->
+            <div class="settings-section" id="appearance">
+              <h2 class="section-title"><i class="fas fa-palette"></i> Appearance Settings</h2>
+
+              <div class="subsection-title">
+                <i class="fas fa-moon"></i> Theme Mode
+              </div>
+              <div class="theme-cards">
+                <div class="theme-card theme-card-light active" data-theme="light" onclick="setTheme('light')">
+                  <div class="theme-preview">
+                    <div class="theme-preview-bar"></div>
+                    <div class="theme-preview-bar"></div>
+                  </div>
+                  <div class="theme-name">Light Mode</div>
+                </div>
+                <div class="theme-card theme-card-dark" data-theme="dark" onclick="setTheme('dark')">
+                  <div class="theme-preview">
+                    <div class="theme-preview-bar"></div>
+                    <div class="theme-preview-bar"></div>
+                  </div>
+                  <div class="theme-name">Dark Mode</div>
+                </div>
+              </div>
+
+              <div class="subsection-title">
+                <i class="fas fa-fill-drip"></i> Accent Color
+              </div>
+              <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 8px;">Choose your preferred accent
+                color for buttons and highlights</p>
+              <div class="color-options">
+                <div class="color-option active" style="background: #ef4444;" data-color="#ef4444" title="Red (Default)"
+                  onclick="setAccentColor('#ef4444')"></div>
+                <div class="color-option" style="background: #3b82f6;" data-color="#3b82f6" title="Blue"
+                  onclick="setAccentColor('#3b82f6')"></div>
+                <div class="color-option" style="background: #10b981;" data-color="#10b981" title="Green"
+                  onclick="setAccentColor('#10b981')"></div>
+                <div class="color-option" style="background: #8b5cf6;" data-color="#8b5cf6" title="Purple"
+                  onclick="setAccentColor('#8b5cf6')"></div>
+                <div class="color-option" style="background: #f59e0b;" data-color="#f59e0b" title="Orange"
+                  onclick="setAccentColor('#f59e0b')"></div>
+                <div class="color-option" style="background: #ec4899;" data-color="#ec4899" title="Pink"
+                  onclick="setAccentColor('#ec4899')"></div>
+                <div class="color-option" style="background: #14b8a6;" data-color="#14b8a6" title="Teal"
+                  onclick="setAccentColor('#14b8a6')"></div>
+              </div>
+
+              <div class="subsection-title">
+                <i class="fas fa-text-height"></i> Font Size
+              </div>
+              <div class="font-size-preview">
+                <span class="font-size-label">A</span>
+                <input type="range" id="fontSizeSlider" min="12" max="20" value="14" oninput="setFontSize(this.value)">
+                <span class="font-size-label" style="font-size: 18px;">A</span>
+                <span id="fontSizeValue"
+                  style="font-weight: 600; color: var(--primary-color); min-width: 50px;">14px</span>
+              </div>
+
+              <div class="pref-row" style="margin-top: 30px;">
+                <div class="pref-info">
+                  <h4>Compact Mode</h4>
+                  <p>Reduce spacing and padding for more content on screen</p>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="compactMode" onchange="toggleCompactMode()">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div class="pref-row">
+                <div class="pref-info">
+                  <h4>Sidebar Always Open</h4>
+                  <p>Keep the sidebar expanded on all screen sizes</p>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="sidebarExpanded" checked onchange="toggleSidebarSetting()">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <button class="btn btn-primary" style="margin-top: 20px; padding: 14px 28px;"
+                onclick="saveAppearanceSettings()">
+                <i class="fas fa-save"></i> Save Appearance Settings
+              </button>
+            </div>
+
           </div>
         </div>
       </div>
-    </main>
+  </div>
+  </main>
   </div>
 
   <script src="../js/dashboard.js"></script>
@@ -1129,6 +390,15 @@
         });
       }
 
+      // Show Company Settings link if Admin/Manager
+      if (user.role && (user.role.toLowerCase() === 'admin' || user.role.toLowerCase() === 'manager')) {
+        const companyNavItem = document.getElementById('companyNavItem');
+        if (companyNavItem) {
+          companyNavItem.style.display = 'flex';
+          loadCompanySettings();
+        }
+      }
+
       // Populate profile form
       document.getElementById('profileFirstName').value = user.first_name || '';
       document.getElementById('profileLastName').value = user.last_name || '';
@@ -1144,7 +414,7 @@
       const savedPhoto = localStorage.getItem('profile_photo');
       if (savedPhoto) {
         const preview = document.getElementById('profilePhotoPreview');
-        preview.innerHTML = `<img src="${savedPhoto}" alt="Profile">`;
+        preview.innerHTML = `<img src="${savedPhoto}" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;">`;
         const uploadBtn = document.createElement('label');
         uploadBtn.className = 'photo-upload-btn';
         uploadBtn.setAttribute('for', 'profilePhotoInput');
@@ -1165,7 +435,7 @@
         const reader = new FileReader();
         reader.onload = function (event) {
           const preview = document.getElementById('profilePhotoPreview');
-          preview.innerHTML = `<img src="${event.target.result}" alt="Profile">`;
+          preview.innerHTML = `<img src="${event.target.result}" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;">`;
 
           const uploadBtn = document.createElement('label');
           uploadBtn.className = 'photo-upload-btn';
@@ -1189,11 +459,13 @@
     });
 
     function removeProfilePhoto() {
-      if (confirm('Are you sure you want to remove your profile photo?')) {
-        localStorage.removeItem('profile_photo');
-        const user = JSON.parse(localStorage.getItem('user'));
-        const initial = (user.first_name || 'U').charAt(0).toUpperCase();
-        document.getElementById('profilePhotoPreview').innerHTML = `
+      window.customConfirm(
+        'Are you sure you want to remove your profile photo?',
+        () => {
+          localStorage.removeItem('profile_photo');
+          const user = JSON.parse(localStorage.getItem('user'));
+          const initial = (user.first_name || 'U').charAt(0).toUpperCase();
+          document.getElementById('profilePhotoPreview').innerHTML = `
                     <div class="profile-photo-avatar">
                         <span id="profileInitial">${initial}</span>
                     </div>
@@ -1202,13 +474,20 @@
                     </label>
                 `;
 
-        // Update header avatar immediately
-        if (typeof updateUserProfile === 'function') {
-          updateUserProfile(user);
-        }
+          // Update header avatar immediately
+          if (typeof updateUserProfile === 'function') {
+            updateUserProfile(user);
+          }
 
-        showToast('Success', 'Profile photo removed', 'success');
-      }
+          showToast('Success', 'Profile photo removed', 'success');
+        },
+        null,
+        {
+          title: 'Remove Photo?',
+          icon: 'fas fa-trash',
+          confirmText: 'Yes, Remove'
+        }
+      );
     }
 
     // Profile form submission
@@ -1511,6 +790,60 @@
 
       showToast('Success', 'Notification settings saved successfully!', 'success');
     }
+
+    // ============================================
+    // COMPANY SETTINGS
+    // ============================================
+
+    async function loadCompanySettings() {
+      try {
+        const response = await fetchWithTimeout(`${API_URL}/settings.php`, { credentials: 'include' });
+        const data = await response.json();
+        if (data.success) {
+          const s = data.data;
+          document.getElementById('companyName').value = s.company_name || '';
+          document.getElementById('companyTagline').value = s.company_tagline || '';
+          document.getElementById('companyEmail').value = s.company_email || '';
+          document.getElementById('companyPhone').value = s.company_phone || '';
+          document.getElementById('companyAddress').value = s.company_address || '';
+          document.getElementById('companyWebsite').value = s.company_website || '';
+        }
+      } catch (error) {
+        console.error('Error loading company settings:', error);
+      }
+    }
+
+    document.getElementById('companyForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const companyData = {
+        company_name: document.getElementById('companyName').value,
+        company_tagline: document.getElementById('companyTagline').value,
+        company_email: document.getElementById('companyEmail').value,
+        company_phone: document.getElementById('companyPhone').value,
+        company_address: document.getElementById('companyAddress').value,
+        company_website: document.getElementById('companyWebsite').value
+      };
+
+      try {
+        const response = await fetchWithTimeout(`${API_URL}/settings.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(companyData),
+          credentials: 'include'
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          showToast('Success', 'Company settings updated successfully!', 'success');
+        } else {
+          showToast('Error', data.message || 'Failed to update company settings', 'error');
+        }
+      } catch (error) {
+        console.error('Error saving company settings:', error);
+        showToast('Error', 'An error occurred while saving company settings', 'error');
+      }
+    });
   </script>
   <script src="../js/admin-dashboard.js"></script>
 </body>

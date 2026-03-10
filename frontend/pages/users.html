@@ -7,7 +7,7 @@
     <title>User Management - FinSight</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../css/interactive-dashboard.css?v=8">
+    <link rel="stylesheet" href="../css/modern-dashboard.css?v=12">
 </head>
 
 <body>
@@ -22,10 +22,7 @@
             </div>
 
             <nav class="sidebar-nav">
-                <a href="../index.html" class="nav-link">
-                    <i class="fas fa-home"></i>
-                    <span>Home</span>
-                </a>
+
                 <a href="dashboard.html" class="nav-link">
                     <i class="fas fa-columns"></i>
                     <span>Dashboard</span>
@@ -128,6 +125,7 @@
                 <button onclick="closeModal('addUserModal')" class="close-modal">&times;</button>
             </div>
             <form id="addUserForm">
+                <input type="hidden" id="editingUserId">
                 <div class="form-grid">
                     <div class="form-group">
                         <label><i class="fas fa-user"></i> First Name</label>
@@ -154,7 +152,6 @@
                         <select id="newUserRole" required>
                             <option value="accountant">Accountant</option>
                             <option value="manager">Manager</option>
-                            <option value="auditor">Auditor</option>
                             <option value="admin">Administrator</option>
                         </select>
                     </div>

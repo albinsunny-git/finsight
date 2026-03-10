@@ -3,11 +3,7 @@ const API_URL = 'http://localhost/finsight/backend/api/auth.php';
 
 // Helper to determine redirect URL based on role
 function resolveRedirectUrl(role) {
-    if (role && role.toLowerCase() === 'accountant') {
-        return 'pages/accountant.html';
-    } else {
-        return 'pages/dashboard.html';
-    }
+    return 'pages/dashboard.html';
 }
 
 // Password Toggle Function

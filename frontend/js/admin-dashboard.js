@@ -36,7 +36,7 @@ async function initAdminDashboard() {
 
     const currentUser = JSON.parse(user);
 
-    if (currentUser.role !== 'admin' && currentUser.role !== 'manager' && currentUser.role !== 'accountant' && currentUser.role !== 'auditor') {
+    if (currentUser.role !== 'admin' && currentUser.role !== 'manager' && currentUser.role !== 'accountant') {
         alert('Access denied. Generalized dashboard access required.');
         window.location.href = '../index.html';
         return;
@@ -60,64 +60,13 @@ async function initAdminDashboard() {
     initMockDataIfEmpty();
 
     // Load initial data (dont block UI if slow)
-    if (currentUser.role === 'admin') loadAdminStats();
-    if (currentUser.role === 'accountant' || currentUser.role === 'auditor') loadAccountantStats();
-
-    // Hide components for Auditor
-    if (currentUser.role === 'auditor') {
-        hideAuditorRestrictedElements();
+    if (currentUser.role === 'admin') {
+        loadAdminStats();
+        loadFinancialInsights();
     }
-}
-
-function hideAuditorRestrictedElements() {
-    // Hide Add Buttons
-    const addBtns = document.querySelectorAll('button[onclick*="showAdd"], button.btn-primary');
-    addBtns.forEach(btn => {
-        if (btn.textContent.includes('Add') || btn.textContent.includes('Create') || btn.innerHTML.includes('fa-plus')) {
-            btn.style.display = 'none';
-        }
-    });
-
-    // Hide Edit/Delete Actions in Tables (Observer might be better but for now simple hide)
-    const observer = new MutationObserver(() => {
-        // Hide delete/edit buttons
-        document.querySelectorAll('.btn-icon, .btn-sm').forEach(btn => {
-            const title = btn.getAttribute('title') || '';
-            const onclick = btn.getAttribute('onclick') || '';
-
-            // Check for edit/delete keywords
-            if (title.toLowerCase().includes('edit') ||
-                title.toLowerCase().includes('delete') ||
-                title.toLowerCase().includes('remove') ||
-                onclick.includes('delete') ||
-                onclick.includes('edit')) {
-                btn.style.display = 'none';
-            }
-
-            // Allow "View" buttons
-            if (title.toLowerCase().includes('view') || onclick.includes('view') || btn.innerHTML.includes('fa-eye')) {
-                btn.style.display = 'inline-block';
-            }
-        });
-    });
-
-    const tableBody = document.querySelector('tbody');
-    if (tableBody) {
-        observer.observe(tableBody, { childList: true, subtree: true });
-    }
-
-    // Initial run
-    document.querySelectorAll('.btn-icon, .btn-sm').forEach(btn => {
-        const title = btn.getAttribute('title') || '';
-        const onclick = btn.getAttribute('onclick') || '';
-        if (title.toLowerCase().includes('edit') || title.toLowerCase().includes('delete') || onclick.includes('delete') || onclick.includes('edit')) {
-            btn.style.display = 'none';
-        }
-    });
-
-    // Check if on Users page
-    if (document.getElementById('usersTableBody')) {
-        loadUsers();
+    if (currentUser.role === 'accountant') {
+        loadAccountantStats();
+        loadFinancialInsights(); // Also useful for them
     }
 }
 
@@ -183,48 +132,33 @@ function renderSidebar(role) {
 
     const currentPage = window.location.pathname.split('/').pop();
 
-    const feedbackItem = { icon: 'fa-comment-alt', text: 'Feedback', href: 'feedback.html' };
-
     let items = [];
     if (role === 'admin') {
         items = [
-            { icon: 'fa-home', text: 'Home', href: '../index.html' },
             { icon: 'fa-columns', text: 'Dashboard', href: 'dashboard.html' },
             { icon: 'fa-users', text: 'Users', href: 'users.html' },
             { icon: 'fa-sitemap', text: 'Accounts', href: 'accounts.html' },
             { icon: 'fa-receipt', text: 'Vouchers', href: 'vouchers.html' },
             { icon: 'fa-chart-pie', text: 'Reports', href: 'reports.html' },
-            { icon: 'fa-cog', text: 'Settings', href: 'settings.html' },
-            feedbackItem
+            { icon: 'fa-cog', text: 'Settings', href: 'settings.html' }
         ];
     } else if (role === 'manager') {
         items = [
-            { icon: 'fa-home', text: 'Home', href: '../index.html' },
+
             { icon: 'fa-columns', text: 'Dashboard', href: 'dashboard.html' },
             { icon: 'fa-sitemap', text: 'Accounts', href: 'accounts.html' },
             { icon: 'fa-receipt', text: 'Vouchers', href: 'vouchers.html' },
             { icon: 'fa-chart-pie', text: 'Reports', href: 'reports.html' },
-            { icon: 'fa-cog', text: 'Settings', href: 'settings.html' },
-            feedbackItem
+            { icon: 'fa-cog', text: 'Settings', href: 'settings.html' }
         ];
     } else if (role === 'accountant') {
         items = [
             // No Home link required by user spec ("only need... dashboard, accounts...")
-            { icon: 'fa-columns', text: 'Dashboard', href: 'accountant.html' },
+            { icon: 'fa-columns', text: 'Dashboard', href: 'dashboard.html' },
             { icon: 'fa-sitemap', text: 'Accounts', href: 'accounts.html' },
             { icon: 'fa-receipt', text: 'Vouchers', href: 'vouchers.html' },
             { icon: 'fa-chart-pie', text: 'Reports', href: 'reports.html' },
-            { icon: 'fa-cog', text: 'Settings', href: 'settings.html' },
-            feedbackItem
-        ];
-    } else if (role === 'auditor') {
-        items = [
-            { icon: 'fa-columns', text: 'Dashboard', href: 'auditor.html' },
-            { icon: 'fa-sitemap', text: 'Accounts', href: 'accounts.html' },
-            { icon: 'fa-receipt', text: 'Vouchers', href: 'vouchers.html' },
-            { icon: 'fa-chart-pie', text: 'Reports', href: 'reports.html' },
-            { icon: 'fa-cog', text: 'Settings', href: 'settings.html' },
-            feedbackItem
+            { icon: 'fa-cog', text: 'Settings', href: 'settings.html' }
         ];
     }
 
@@ -687,16 +621,21 @@ function confirmToggleUserStatus(checkbox, userId, userName) {
 
     // Use a small timeout to allow UI to repaint the revert before alert (optional but good)
     setTimeout(() => {
-        if (confirm(`Are you sure you want to ${action} ${userName}?`)) {
-            // Optimistically set it to the new state
-            checkbox.checked = isActivating;
+        window.customConfirm(
+            `Are you sure you want to ${action} ${userName}?`,
+            () => {
+                // Optimistically set it to the new state
+                checkbox.checked = isActivating;
 
-            if (isActivating) {
-                activateUserAPI(userId);
-            } else {
-                deactivateUserAPI(userId);
-            }
-        }
+                if (isActivating) {
+                    activateUserAPI(userId);
+                } else {
+                    deactivateUserAPI(userId);
+                }
+            },
+            null,
+            { title: 'Confirm Status Change', confirmText: 'Yes', icon: 'fas fa-question-circle' }
+        );
     }, 10);
 }
 
@@ -767,10 +706,11 @@ function getAccountActionButton(account) {
 }
 
 function confirmDeleteAccount(accountId, accountName) {
-    Finsight.confirm(
+    window.customConfirm(
         `Are you sure you want to delete account "${accountName}"? This action cannot be undone.`,
         () => deleteAccount(accountId),
-        { title: 'Delete Account', confirmText: 'Delete', type: 'danger' }
+        null,
+        { title: 'Delete Account', confirmText: 'Delete', icon: 'fas fa-trash' }
     );
 }
 
@@ -784,18 +724,19 @@ async function deleteAccount(accountId) {
         });
         const data = await response.json();
         if (data.success) {
-            Finsight.toast({ title: 'Success', message: 'Account deleted successfully', type: 'success' });
+            alert('Account deleted successfully');
             loadAccountsWithType();
             return;
         } else {
             if (data.message && data.message.toLowerCase().includes('existing transactions')) {
-                Finsight.confirm(
+                window.customConfirm(
                     'Delete failed: Account has existing transactions. Would you like to DEACTIVATE this account instead?',
                     () => deactivateAccountAPI(accountId),
-                    { title: 'Deactivate Account?', confirmText: 'Deactivate', type: 'primary' }
+                    null,
+                    { title: 'Deactivate Account?', confirmText: 'Deactivate', icon: 'fas fa-exclamation-triangle' }
                 );
             } else {
-                Finsight.toast({ title: 'Delete Failed', message: data.message || 'Unknown error', type: 'error' });
+                alert(data.message || 'Unknown error');
             }
         }
     } catch (error) {
@@ -831,14 +772,19 @@ function confirmToggleAccountStatus(checkbox, accountId, accountName) {
     checkbox.checked = !isActivating; // Revert temporarily
 
     setTimeout(() => {
-        if (confirm(`Are you sure you want to ${action} account "${accountName}"?`)) {
-            checkbox.checked = isActivating; // Optimistically set
-            if (isActivating) {
-                activateAccountAPI(accountId);
-            } else {
-                deactivateAccountAPI(accountId);
-            }
-        }
+        window.customConfirm(
+            `Are you sure you want to ${action} account "${accountName}"?`,
+            () => {
+                checkbox.checked = isActivating; // Optimistically set
+                if (isActivating) {
+                    activateAccountAPI(accountId);
+                } else {
+                    deactivateAccountAPI(accountId);
+                }
+            },
+            null,
+            { title: 'Confirm Status Change', confirmText: 'Yes', icon: 'fas fa-question-circle' }
+        );
     }, 10);
 }
 
@@ -1082,9 +1028,12 @@ function activateMockUser(userId) {
 
 // Confirm delete user
 function confirmDeleteUser(userId, userName) {
-    if (confirm(`Are you sure you want to PERMANENTLY DELETE user ${userName}? This action cannot be undone.`)) {
-        deleteUserAPI(userId);
-    }
+    window.customConfirm(
+        `Are you sure you want to PERMANENTLY DELETE user ${userName}? This action cannot be undone.`,
+        () => deleteUserAPI(userId),
+        null,
+        { title: 'Delete User', confirmText: 'Delete', icon: 'fas fa-trash' }
+    );
 }
 
 // Delete user via API with fallback to mock
@@ -1366,7 +1315,7 @@ function printLedger() {
 let _cachedAccounts = null;
 
 async function populateAccountSelects() {
-    const selects = document.querySelectorAll('.account-select');
+    const selects = document.querySelectorAll('.account-dropdown');
     if (selects.length === 0) return;
 
     // Use memory cache if available, otherwise fetch
@@ -1533,6 +1482,84 @@ async function loadAuditTrail() {
         }
     } catch (error) {
         console.error('Error loading audit trail:', error);
+    }
+}
+
+// Helper to load financial insights
+async function loadFinancialInsights() {
+    const container = document.getElementById('insightsContent');
+    if (!container) return; // Not on dashboard page
+
+    try {
+        const response = await fetchWithTimeout(`${API_URL}/insights.php?action=monthly`, { credentials: 'include' });
+        const data = await response.json();
+
+        if (data.success) {
+            container.innerHTML = '';
+
+            // 1. Health Score Badge
+            const healthScore = data.health_score || 'Average';
+            const healthColor = healthScore === 'Good' ? '#22c55e' : (healthScore === 'Poor' ? '#ef4444' : '#f59e0b');
+            const healthBg = healthScore === 'Good' ? 'var(--bg-success-light, #dcfce7)' : (healthScore === 'Poor' ? 'var(--bg-danger-light, #fee2e2)' : 'var(--bg-warning-light, #fef3c7)');
+
+            const healthDiv = document.createElement('div');
+            healthDiv.style.cssText = `
+                display: flex; 
+                align-items: center; 
+                justify-content: space-between; 
+                background: ${healthBg}; 
+                padding: 15px; 
+                border-radius: 12px; 
+                border: 1px solid ${healthColor}40;
+                margin-bottom: 20px;
+            `;
+            healthDiv.innerHTML = `
+                <div>
+                    <div style="font-size: 13px; font-weight: 600; color: ${healthColor}; text-transform: uppercase; letter-spacing: 0.5px;">Business Health Score</div>
+                    <div style="font-size: 24px; font-weight: 800; color: ${healthColor}; margin-top: 4px;">${healthScore}</div>
+                    <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">${data.health_reason || ''}</div>
+                </div>
+                <div style="width: 50px; height: 50px; background: var(--bg-card); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: ${healthColor}; box-shadow: var(--shadow-sm);">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+            `;
+            container.appendChild(healthDiv);
+
+            // 2. Text Insights
+            if (data.text_insights && data.text_insights.length > 0) {
+                const list = document.createElement('div');
+                list.style.display = 'flex';
+                list.style.flexDirection = 'column';
+                list.style.gap = '12px';
+
+                data.text_insights.forEach(text => {
+                    const item = document.createElement('div');
+                    item.style.cssText = `
+                        display: flex;
+                        align-items: flex-start;
+                        gap: 12px;
+                        padding: 12px;
+                        background: #f8fafc;
+                        border-radius: 10px;
+                        border-left: 4px solid var(--primary-color);
+                    `;
+                    item.innerHTML = `
+                        <i class="fas fa-info-circle" style="color: var(--primary-color); margin-top: 3px;"></i>
+                        <div style="font-size: 14px; color: var(--text-main); line-height: 1.5;">${text}</div>
+                    `;
+                    list.appendChild(item);
+                });
+                container.appendChild(list);
+            } else {
+                container.innerHTML += '<div style="text-align:center; color: var(--text-muted);">No insights available for this month yet.</div>';
+            }
+
+        } else {
+            container.innerHTML = `<div style="color: var(--danger-color);">Unable to load insights: ${data.message}</div>`;
+        }
+    } catch (error) {
+        console.error('Insights error:', error);
+        container.innerHTML = `<div style="color: var(--text-muted);">Insights unavailable offline.</div>`;
     }
 }
 
@@ -1710,33 +1737,42 @@ async function submitAddVoucherForm(arg) {
     let totalCredit = 0;
 
     document.querySelectorAll('.voucher-entry').forEach(row => {
-        const accountSelect = row.querySelector('.account-select');
-        const debitInput = row.querySelector('.debit-amount');
-        const creditInput = row.querySelector('.credit-amount');
+        const sourceSelect = row.querySelector('.source-select');
+        const expenseSelect = row.querySelector('.expense-select');
+        const amountInput = row.querySelector('.entry-amount');
 
-        if (accountSelect && accountSelect.value) {
-            const debit = parseFloat(debitInput.value) || 0;
-            const credit = parseFloat(creditInput.value) || 0;
-            if (debit > 0 || credit > 0) {
+        if (sourceSelect && sourceSelect.value && expenseSelect && expenseSelect.value && amountInput) {
+            const amount = parseFloat(amountInput.value) || 0;
+            if (amount > 0) {
+                // Debit Entry (Destination/Expense)
                 entries.push({
-                    account_id: accountSelect.value,
-                    account_name: accountSelect.options[accountSelect.selectedIndex].text,
-                    debit: debit,
-                    credit: credit
+                    account_id: expenseSelect.value,
+                    account_name: expenseSelect.options[expenseSelect.selectedIndex].text,
+                    debit: amount,
+                    credit: 0
                 });
-                totalDebit += debit;
-                totalCredit += credit;
+
+                // Credit Entry (Source)
+                entries.push({
+                    account_id: sourceSelect.value,
+                    account_name: sourceSelect.options[sourceSelect.selectedIndex].text,
+                    debit: 0,
+                    credit: amount
+                });
+
+                totalDebit += amount;
+                totalCredit += amount;
             }
         }
     });
 
     if (entries.length < 2) {
-        alert('At least two entries are required for a valid voucher.');
+        alert('At least one valid source and expense entry is required.');
         return;
     }
 
     if (Math.abs(totalDebit - totalCredit) > 0.01) {
-        alert('Voucher is not balanced. Total Debit must equal Total Credit.');
+        alert('Internal Error: Generated voucher is not balanced.');
         return;
     }
 
@@ -1999,167 +2035,290 @@ async function viewVoucher(id) {
 
 // End of viewVoucher logic
 
-// --- Dynamic Reporting Logic ---
+// --- Dynamic Reporting Logic (New Format) ---
 async function generateDynamicReport(type) {
     const container = document.getElementById('report-container');
     if (!container) return;
 
-    container.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Generating report...</div>';
+    container.innerHTML = `
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 300px;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 40px; color: var(--primary-color); margin-bottom: 20px;"></i>
+            <p style="color: var(--text-muted); font-weight: 500;">Generating financial statement...</p>
+        </div>
+    `;
 
-    // Fetch data
-    let accounts = [];
     try {
-        const res = await fetchWithTimeout(`${API_URL}/accounts.php?action=list`, { timeout: 3000, credentials: 'include' });
-        const data = await res.json();
-        if (data.success) accounts = data.data;
+        const res = await fetchWithTimeout(`${API_URL}/reports.php?type=${type}`, { timeout: 5000, credentials: 'include' });
+        const json = await res.json();
+
+        if (!json.success) {
+            container.innerHTML = `
+                <div class="alert alert-danger" style="margin-top: 50px; text-align: center;">
+                    <i class="fas fa-exclamation-circle"></i> ${json.message || 'Failed to load report data.'}
+                </div>`;
+            return;
+        }
+
+        const data = json.data;
+        const today = new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
+        let content = '';
+
+        if (type === 'balance-sheet') {
+            content = renderNewBalanceSheet(data, today);
+        } else if (type === 'profit-loss') {
+            content = renderNewProfitLoss(data, today);
+        } else if (type === 'trial-balance') {
+            content = renderNewTrialBalance(data, today);
+        }
+
+        container.innerHTML = content;
     } catch (err) {
-        console.warn('API fail, using mock accounts for report');
-        accounts = getMockAccounts();
+        console.error('Report Error:', err);
+        container.innerHTML = '<div class="alert alert-danger text-center">Error connecting to report server. Using local cache...</div>';
     }
+}
 
-    if (!accounts || accounts.length === 0) {
-        container.innerHTML = '<div class="text-center">No account data found to generate report.</div>';
-        return;
-    }
+function renderNewBalanceSheet(accounts, date) {
+    // Grouping
+    const assets = accounts.filter(a => a.type === 'Asset');
+    const liabilities = accounts.filter(a => a.type === 'Liability');
+    const equity = accounts.filter(a => a.type === 'Equity');
 
-    const today = new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
-    let content = '';
+    const totalAssets = assets.reduce((s, a) => s + parseFloat(a.balance || 0), 0);
+    const totalLiabilities = liabilities.reduce((s, a) => s + parseFloat(a.balance || 0), 0);
+    const totalEquity = equity.reduce((s, a) => s + parseFloat(a.balance || 0), 0);
 
-    if (type === 'trial-balance') {
-        let totalDebit = 0;
-        let totalCredit = 0;
+    // Grouping by sub_type
+    const groupBySub = (accs) => {
+        return accs.reduce((groups, a) => {
+            const sub = a.sub_type || 'General';
+            if (!groups[sub]) groups[sub] = { accounts: [], total: 0 };
+            groups[sub].accounts.push(a);
+            groups[sub].total += parseFloat(a.balance || 0);
+            return groups;
+        }, {});
+    };
 
-        const rows = accounts.map(acc => {
-            const balance = parseFloat(acc.balance) || 0;
-            // Simplified: Assets/Expenses are Debit, Liabilities/Equity/Income are Credit for TB
-            const isDebitSide = (acc.type === 'Asset' || acc.type === 'Expense');
-            if (isDebitSide) totalDebit += balance;
-            else totalCredit += balance;
+    const assetGroups = groupBySub(assets);
+    const liabGroups = groupBySub(liabilities);
+    const equiGroups = groupBySub(equity);
 
-            return `
-                <tr>
-                    <td>${acc.code} - ${acc.name}</td>
-                    <td class="text-right">${isDebitSide ? formatCurrency(balance) : '-'}</td>
-                    <td class="text-right">${!isDebitSide ? formatCurrency(balance) : '-'}</td>
-                </tr>
-            `;
-        }).join('');
+    const renderRows = (groups) => {
+        let html = '';
+        for (const [name, group] of Object.entries(groups)) {
+            html += `<tr style="background: rgba(0,0,0,0.02);"><td colspan="2"><strong style="font-size: 13px; text-transform: uppercase; color: var(--text-muted);">${name}</strong></td></tr>`;
+            group.accounts.forEach(a => {
+                html += `<tr><td style="padding-left: 24px;">${a.name}</td><td class="text-right">${formatCurrency(a.balance)}</td></tr>`;
+            });
+            html += `<tr style="border-bottom: 1px solid var(--border-color);"><td class="text-right"><em>Total ${name}</em></td><td class="text-right" style="font-weight: 600;">${formatCurrency(group.total)}</td></tr>`;
+        }
+        return html;
+    };
 
-        content = `
-            <div class="report-view animate-fadeIn">
-                <div class="report-header text-center" style="margin-bottom: 30px;">
-                    <h2 style="font-size: 24px; color: var(--text-main);">Trial Balance</h2>
-                    <p class="text-muted">As of ${today}</p>
+    return `
+        <div class="report-view animate-fadeIn" style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+            <div class="report-header text-center" style="margin-bottom: 40px; border-bottom: 2px solid var(--primary-color); padding-bottom: 20px;">
+                <div style="font-size: 12px; font-weight: 700; color: var(--primary-color); letter-spacing: 2px; margin-bottom: 10px;">FINANCIAL STATEMENT</div>
+                <h1 style="font-size: 28px; color: #1e293b; font-weight: 800; margin: 0;">FINSIGHT PRIVATE LIMITED</h1>
+                <h2 style="font-size: 18px; color: #64748b; font-weight: 600; margin: 10px 0;">Balance Sheet (Statement of Financial Position)</h2>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 15px;">
+                    <span style="padding: 4px 12px; background: #f1f5f9; border-radius: 20px; font-size: 13px; color: #475569;">Run Date: ${date}</span>
+                    <span style="padding: 4px 12px; background: #f1f5f9; border-radius: 20px; font-size: 13px; color: #475569;">Currency: INR</span>
                 </div>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Account Name</th>
-                            <th class="text-right">Debit</th>
-                            <th class="text-right">Credit</th>
-                        </tr>
-                    </thead>
-                    <tbody>${rows}</tbody>
-                    <tfoot>
-                        <tr style="background: var(--bg-body); font-weight: 800; border-top: 2px solid var(--text-main);">
-                            <td>TOTAL</td>
-                            <td class="text-right" style="color: var(--primary-color);">${formatCurrency(totalDebit)}</td>
-                            <td class="text-right" style="color: var(--primary-color);">${formatCurrency(totalCredit)}</td>
-                        </tr>
-                    </tfoot>
-                </table>
             </div>
-        `;
-    } else if (type === 'profit-loss') {
-        const income = accounts.filter(a => a.type === 'Income');
-        const expense = accounts.filter(a => a.type === 'Expense');
 
-        const totalIncome = income.reduce((sum, a) => sum + (parseFloat(a.balance) || 0), 0);
-        const totalExpense = expense.reduce((sum, a) => sum + (parseFloat(a.balance) || 0), 0);
-        const netProfit = totalIncome - totalExpense;
-
-        content = `
-            <div class="report-view animate-fadeIn">
-                <div class="report-header text-center" style="margin-bottom: 30px;">
-                    <h2 style="font-size: 24px; color: var(--text-main);">Profit & Loss Account</h2>
-                    <p class="text-muted">For the period ending ${today}</p>
-                </div>
-                <div style="max-width: 800px; margin: 0 auto;">
-                    <table class="data-table">
-                        <thead><tr><th>Particulars</th><th class="text-right">Amount</th></tr></thead>
-                        <tbody>
-                            <tr style="background: #f8fafc;"><td colspan="2"><strong>Incomes</strong></td></tr>
-                            ${income.map(a => `<tr><td>${a.name}</td><td class="text-right" style="color: var(--secondary-color);">+ ${formatCurrency(Math.abs(a.balance))}</td></tr>`).join('')}
-                            <tr style="background: var(--primary-light); font-weight: 700;"><td>Total Income</td><td class="text-right">${formatCurrency(totalIncome)}</td></tr>
-                            
-                            <tr style="background: #f8fafc; margin-top: 20px;"><td colspan="2"><strong>Expenses</strong></td></tr>
-                            ${expense.map(a => `<tr><td>${a.name}</td><td class="text-right" style="color: var(--danger-color);">- ${formatCurrency(Math.abs(a.balance))}</td></tr>`).join('')}
-                            <tr style="background: var(--primary-light); font-weight: 700;"><td>Total Expenses</td><td class="text-right">${formatCurrency(totalExpense)}</td></tr>
-                            
-                            <tr style="background: var(--bg-body); font-weight: 800; border-top: 2px solid ${netProfit >= 0 ? 'var(--secondary-color)' : 'var(--danger-color)'};">
-                                <td style="font-size: 18px;">NET ${netProfit >= 0 ? 'PROFIT' : 'LOSS'}</td>
-                                <td class="text-right" style="font-size: 18px; color: ${netProfit >= 0 ? 'var(--secondary-color)' : 'var(--danger-color)'}">${formatCurrency(netProfit)}</td>
-                            </tr>
+            <div class="report-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start;">
+                <!-- Left Side: Assets -->
+                <div class="report-card">
+                    <div style="padding: 12px 20px; background: #1e293b; color: white; border-radius: 8px 8px 0 0; font-weight: 700; display: flex; justify-content: space-between;">
+                        <span>ASSETS</span>
+                        <span>(Dr)</span>
+                    </div>
+                    <table class="data-table" style="width: 100%; border-collapse: collapse;">
+                        <tbody style="font-size: 14px;">
+                            ${renderRows(assetGroups)}
                         </tbody>
+                        <tfoot>
+                            <tr style="background: #f8fafc; border-top: 2px solid #1e293b; font-weight: 800; font-size: 15px;">
+                                <td style="padding: 15px 20px;">TOTAL ASSETS</td>
+                                <td class="text-right" style="padding: 15px 20px; color: var(--primary-color);">${formatCurrency(totalAssets)}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- Right Side: Liabilities & Equity -->
+                <div class="report-card">
+                    <div style="padding: 12px 20px; background: #1e293b; color: white; border-radius: 8px 8px 0 0; font-weight: 700; display: flex; justify-content: space-between;">
+                        <span>LIABILITIES & EQUITY</span>
+                        <span>(Cr)</span>
+                    </div>
+                    <table class="data-table" style="width: 100%; border-collapse: collapse;">
+                        <tbody style="font-size: 14px;">
+                            <tr style="background: rgba(0,0,0,0.05);"><td colspan="2"><strong>LIABILITIES</strong></td></tr>
+                            ${renderRows(liabGroups)}
+                            <tr><td colspan="2" style="height: 10px;"></td></tr>
+                            <tr style="background: rgba(0,0,0,0.05);"><td colspan="2"><strong>OWNER'S EQUITY</strong></td></tr>
+                            ${renderRows(equiGroups)}
+                        </tbody>
+                        <tfoot>
+                            <tr style="background: #f8fafc; border-top: 2px solid #1e293b; font-weight: 800; font-size: 15px;">
+                                <td style="padding: 15px 20px;">TOTAL LIABILITIES & EQUITY</td>
+                                <td class="text-right" style="padding: 15px 20px; color: var(--primary-color);">${formatCurrency(totalLiabilities + totalEquity)}</td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
-        `;
-    } else if (type === 'balance-sheet') {
-        const assets = accounts.filter(a => a.type === 'Asset');
-        const liabilities = accounts.filter(a => a.type === 'Liability');
-        const equity = accounts.filter(a => a.type === 'Equity');
 
-        // Calculate Net Profit for Balance Sheet integration
-        const totalIncome = accounts.filter(a => a.type === 'Income').reduce((sum, a) => sum + (parseFloat(a.balance) || 0), 0);
-        const totalExpense = accounts.filter(a => a.type === 'Expense').reduce((sum, a) => sum + (parseFloat(a.balance) || 0), 0);
-        const netProfit = totalIncome - totalExpense;
-
-        const totalAssets = assets.reduce((sum, a) => sum + (parseFloat(a.balance) || 0), 0);
-        const totalLiabEqui = liabilities.reduce((sum, a) => sum + (parseFloat(a.balance) || 0), 0) +
-            equity.reduce((sum, a) => sum + (parseFloat(a.balance) || 0), 0) +
-            netProfit;
-
-        content = `
-            <div class="report-view animate-fadeIn">
-                <div class="report-header text-center" style="margin-bottom: 30px;">
-                    <h2 style="font-size: 24px; color: var(--text-main);">Balance Sheet</h2>
-                    <p class="text-muted">As of ${today}</p>
-                </div>
-                
-                <div class="charts-grid" style="grid-template-columns: 1fr 1fr; gap: 32px; align-items: start;">
-                    <div class="report-section">
-                        <div style="padding: 10px; background: var(--primary-color); color: white; border-radius: 8px 8px 0 0; font-weight: 700;">ASSETS</div>
-                        <table class="data-table">
-                            <tbody>
-                                ${assets.map(a => `<tr><td>${a.name}</td><td class="text-right">${formatCurrency(a.balance)}</td></tr>`).join('')}
-                                <tr style="background: var(--bg-body); font-weight: 800;"><td>TOTAL ASSETS</td><td class="text-right">${formatCurrency(totalAssets)}</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="report-section">
-                        <div style="padding: 10px; background: var(--secondary-color); color: white; border-radius: 8px 8px 0 0; font-weight: 700;">LIABILITIES & EQUITY</div>
-                        <table class="data-table">
-                            <tbody>
-                                <tr style="background: #f8fafc;"><td colspan="2"><strong>Liabilities</strong></td></tr>
-                                ${liabilities.map(a => `<tr><td>${a.name}</td><td class="text-right">${formatCurrency(a.balance)}</td></tr>`).join('')}
-                                
-                                <tr style="background: #f8fafc;"><td colspan="2"><strong>Equity</strong></td></tr>
-                                ${equity.map(a => `<tr><td>${a.name}</td><td class="text-right">${formatCurrency(a.balance)}</td></tr>`).join('')}
-                                <tr><td>Retained Earnings (Net Profit)</td><td class="text-right">${formatCurrency(netProfit)}</td></tr>
-                                
-                                <tr style="background: var(--bg-body); font-weight: 800;"><td>TOTAL LIABILITIES & EQUITY</td><td class="text-right">${formatCurrency(totalLiabEqui)}</td></tr>
-                            </tbody>
-                        </table>
+            ${Math.abs(totalAssets - (totalLiabilities + totalEquity)) > 0.01 ? `
+                <div style="margin-top: 30px; padding: 15px; background: #fee2e2; border-radius: 8px; border-left: 5px solid #ef4444; color: #b91c1c; display: flex; align-items: center; gap: 15px;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 20px;"></i>
+                    <div>
+                        <strong style="display: block;">Out of Balance!</strong>
+                        The statement is out of balance by ${formatCurrency(Math.abs(totalAssets - (totalLiabilities + totalEquity)))}. Please review unposted vouchers.
                     </div>
                 </div>
-                ${Math.abs(totalAssets - totalLiabEqui) > 1 ? `<div style="margin-top:20px; color: var(--danger-color); text-align:center;"><i class="fas fa-exclamation-triangle"></i> Balance sheet out of balance by ${formatCurrency(Math.abs(totalAssets - totalLiabEqui))}</div>` : ''}
+            ` : `
+                <div style="margin-top: 30px; text-align: center; color: #10b981; font-size: 13px; font-weight: 600;">
+                    <i class="fas fa-check-circle"></i> This statement is in balance and finalized.
+                </div>
+            `}
+        </div>
+    `;
+}
+
+function renderNewProfitLoss(accounts, date) {
+    const income = accounts.filter(a => a.type === 'Income');
+    const expense = accounts.filter(a => a.type === 'Expense');
+
+    const totalIncome = income.reduce((s, a) => s + parseFloat(a.amount || 0), 0);
+    const totalExpense = expense.reduce((s, a) => s + parseFloat(a.amount || 0), 0);
+    const netProfit = totalIncome - totalExpense;
+
+    const groupBySub = (accs) => {
+        return accs.reduce((groups, a) => {
+            const sub = a.sub_type || 'Operating';
+            if (!groups[sub]) groups[sub] = { accounts: [], total: 0 };
+            groups[sub].accounts.push(a);
+            groups[sub].total += parseFloat(a.amount || 0);
+            return groups;
+        }, {});
+    };
+
+    const incomeGroups = groupBySub(income);
+    const expenseGroups = groupBySub(expense);
+
+    const renderSection = (title, groups, colorClass) => {
+        let html = `<tr style="background: #f1f5f9;"><td colspan="2"><strong style="color: #475569;">${title}</strong></td></tr>`;
+        for (const [name, group] of Object.entries(groups)) {
+            html += `<tr><td style="padding-left: 20px; font-weight: 600; font-size: 13px; color: #64748b;">${name}</td><td class="text-right"></td></tr>`;
+            group.accounts.forEach(a => {
+                html += `<tr><td style="padding-left: 40px;">${a.name}</td><td class="text-right" style="color: ${colorClass}">${formatCurrency(Math.abs(a.amount))}</td></tr>`;
+            });
+            html += `<tr style="border-bottom: 1px dotted #e2e8f0;"><td class="text-right" style="font-size: 12px; color: #94a3b8;">Total ${name}</td><td class="text-right" style="font-weight: 600;">${formatCurrency(Math.abs(group.total))}</td></tr>`;
+        }
+        return html;
+    };
+
+    return `
+        <div class="report-view animate-fadeIn" style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); max-width: 900px; margin: 0 auto;">
+            <div class="report-header text-center" style="margin-bottom: 40px;">
+                <h1 style="font-size: 28px; color: #1e293b; font-weight: 800; margin: 0;">FINSIGHT PRIVATE LIMITED</h1>
+                <h2 style="font-size: 20px; color: #64748b; font-weight: 600;">Statement of Profit and Loss</h2>
+                <p style="color: #94a3b8; font-size: 14px; margin-top: 5px;">For the Period: Year to Date (Ending ${date})</p>
             </div>
-        `;
-    }
 
-    container.innerHTML = content;
+            <table class="report-table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid #1e293b;">
+                        <th style="text-align: left; padding: 12px;">Particulars</th>
+                        <th style="text-align: right; padding: 12px;">Amount (INR)</th>
+                    </tr>
+                </thead>
+                <tbody style="font-size: 14px;">
+                    ${renderSection('REVENUE FROM OPERATIONS', incomeGroups, '#10b981')}
+                    <tr style="background: #f8fafc; font-weight: 700; border-top: 1px solid #1e293b;">
+                        <td style="padding: 12px 20px;">(A) TOTAL REVENUE</td>
+                        <td class="text-right" style="padding: 12px 20px; color: #10b981;">${formatCurrency(totalIncome)}</td>
+                    </tr>
+                    <tr><td colspan="2" style="height: 20px;"></td></tr>
+                    ${renderSection('OPERATING EXPENSES', expenseGroups, '#ef4444')}
+                    <tr style="background: #f8fafc; font-weight: 700; border-top: 1px solid #1e293b;">
+                        <td style="padding: 12px 20px;">(B) TOTAL EXPENSES</td>
+                        <td class="text-right" style="padding: 12px 20px; color: #ef4444;">${formatCurrency(totalExpense)}</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr style="background: #1e293b; color: white; font-weight: 800; font-size: 18px;">
+                        <td style="padding: 20px;">NET ${netProfit >= 0 ? 'PROFIT' : 'LOSS'} FOR THE PERIOD (A - B)</td>
+                        <td class="text-right" style="padding: 20px; color: ${netProfit >= 0 ? '#4ade80' : '#f87171'};">${formatCurrency(netProfit)}</td>
+                    </tr>
+                </tfoot>
+            </table>
+            
+            <div style="margin-top: 40px; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+                <p>* This report is generated automatically based on posted and draft vouchers for the selected period.</p>
+                <p>* Net profit is before tax considerations unless specific tax provisions are adjusted via journal vouchers.</p>
+            </div>
+        </div>
+    `;
+}
+
+function renderNewTrialBalance(accounts, date) {
+    let totalDebit = 0;
+    let totalCredit = 0;
+
+    const rows = accounts.map(acc => {
+        const debit = parseFloat(acc.total_debit || 0);
+        const credit = parseFloat(acc.total_credit || 0);
+        totalDebit += debit;
+        totalCredit += credit;
+
+        return `
+            <tr>
+                <td style="padding: 10px 15px;">${acc.code}</td>
+                <td style="padding: 10px 15px;">${acc.name}</td>
+                <td class="text-right" style="padding: 10px 15px; color: #1e293b;">${debit > 0 ? formatCurrency(debit) : '-'}</td>
+                <td class="text-right" style="padding: 10px 15px; color: #1e293b;">${credit > 0 ? formatCurrency(credit) : '-'}</td>
+            </tr>
+        `;
+    }).join('');
+
+    return `
+        <div class="report-view animate-fadeIn" style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); max-width: 1000px; margin: 0 auto;">
+            <div class="report-header text-center" style="margin-bottom: 30px;">
+                <h1 style="font-size: 26px; color: #1e293b; font-weight: 800; margin: 0;">FINSIGHT PRIVATE LIMITED</h1>
+                <h2 style="font-size: 20px; color: #64748b; font-weight: 600;">Trial Balance (Summary)</h2>
+                <p style="color: #94a3b8;">As of ${date}</p>
+            </div>
+            <table class="data-table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #1e293b; color: white;">
+                        <th style="padding: 12px 15px; text-align: left;">Code</th>
+                        <th style="padding: 12px 15px; text-align: left;">Account Name</th>
+                        <th class="text-right" style="padding: 12px 15px;">Total Debit</th>
+                        <th class="text-right" style="padding: 12px 15px;">Total Credit</th>
+                    </tr>
+                </thead>
+                <tbody style="font-size: 14px;">
+                    ${rows}
+                </tbody>
+                <tfoot>
+                    <tr style="background: #f8fafc; font-weight: 800; border-top: 2px solid #1e293b; font-size: 16px;">
+                        <td colspan="2" style="padding: 15px;">GRAND TOTAL</td>
+                        <td class="text-right" style="padding: 15px; color: var(--primary-color);">${formatCurrency(totalDebit)}</td>
+                        <td class="text-right" style="padding: 15px; color: var(--primary-color);">${formatCurrency(totalCredit)}</td>
+                    </tr>
+                </tfoot>
+            </table>
+            ${Math.abs(totalDebit - totalCredit) > 0.01 ? `
+                <div style="margin-top: 20px; color: var(--danger-color); font-weight: 700; text-align: center;">
+                    <i class="fas fa-exclamation-circle"></i> LEDGER IS OUT OF BALANCE BY ${formatCurrency(Math.abs(totalDebit - totalCredit))}
+                </div>
+            ` : ''}
+        </div>
+    `;
 }
 
 // Initialize admin dashboard
@@ -2230,73 +2389,35 @@ async function initNotifications() {
 
     console.log('Notification button found:', bellBtn);
 
-    // Create dropdown if it doesn't exist
-    let dropdown = document.getElementById('notificationDropdown');
-    if (!dropdown) {
-        dropdown = document.createElement('div');
-        dropdown.id = 'notificationDropdown';
-        dropdown.style.cssText = `
-            position: fixed;
-            top: 70px;
-            right: 20px;
-            width: 350px;
-            max-height: 500px;
-            background: white;
-            border: 1px solid #e1e4e8;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            display: none;
-            z-index: 10000;
-            overflow: hidden;
-        `;
+    // DELEGATE NOTIFICATION TO DASHBOARD.JS
+    // The modern dashboard.js handles the beautiful CSS and logic for the notification dropdown.
 
-        dropdown.innerHTML = `
-            <div style="padding: 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #f8fafc;">
-                <h4 style="margin: 0; font-size: 14px; color: #333; font-weight: 600;">Notifications</h4>
-                <button id="markAllReadBtn" style="border: none; background: none; color: #2563eb; font-size: 12px; cursor: pointer; font-weight: 500;">Mark all read</button>
-            </div>
-            <div id="notificationList" style="max-height: 400px; overflow-y: auto; background: white;">
-                <div style="padding: 20px; text-align: center; color: #64748b; font-size: 13px;">
-                    <i class="fas fa-spinner fa-spin"></i> Loading...
-                </div>
-            </div>
-        `;
 
-        document.body.appendChild(dropdown);
-        console.log('Dropdown created and added to body');
+    // Insert toggle button if it doesn't exist
+    const header = document.querySelector('.header');
+    if (header) {
+        let toggle = document.getElementById('sidebarToggle');
+        if (!toggle) {
+            toggle = document.createElement('button');
+            toggle.id = 'sidebarToggle';
+            toggle.className = 'header-toggle';
+            toggle.innerHTML = '<i class="fas fa-bars"></i>';
+            header.insertBefore(toggle, header.firstElementChild);
 
-        // Add mark all read handler
-        document.getElementById('markAllReadBtn').addEventListener('click', function (e) {
-            e.stopPropagation();
-            markAllNotificationsRead();
-        });
+            // Add click listener immediately
+            toggle.addEventListener('click', () => {
+                const sb = document.querySelector('.sidebar');
+                if (window.innerWidth <= 768) {
+                    sb.classList.toggle('active');
+                } else {
+                    sb.classList.toggle('collapsed');
+                }
+            });
+        }
     }
 
-    // Simple click handler
-    bellBtn.addEventListener('click', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-
-        console.log('Bell button clicked!');
-
-        // Toggle dropdown
-        if (dropdown.style.display === 'none' || dropdown.style.display === '') {
-            dropdown.style.display = 'block';
-            console.log('Opening dropdown...');
-            loadNotifications();
-        } else {
-            dropdown.style.display = 'none';
-            console.log('Closing dropdown');
-        }
-    });
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function (e) {
-        if (!dropdown.contains(e.target) && !bellBtn.contains(e.target)) {
-            dropdown.style.display = 'none';
-        }
-    });
-
+    // Update User Profile
+    updateUserProfile(currentUser);
     console.log('Event listeners attached');
 
     // Initial load

@@ -1,20 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/Database.php';
-
-// Check if user is authenticated
-function checkAuth() {
-    if (!isset($_SESSION['user_id'])) {
-        sendResponse(false, null, 'Unauthorized', 401);
-    }
-}
-
-// Check user role
-function checkRole($requiredRoles) {
-    checkAuth();
-    if (!in_array($_SESSION['role'], (array)$requiredRoles)) {
-        sendResponse(false, null, 'Forbidden: Insufficient permissions', 403);
-    }
-}
+require_once __DIR__ . '/../config/AuthMiddleware.php';
 
 class VoucherController {
     private $db;
@@ -34,16 +20,17 @@ class VoucherController {
         $startDate = $_GET['start_date'] ?? null;
         $endDate = $_GET['end_date'] ?? null;
         
-        $sql = "SELECT v.*, u.first_name, u.last_name, vt.name as voucher_type_name 
+        $sql = "SELECT v.*, u.first_name, u.last_name, vt.name as voucher_type_name, 
+                COALESCE(ac_from.name, (SELECT ac.name FROM voucher_details vd JOIN account_chart ac ON vd.account_id=ac.id WHERE vd.voucher_id=v.id AND vd.credit > 0 LIMIT 1)) as from_account,
+                COALESCE(ac_to.name, (SELECT ac.name FROM voucher_details vd JOIN account_chart ac ON vd.account_id=ac.id WHERE vd.voucher_id=v.id AND vd.debit > 0 LIMIT 1)) as to_account
                 FROM vouchers v
+                LEFT JOIN account_chart ac_from ON v.from_account_id = ac_from.id
+                LEFT JOIN account_chart ac_to ON v.to_account_id = ac_to.id
                 LEFT JOIN users u ON v.created_by = u.id
                 JOIN voucher_types vt ON v.voucher_type_id = vt.id
                 WHERE 1=1";
         
         // Role-based filtering
-        if ($role === 'auditor') {
-            $sql .= " AND v.status = 'Posted'";
-        }
         
         if ($voucherType) {
             $sql .= " AND v.voucher_type_id = " . intval($voucherType);
@@ -99,7 +86,7 @@ class VoucherController {
         $stmt->close();
         
         // Get voucher details
-        $stmt = $this->db->prepare("SELECT vd.*, ac.code, ac.name 
+        $stmt = $this->db->prepare("SELECT vd.*, ac.code, ac.name, ac.type 
                                    FROM voucher_details vd
                                    JOIN account_chart ac ON vd.account_id = ac.id
                                    WHERE vd.voucher_id = ?");
@@ -120,7 +107,7 @@ class VoucherController {
     // Create voucher
     public function createVoucher() {
         try {
-            checkRole(['accountant', 'admin', 'administrator']);
+            checkRole(['accountant', 'admin', 'administrator', 'manager']);
             
             $json = file_get_contents('php://input');
             $data = json_decode($json, true);
@@ -151,11 +138,15 @@ class VoucherController {
                      $approvedBy = $userId;
                      $approvedAt = date('Y-m-d H:i:s');
                  }
+            } else if ($_SESSION['role'] === 'accountant') {
+                 $status = 'Pending Approval';
             }
             
-            $stmt = $this->db->prepare("INSERT INTO vouchers (voucher_number, voucher_type_id, voucher_date, narration, status, created_by, approved_by, approved_at) 
-                                       VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("sisssiss", $voucherNumber, $data['voucher_type_id'], $data['voucher_date'], $data['narration'], $status, $userId, $approvedBy, $approvedAt);
+            $stmt = $this->db->prepare("INSERT INTO vouchers (voucher_number, voucher_type_id, from_account_id, to_account_id, voucher_date, narration, status, created_by, approved_by, approved_at) 
+                                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $fromAcc = $data['from_account_id'] ?? null;
+            $toAcc = $data['to_account_id'] ?? null;
+            $stmt->bind_param("siiisssiss", $voucherNumber, $data['voucher_type_id'], $fromAcc, $toAcc, $data['voucher_date'], $data['narration'], $status, $userId, $approvedBy, $approvedAt);
             
             if (!$stmt->execute()) {
                 throw new Exception("Database Error: " . $stmt->error);
@@ -191,6 +182,9 @@ class VoucherController {
             if ($status === 'Posted') {
                 $this->updateGeneralLedger($voucherId);
                 logAudit($userId, 'VOUCHER_POSTED_DIRECTLY', 'vouchers', $voucherId);
+            } else if ($status === 'Pending Approval') {
+                logAudit($userId, 'VOUCHER_SUBMITTED_AUTOMATICALLY', 'vouchers', $voucherId);
+                $this->notifyManagers("New voucher approval request: " . $voucherNumber, $voucherId);
             } else {
                 logAudit($userId, 'VOUCHER_CREATED', 'vouchers', $voucherId);
             }
@@ -204,7 +198,7 @@ class VoucherController {
 
     // Request Approval (Accountant, Draft only)
     public function requestApproval() {
-        checkRole(['accountant', 'admin', 'administrator']);
+        checkRole(['accountant', 'admin', 'administrator', 'manager']);
         
         $data = json_decode(file_get_contents('php://input'), true);
         $voucherId = $data['voucher_id'] ?? null;
@@ -286,7 +280,7 @@ class VoucherController {
             logAudit($userId, 'VOUCHER_POSTED', 'vouchers', $voucherId);
             
             // Notify Creator
-            $this->createNotification($voucher['created_by'], "Your voucher " . $voucher['voucher_number'] . " has been approved and posted.", 'success', $voucherId);
+            $this->createNotification($voucher['created_by'], "Your voucher " . $voucher['voucher_number'] . " has been approved and posted.", 'success', $voucherId, "Voucher Approved");
             
             // Send Email Notification
             $this->sendVoucherEmail($voucher['created_by'], $voucher['voucher_number'], 'approved');
@@ -326,7 +320,7 @@ class VoucherController {
             logAudit($userId, 'VOUCHER_REJECTED', 'vouchers', $voucherId);
             
             // Notify Creator
-            $this->createNotification($voucher['created_by'], "Your voucher " . $voucher['voucher_number'] . " was rejected. Reason: " . $data['reason'], 'error', $voucherId);
+            $this->createNotification($voucher['created_by'], "Your voucher " . $voucher['voucher_number'] . " was rejected. Reason: " . $data['reason'], 'error', $voucherId, "Voucher Rejected");
             
             // Send Email Notification
             $this->sendVoucherEmail($voucher['created_by'], $voucher['voucher_number'], 'rejected', $data['reason']);
@@ -342,16 +336,16 @@ class VoucherController {
     // Helper to notify managers
     private function notifyManagers($message, $relatedId = null) {
         // Find all managers
-        $result = $this->db->query("SELECT id FROM users WHERE role IN ('manager', 'admin')");
+        $result = $this->db->query("SELECT id FROM users WHERE role IN ('manager', 'admin', 'administrator')");
         while ($row = $result->fetch_assoc()) {
-            $this->createNotification($row['id'], $message, 'info', $relatedId);
+            $this->createNotification($row['id'], $message, 'info', $relatedId, "Voucher Approval Request");
         }
     }
     
     // Helper to create notification
-    private function createNotification($userId, $message, $type = 'info', $relatedId = null) {
-        $stmt = $this->db->prepare("INSERT INTO notifications (user_id, message, type, related_id) VALUES (?, ?, ?, ?)");
-        $stmt->bind_param("issi", $userId, $message, $type, $relatedId);
+    private function createNotification($userId, $message, $type = 'info', $relatedId = null, $title = null) {
+        $stmt = $this->db->prepare("INSERT INTO notifications (user_id, title, message, type, related_id) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("isssi", $userId, $title, $message, $type, $relatedId);
         $stmt->execute();
         $stmt->close();
     }
@@ -475,7 +469,7 @@ class VoucherController {
 
     // Update voucher (Accountant, owner, Draft only)
     public function updateVoucher() {
-        checkRole(['accountant', 'admin', 'administrator']);
+        checkRole(['accountant', 'admin', 'administrator', 'manager']);
 
         $data = json_decode(file_get_contents('php://input'), true);
         $required = ['voucher_id', 'voucher_type_id', 'voucher_date', 'details'];
@@ -513,8 +507,10 @@ class VoucherController {
 
         try {
             // Update voucher header
-            $stmt = $this->db->prepare("UPDATE vouchers SET voucher_type_id = ?, voucher_date = ?, narration = ? WHERE id = ?");
-            $stmt->bind_param("issi", $data['voucher_type_id'], $data['voucher_date'], $data['narration'], $voucherId);
+            $stmt = $this->db->prepare("UPDATE vouchers SET voucher_type_id = ?, from_account_id = ?, to_account_id = ?, voucher_date = ?, narration = ? WHERE id = ?");
+            $fromAcc = $data['from_account_id'] ?? null;
+            $toAcc = $data['to_account_id'] ?? null;
+            $stmt->bind_param("iiissi", $data['voucher_type_id'], $fromAcc, $toAcc, $data['voucher_date'], $data['narration'], $voucherId);
             $stmt->execute();
             $stmt->close();
 
@@ -555,7 +551,7 @@ class VoucherController {
 
     // Delete voucher (Accountant owner, Draft only)
     public function deleteVoucher() {
-        checkRole(['accountant', 'admin', 'administrator']);
+        checkRole(['accountant', 'admin', 'administrator', 'manager']);
 
         $data = json_decode(file_get_contents('php://input'), true);
         $voucherId = intval($data['voucher_id'] ?? 0);
@@ -606,6 +602,46 @@ class VoucherController {
         sendResponse(true, $types, 'Voucher types retrieved');
     }
 
+    // Get Timeline Data
+    public function getTimeline() {
+        checkAuth();
+        
+        $page = $_GET['page'] ?? 1;
+        $limit = $_GET['limit'] ?? 20;
+        $offset = ($page - 1) * $limit;
+        
+        // Fetch vouchers with details
+        $sql = "SELECT v.id, v.voucher_number, v.voucher_date, v.narration, v.total_debit, v.status,
+                       vt.name as type_name, u.first_name, u.last_name
+                FROM vouchers v
+                JOIN voucher_types vt ON v.voucher_type_id = vt.id
+                LEFT JOIN users u ON v.created_by = u.id
+                ORDER BY v.voucher_date DESC, v.id DESC
+                LIMIT $limit OFFSET $offset";
+        
+        $result = $this->db->query($sql);
+        $timeline = [];
+        
+        while ($row = $result->fetch_assoc()) {
+            $date = date('Y-m-d', strtotime($row['voucher_date']));
+            if (!isset($timeline[$date])) {
+                $timeline[$date] = [
+                    'date' => $date,
+                    'day' => date('l', strtotime($date)),
+                    'formatted_date' => date('d M Y', strtotime($date)),
+                    'vouchers' => []
+                ];
+            }
+            
+            $timeline[$date]['vouchers'][] = $row;
+        }
+        
+        // Re-index to array
+        $timelineData = array_values($timeline);
+        
+        sendResponse(true, $timelineData, 'Timeline data retrieved');
+    }
+
     private function updateGeneralLedger($voucherId) {
         $stmt = $this->db->prepare("SELECT account_id, debit, credit FROM voucher_details WHERE voucher_id = ?");
         $stmt->bind_param("i", $voucherId);
@@ -652,6 +688,9 @@ switch ($action) {
         break;
     case 'list':
         $voucher->getVouchers();
+        break;
+    case 'timeline':
+        $voucher->getTimeline();
         break;
     case 'get':
     case 'view':

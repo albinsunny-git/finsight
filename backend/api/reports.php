@@ -1,19 +1,6 @@
 <?php
-session_start();
 require_once __DIR__ . '/../config/Database.php';
-
-function checkAuth() {
-    if (!isset($_SESSION['user_id'])) {
-        sendResponse(false, null, 'Unauthorized', 401);
-    }
-}
-
-function checkRole($requiredRoles) {
-    checkAuth();
-    if (!in_array($_SESSION['role'], (array)$requiredRoles)) {
-        sendResponse(false, null, 'Forbidden: Insufficient permissions', 403);
-    }
-}
+require_once __DIR__ . '/../config/AuthMiddleware.php';
 
 class ReportController {
     private $db;
@@ -27,22 +14,54 @@ class ReportController {
         
         $asOnDate = $_GET['as_on_date'] ?? date('Y-m-d');
         
-        $sql = "SELECT ac.id, ac.code, ac.name, ac.type, ac.category, 
-                       COALESCE(SUM(gl.debit) - SUM(gl.credit), 0) as balance,
-                       COALESCE(SUM(gl.debit), 0) as total_debit,
-                       COALESCE(SUM(gl.credit), 0) as total_credit
+        $sql = "SELECT ac.id, ac.code, ac.name, ac.type, ac.sub_type, 
+                       COALESCE(
+                           CASE 
+                               WHEN ac.type IN ('Liability', 'Equity', 'Income') 
+                               THEN SUM(COALESCE(gl.credit, 0)) - SUM(COALESCE(gl.debit, 0))
+                               ELSE SUM(COALESCE(gl.debit, 0)) - SUM(COALESCE(gl.credit, 0))
+                           END, 0) as balance,
+                       SUM(COALESCE(gl.debit, 0)) as total_debit,
+                       SUM(COALESCE(gl.credit, 0)) as total_credit
                 FROM account_chart ac
                 LEFT JOIN general_ledger gl ON ac.id = gl.account_id AND DATE(gl.voucher_date) <= '$asOnDate'
                 WHERE ac.is_active = TRUE
-                GROUP BY ac.id, ac.code, ac.name, ac.type, ac.category
+                GROUP BY ac.id, ac.code, ac.name, ac.type, ac.sub_type
                 ORDER BY ac.type, ac.code";
         
         $result = $this->db->query($sql);
         $accounts = [];
+        $totalIncome = 0;
+        $totalExpense = 0;
         
         while ($row = $result->fetch_assoc()) {
-            $accounts[] = $row;
+            if ($row['type'] == 'Income') {
+                $totalIncome += $row['balance'];
+            } elseif ($row['type'] == 'Expense') {
+                // For BS logic, Expense balance is Dr - Cr. If we want impact on Equity, we treat it as negative.
+                $totalExpense += $row['balance'];
+            }
+            // Only add real BS accounts to the main list (Asset, Liability, Equity)
+            if (in_array($row['type'], ['Asset', 'Liability', 'Equity'])) {
+                $accounts[] = $row;
+            }
         }
+        
+        // Calculate Net Profit up to this date
+        // Profit = Income - Expense
+        $netProfit = $totalIncome - $totalExpense;
+        
+        // Add Net Profit as a virtual Equity account
+        $accounts[] = [
+            'id' => 0,
+            'code' => 'PROFIT',
+            'name' => 'Net Profit (Period)',
+            'type' => 'Equity',
+            'sub_type' => 'Retained Earnings',
+            'balance' => $netProfit,
+            'total_debit' => $totalIncome,
+            'total_credit' => $totalExpense
+        ];
         
         sendResponse(true, $accounts, 'Balance sheet retrieved');
     }
@@ -53,16 +72,22 @@ class ReportController {
         $fromDate = $_GET['from_date'] ?? date('Y-01-01');
         $toDate = $_GET['to_date'] ?? date('Y-m-d');
         
-        $sql = "SELECT ac.id, ac.code, ac.name, ac.type,
-                       COALESCE(SUM(gl.debit) - SUM(gl.credit), 0) as amount,
-                       SUM(gl.debit) as total_debit,
-                       SUM(gl.credit) as total_credit
+        // Use CASE to return correct positive balance based on account type
+        $sql = "SELECT ac.id, ac.code, ac.name, ac.type, ac.sub_type,
+                       COALESCE(
+                           CASE 
+                               WHEN ac.type = 'Income' 
+                               THEN SUM(COALESCE(gl.credit, 0)) - SUM(COALESCE(gl.debit, 0))
+                               ELSE SUM(COALESCE(gl.debit, 0)) - SUM(COALESCE(gl.credit, 0))
+                           END, 0) as amount,
+                       SUM(COALESCE(gl.debit, 0)) as total_debit,
+                       SUM(COALESCE(gl.credit, 0)) as total_credit
                 FROM account_chart ac
                 LEFT JOIN general_ledger gl ON ac.id = gl.account_id 
                           AND DATE(gl.voucher_date) >= '$fromDate' 
                           AND DATE(gl.voucher_date) <= '$toDate'
                 WHERE ac.type IN ('Income', 'Expense') AND ac.is_active = TRUE
-                GROUP BY ac.id, ac.code, ac.name, ac.type
+                GROUP BY ac.id, ac.code, ac.name, ac.type, ac.sub_type
                 ORDER BY ac.type DESC, ac.code";
         
         $result = $this->db->query($sql);

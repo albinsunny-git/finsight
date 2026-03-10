@@ -7,7 +7,7 @@ CREATE TABLE users (
   password_hash VARCHAR(255),
   first_name VARCHAR(100),
   last_name VARCHAR(100),
-  role ENUM('admin','manager','accountant','auditor') DEFAULT 'accountant',
+  role ENUM('admin','manager','accountant') DEFAULT 'accountant',
   is_active TINYINT(1) DEFAULT 1,
   google_id VARCHAR(200),
   profile_image VARCHAR(255),
@@ -39,6 +39,8 @@ CREATE TABLE vouchers (
   id INT AUTO_INCREMENT PRIMARY KEY,
   voucher_number VARCHAR(100) NOT NULL UNIQUE,
   voucher_type_id INT,
+  from_account_id INT,
+  to_account_id INT,
   voucher_date DATE,
   reference_number VARCHAR(100),
   narration TEXT,
@@ -52,7 +54,9 @@ CREATE TABLE vouchers (
   created_by INT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (voucher_type_id) REFERENCES voucher_types(id)
+  FOREIGN KEY (voucher_type_id) REFERENCES voucher_types(id),
+  FOREIGN KEY (from_account_id) REFERENCES account_chart(id),
+  FOREIGN KEY (to_account_id) REFERENCES account_chart(id)
 );
 
 CREATE TABLE voucher_details (
