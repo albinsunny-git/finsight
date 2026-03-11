@@ -1,0 +1,8 @@
+{
+    "name": "albinsunny/finsight",
+    "description": "FinSight - Accounting Software",
+    "type": "project",
+    "require": {
+        "php": ">=7.4"
+    }
+}
