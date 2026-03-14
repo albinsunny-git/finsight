@@ -1,5 +1,7 @@
-// Use API_URL from dashboard.js or define it if missing
-const API_URL = typeof DB_API_URL !== 'undefined' ? DB_API_URL : (window.location.pathname.includes('/pages/') ? '../api' : 'api');
+// Reliable API URL resolution
+const BASE_PATH = window.location.pathname.includes('/finsight') ? '/finsight' : '';
+const API_URL = `${BASE_PATH}/api`;
+const DB_API_URL = API_URL; // For compatibility with dashboard.js logic
 
 // Helper: Fetch with Timeout (Polyfill if missing)
 if (typeof fetchWithTimeout === 'undefined') {
@@ -51,22 +53,42 @@ async function initAdminDashboard() {
     const avatarEl = document.getElementById('userAvatar') || document.getElementById('user-avatar') || document.getElementById('sidebarUserAvatar');
     if (avatarEl) avatarEl.textContent = (currentUser.first_name || 'U').charAt(0).toUpperCase();
 
-    // Separate Sidebar Avatar/Name updates if IDs differ (handled above via ORs usually, but just in case)
-
     // Render Role-Based Sidebar
     renderSidebar(currentUser.role);
 
-    // Initialize Mock Data if empty (for Demo Speed)
-    initMockDataIfEmpty();
+    // Initialize Mock Data only if necessary (Avoid clearing real-time data syncs)
+    // initMockDataIfEmpty(); 
+
+    // --- AUTO-LOAD PAGE DATA ---
+    console.log("Initializing dashboard data for role:", currentUser.role);
+
+    if (document.getElementById('usersTableBody')) {
+        console.log("Loading Users Page...");
+        loadUsers();
+    }
+    
+    if (document.getElementById('accountsTableBody')) {
+        console.log("Loading Accounts Page...");
+        loadAccounts();
+    }
+    
+    if (document.getElementById('vouchersTableBody')) {
+        console.log("Loading Vouchers Page...");
+        loadVouchers();
+    }
 
     // Load initial data (dont block UI if slow)
-    if (currentUser.role === 'admin') {
-        loadAdminStats();
-        loadFinancialInsights();
-    }
-    if (currentUser.role === 'accountant') {
-        loadAccountantStats();
-        loadFinancialInsights(); // Also useful for them
+    if (document.getElementById('stat-users') || document.getElementById('stat-revenue')) {
+        if (currentUser.role === 'admin') {
+            loadAdminStats();
+            loadFinancialInsights();
+        } else if (currentUser.role === 'accountant') {
+            loadAccountantStats();
+            loadFinancialInsights();
+        } else if (currentUser.role === 'manager') {
+            loadAdminStats(); // Managers see same stats as admin
+            loadFinancialInsights();
+        }
     }
 }
 
@@ -74,13 +96,22 @@ async function loadUsers() {
     const tbody = document.getElementById('usersTableBody');
     if (!tbody) return;
 
+    // Show loading state instead of blank/mock
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center"><i class="fas fa-spinner fa-spin"></i> Fetching users from secure server...</td></tr>';
+
     try {
-        const response = await fetchWithTimeout(`${API_URL}/users.php?action=list`, { credentials: 'include' });
+        const response = await fetch(`${API_URL}/users.php?action=list`, { credentials: 'include' });
+        
+        if (response.status === 401) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger"><i class="fas fa-user-lock"></i> Session expired. Please <a href="../index.html">login again</a>.</td></tr>';
+            return;
+        }
+
         const data = await response.json();
 
         if (data.success) {
             if (data.data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center">No users found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">No users found in database</td></tr>';
                 return;
             }
 
@@ -88,7 +119,7 @@ async function loadUsers() {
                 <tr>
                     <td>
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div class="avatar-circle" style="width:32px;height:32px;background:var(--primary-color);color:white;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:14px;">${user.first_name.charAt(0).toUpperCase()}</div>
+                            <div class="avatar-circle" style="width:32px;height:32px;background:var(--primary-color);color:white;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:14px;">${(user.first_name || 'U').charAt(0).toUpperCase()}</div>
                             <div>
                                 <div style="font-weight: 600;">${user.first_name} ${user.last_name}</div>
                                 <div style="font-size: 12px; color: var(--text-muted);">@${user.username}</div>
@@ -96,7 +127,7 @@ async function loadUsers() {
                         </div>
                     </td>
                     <td>${user.email}</td>
-                    <td style="text-transform: capitalize;">${user.role}</td>
+                    <td style="text-transform: capitalize;"><span class="badge badge-role-${user.role}">${user.role}</span></td>
                     <td>${user.department || '-'}</td>
                     <td>
                         <span class="badge ${user.is_active == 1 ? 'badge-success' : 'badge-danger'}" style="padding:4px 8px;border-radius:12px;font-size:12px;background:${user.is_active == 1 ? '#dcfce7' : '#fee2e2'};color:${user.is_active == 1 ? '#166534' : '#991b1b'}">
@@ -106,23 +137,18 @@ async function loadUsers() {
                     <td>${user.last_login ? new Date(user.last_login).toLocaleDateString() : 'Never'}</td>
                     <td>
                         <div class="action-buttons" style="display:flex;gap:8px;">
-                             <button class="btn-icon" onclick="editUser(${user.id})" title="Edit" style="border:none;background:none;cursor:pointer;color:var(--text-muted);"><i class="fas fa-edit"></i></button>
-                             <button class="btn-icon" 
-                                     onclick="toggleUserStatus(${user.id}, ${user.is_active == 1 ? 'false' : 'true'})" 
-                                     title="${user.is_active == 1 ? 'Deactivate' : 'Activate'}"
-                                     style="border:none;background:none;cursor:pointer;color:${user.is_active == 1 ? '#ef4444' : '#10b981'};">
-                                 <i class="fas ${user.is_active == 1 ? 'fa-ban' : 'fa-check-circle'}"></i>
-                             </button>
+                             <button class="btn-icon" onclick="editUserModal(${user.id})" title="Edit" style="border:none;background:none;cursor:pointer;color:var(--text-muted);"><i class="fas fa-edit"></i></button>
+                             ${getActionButton(user)}
                         </div>
                     </td>
                 </tr>
             `).join('');
         } else {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Failed to load users: ' + data.message + '</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Failed to load users: ' + (data.message || 'Unknown server error') + '</td></tr>';
         }
     } catch (error) {
         console.error('Error loading users:', error);
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Error loading users</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger"><i class="fas fa-exclamation-triangle"></i> Connectivity Error: Unable to reach API.</td></tr>';
     }
 }
 
@@ -489,20 +515,25 @@ async function loadUsersWithPagination(page = 1) {
 
 // Load and display accounts
 async function loadAccountsWithType() {
-    // Immediate load from Mock
-    loadAccountsFromMock();
+    const tbody = document.getElementById('accountsTableBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center"><i class="fas fa-spinner fa-spin"></i> Synchronizing cloud accounts...</td></tr>';
 
     try {
-        const response = await fetchWithTimeout(`${API_URL}/accounts.php?action=list`, { timeout: 3000, credentials: 'include' });
+        const response = await fetch(`${API_URL}/accounts.php?action=list`, { credentials: 'include' });
+        
+        if (response.status === 401) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Unauthorized index. Please relogin.</td></tr>';
+            return;
+        }
+
         const data = await response.json();
 
         if (data.success) {
-            const tbody = document.getElementById('accountsTableBody');
-            if (!tbody) return;
             tbody.innerHTML = '';
-
             if (data.data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center">No accounts found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center">No accounts found in cloud database</td></tr>';
                 return;
             }
 
@@ -538,8 +569,8 @@ async function loadAccountsWithType() {
             });
         }
     } catch (error) {
-        console.warn('Error loading accounts from API, falling back to mock if available:', error);
-        loadAccountsFromMock();
+        console.error('Account API Error:', error);
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger"><i class="fas fa-wifi"></i> Error connecting to Railway DB.</td></tr>';
     }
 }
 
@@ -1368,19 +1399,27 @@ document.addEventListener('click', (e) => {
 
 // Vouchers management 
 async function loadVouchers() {
-    loadVouchersFromMock(); // Instant load
+    const tbody = document.getElementById('vouchersTableBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center"><i class="fas fa-spinner fa-spin"></i> Retrieving cloud vouchers...</td></tr>';
 
     try {
         const filter = document.getElementById('voucherFilter')?.value || document.getElementById('voucherStatusFilter')?.value || '';
         const url = filter ? `${API_URL}/vouchers.php?action=list&status=${filter}` : `${API_URL}/vouchers.php?action=list`;
-        const response = await fetchWithTimeout(url, { timeout: 3000, credentials: 'include' });
+        
+        const response = await fetch(url, { credentials: 'include' });
+        
+        if (response.status === 401) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger">Session invalid.</td></tr>';
+            return;
+        }
+
         const data = await response.json();
         if (data.success) {
-            const tbody = document.getElementById('vouchersTableBody');
-            if (!tbody) return;
             tbody.innerHTML = '';
             if (data.data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center">No vouchers found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">No vouchers recorded yet.</td></tr>';
                 return;
             }
             data.data.forEach(voucher => {
@@ -1425,7 +1464,8 @@ async function loadVouchers() {
             });
         }
     } catch (error) {
-        console.warn('Vouchers API failed, sticking with mock.');
+        console.error('Voucher fetch error:', error);
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger"><i class="fas fa-exclamation-circle"></i> System error loading vouchers.</td></tr>';
     }
 }
 

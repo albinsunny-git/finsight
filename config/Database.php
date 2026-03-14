@@ -28,10 +28,11 @@ class Database {
             ]);
             return $conn;
         } catch (PDOException $e) {
+            $errorMsg = "Database Connection Failed: " . $e->getMessage();
             if (php_sapi_name() === 'cli') {
-                die("Database connection error: " . $e->getMessage() . "\n");
+                die($errorMsg . "\n");
             }
-            $this->sendError("Database connection error: " . $e->getMessage());
+            $this->sendError($errorMsg, 503);
         }
     }
     

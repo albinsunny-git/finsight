@@ -37,6 +37,18 @@ date_default_timezone_set('UTC');
 error_reporting($isLocalhost ? E_ALL : 0);
 ini_set('display_errors', $isLocalhost ? 1 : 0);
 
-if (session_status() === PHP_SESSION_NONE && php_sapi_name() !== 'cli') {
-    session_start();
+// 5. Session Setup
+if (php_sapi_name() !== 'cli') {
+    if (session_status() === PHP_SESSION_NONE) {
+        // Ensure cookies work across all paths and are secure on Render
+        session_set_cookie_params([
+            'lifetime' => 0,
+            'path' => $isLocalhost ? '/finsight/' : '/',
+            'domain' => '',
+            'secure' => $isRender,
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ]);
+        session_start();
+    }
 }
