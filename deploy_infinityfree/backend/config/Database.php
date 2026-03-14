@@ -1,25 +1,44 @@
 <?php
-// Database Connection Class - Refactored for PostgreSQL PDO with mysqli compatibility shim
+// Database Connection Class - Refactored to use DATABASE_URL with mysqli compatibility shim
 require_once __DIR__ . '/config.php';
 
 class Database {
     private $pdo;
     
     public function __construct() {
-        $host = DB_HOST;
-        $db   = DB_NAME;
-        $user = DB_USER;
-        $pass = DB_PASS;
-        $port = DB_PORT;
+        $this->pdo = $this->connect();
+    }
+
+    public function connect() {
+        $dbUrl = defined('DATABASE_URL') ? DATABASE_URL : getenv("DATABASE_URL");
         
+        if (!$dbUrl) {
+            $host = DB_HOST;
+            $db   = DB_NAME;
+            $user = DB_USER;
+            $pass = DB_PASS;
+            $port = DB_PORT ?: 5432;
+        } else {
+            $parts = parse_url($dbUrl);
+            $host = $parts["host"] ?? '';
+            $port = $parts["port"] ?? 5432;
+            $user = $parts["user"] ?? '';
+            $pass = $parts["pass"] ?? '';
+            $db   = isset($parts["path"]) ? ltrim($parts["path"], "/") : '';
+        }
+
         try {
             $dsn = "pgsql:host=$host;port=$port;dbname=$db";
-            $this->pdo = new PDO($dsn, $user, $pass, [
+            $conn = new PDO($dsn, $user, $pass, [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES => false,
             ]);
+            return $conn;
         } catch (PDOException $e) {
+            if (php_sapi_name() === 'cli') {
+                die("Database connection error: " . $e->getMessage() . "\n");
+            }
             $this->sendError("Database connection error: " . $e->getMessage());
         }
     }
@@ -73,7 +92,6 @@ class Database {
     }
 }
 
-// Shim to mimic mysqli_stmt behavior
 class ShimStatement {
     private $stmt;
     private $pdo;
@@ -114,7 +132,6 @@ class ShimStatement {
     }
 }
 
-// Shim to mimic mysqli_result behavior
 class ShimResult {
     private $stmt;
     public $num_rows;
@@ -137,7 +154,6 @@ class ShimResult {
     }
 }
 
-// Shim to mimic mysqli object properties
 class ConnectionProxy {
     private $pdo;
 
@@ -161,15 +177,16 @@ class ConnectionProxy {
     }
 }
 
-// Helper Functions
-function sendResponse($success, $data = null, $message = '', $code = 200) {
-    http_response_code($code);
-    echo json_encode([
-        'success' => $success,
-        'data' => $data,
-        'message' => $message
-    ]);
-    exit;
+if (!function_exists('sendResponse')) {
+    function sendResponse($success, $data = null, $message = '', $code = 200) {
+        http_response_code($code);
+        echo json_encode([
+            'success' => $success,
+            'data' => $data,
+            'message' => $message
+        ]);
+        exit;
+    }
 }
 
 function hashPassword($password) {

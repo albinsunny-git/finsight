@@ -1,5 +1,5 @@
-<?php
 // Database Configuration
+define('DATABASE_URL', getenv('DATABASE_URL') ?: 'postgresql://admin:kln0b6ip4FqayZvh3x5Or6u9QuxsW3E2@dpg-d6qfreea2pns73a03q80-a:5432/finsight_db_2i8q');
 define('DB_HOST', getenv('DB_HOST') ?: 'dpg-d6qfreea2pns73a03q80-a');
 define('DB_USER', getenv('DB_USER') ?: 'admin');
 define('DB_PASS', getenv('DB_PASSWORD') ?: 'kln0b6ip4FqayZvh3x5Or6u9QuxsW3E2');
