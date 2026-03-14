@@ -447,6 +447,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             children: [
                               Row(
                                 children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.asset(
+                                      'assets/images/logo.png',
+                                      width: 32,
+                                      height: 32,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
                                   CircleAvatar(
                                     backgroundColor: const Color(0xFFFDE6D2),
                                     backgroundImage: _profileImagePath !=
@@ -601,6 +610,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ],
             child: Row(
               children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    width: 32,
+                    height: 32,
+                  ),
+                ),
+                const SizedBox(width: 12),
                 CircleAvatar(
                   backgroundColor: const Color(0xFFFDE6D2),
                   backgroundImage: _profileImagePath != null &&

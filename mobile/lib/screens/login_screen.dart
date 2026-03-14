@@ -257,10 +257,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           : const Color(0xFFE2F0FF),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: const Icon(
-                      Icons.account_balance,
-                      color: Color(0xFF1A73E8),
-                      size: 36,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        width: 64,
+                        height: 64,
+                        fit: BoxFit.cover,
+                      ),
                     ),
                   ),
                 )

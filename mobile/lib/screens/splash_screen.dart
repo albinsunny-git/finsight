@@ -62,10 +62,10 @@ class _SplashScreenState extends State<SplashScreen> {
                   )
                 ],
               ),
-              child: const Icon(
-                Icons.auto_graph,
-                size: 80,
-                color: primaryColor,
+              child: Image.asset(
+                'assets/images/logo.png',
+                width: 80,
+                height: 80,
               ),
             )
                 .animate()
