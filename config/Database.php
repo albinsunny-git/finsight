@@ -25,6 +25,7 @@ class Database {
         } else {
             $parts = parse_url($dbUrl);
             $scheme = $parts["scheme"] ?? "mysql";
+            if (strpos($dbUrl, 'mysql://') === 0) $scheme = "mysql"; // Force MySQL if specified in URL
             if ($scheme === "postgresql" || $scheme === "postgres") $scheme = "pgsql";
             $host = $parts["host"] ?? '';
             $port = $parts["port"] ?? ($scheme === "pgsql" ? 5432 : 3306);
