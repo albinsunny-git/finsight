@@ -15,7 +15,11 @@ if (file_exists(__DIR__ . '/../.env')) {
 }
 
 // 2. Environment Detection
-$isLocalhost = ($_SERVER['HTTP_HOST'] === 'localhost' || $_SERVER['SERVER_NAME'] === 'localhost' || $_SERVER['REMOTE_ADDR'] === '127.0.0.1');
+$isLocalhost = (
+    (isset($_SERVER['HTTP_HOST']) && ($_SERVER['HTTP_HOST'] === 'localhost' || $_SERVER['SERVER_NAME'] === 'localhost')) || 
+    (isset($_SERVER['REMOTE_ADDR']) && ($_SERVER['REMOTE_ADDR'] === '127.0.0.1' || $_SERVER['REMOTE_ADDR'] === '::1')) ||
+    (php_sapi_name() === 'cli' && !getenv('DATABASE_URL')) // Assume local if CLI and no URL set
+);
 
 // 3. Database Configuration
 if ($isLocalhost) {
@@ -26,16 +30,19 @@ if ($isLocalhost) {
     define('DB_NAME', 'finsight_db');
     define('DB_PORT', '3306');
 } else {
-    // Railway MySQL Production Settings
-    // Priority: Environment Variable (Render Dashboard) -> Hardcoded Railway Failback
-    define('DATABASE_URL', getenv('DATABASE_URL') ?: 'mysql://root:JFdaAfOpwWsyXermUpsXMISgOyiqHDHO@turntable.proxy.rlwy.net:43079/railway');
+    /**
+     * PRODUCTION SETTINGS (FORCE RAILWAY MYSQL)
+     * We ignore Render's internal DATABASE_URL which often points to their own Postgres.
+     */
+    $railwayUrl = 'mysql://root:JFdaAfOpwWsyXermUpsXMISgOyiqHDHO@turntable.proxy.rlwy.net:43079/railway';
     
-    // Individual constants used by some scripts (fallback to Railway)
-    define('DB_HOST', getenv('DB_HOST') ?: 'turntable.proxy.rlwy.net');
-    define('DB_USER', getenv('DB_USER') ?: 'root');
-    define('DB_PASS', getenv('DB_PASSWORD') ?: 'JFdaAfOpwWsyXermUpsXMISgOyiqHDHO');
-    define('DB_NAME', getenv('DB_NAME') ?: 'railway');
-    define('DB_PORT', getenv('DB_PORT') ?: '43079');
+    // Explicitly define parameters for the Database class
+    define('DATABASE_URL', $railwayUrl);
+    define('DB_HOST', 'turntable.proxy.rlwy.net');
+    define('DB_USER', 'root');
+    define('DB_PASS', 'JFdaAfOpwWsyXermUpsXMISgOyiqHDHO');
+    define('DB_NAME', 'railway');
+    define('DB_PORT', '43079');
 }
 
 // 4. Application Configuration
