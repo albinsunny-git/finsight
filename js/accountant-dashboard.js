@@ -1,5 +1,9 @@
-// Accountant Dashboard JavaScript
-const API_URL = window.location.pathname.includes('/pages/') ? '../api' : 'api';
+// Reliable API URL resolution (Safe for multi-script loading)
+if (typeof window.BASE_PATH === 'undefined') {
+    window.BASE_PATH = window.location.pathname.includes('/finsight') ? '/finsight' : '';
+    window.API_URL = `${window.BASE_PATH}/api`;
+    window.DB_API_URL = window.API_URL;
+}
 let currentUser = null;
 let voucherDetails = [];
 

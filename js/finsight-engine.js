@@ -1,5 +1,9 @@
-// Dynamic API_URL to support different ports (80, 8080, etc.)
-const API_URL = typeof DB_API_URL !== 'undefined' ? DB_API_URL : (window.location.pathname.includes('/pages/') ? '../api' : 'api');
+// Reliable API URL resolution (Safe for multi-script loading)
+if (typeof window.BASE_PATH === 'undefined') {
+    window.BASE_PATH = window.location.pathname.includes('/finsight') ? '/finsight' : '';
+    window.API_URL = `${window.BASE_PATH}/api`;
+    window.DB_API_URL = window.API_URL;
+}
 
 // Helper: Fetch with Timeout (Polyfill if missing)
 if (typeof fetchWithTimeout === 'undefined') {

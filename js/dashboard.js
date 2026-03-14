@@ -1,7 +1,9 @@
-// Reliable API URL resolution
-const BASE_PATH = window.location.pathname.includes('/finsight') ? '/finsight' : '';
-const API_URL = `${BASE_PATH}/api`;
-const DB_API_URL = API_URL;
+// Reliable API URL resolution (Safe for multi-script loading)
+if (typeof window.BASE_PATH === 'undefined') {
+    window.BASE_PATH = window.location.pathname.includes('/finsight') ? '/finsight' : '';
+    window.API_URL = `${window.BASE_PATH}/api`;
+    window.DB_API_URL = window.API_URL;
+}
 
 // ============================================
 // GLOBAL ALERT OVERRIDE

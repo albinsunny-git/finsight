@@ -1,6 +1,9 @@
-// Consistent API URL resolution
-const BASE_PATH = window.location.pathname.includes('/finsight') ? '/finsight' : '';
-const API_URL = `${BASE_PATH}/api/auth.php`;
+// Reliable API URL resolution (Safe for multi-script loading)
+if (typeof window.BASE_PATH === 'undefined') {
+    window.BASE_PATH = window.location.pathname.includes('/finsight') ? '/finsight' : '';
+    window.API_URL = `${window.BASE_PATH}/api/auth.php`;
+    window.DB_API_URL = `${window.BASE_PATH}/api`;
+}
 
 // Helper to determine redirect URL based on role
 function resolveRedirectUrl(role) {

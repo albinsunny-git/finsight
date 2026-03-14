@@ -1,7 +1,9 @@
-// Reliable API URL resolution
-const BASE_PATH = window.location.pathname.includes('/finsight') ? '/finsight' : '';
-const API_URL = `${BASE_PATH}/api`;
-const DB_API_URL = API_URL; // For compatibility with dashboard.js logic
+// Reliable API URL resolution (Safe for multi-script loading)
+if (typeof window.BASE_PATH === 'undefined') {
+    window.BASE_PATH = window.location.pathname.includes('/finsight') ? '/finsight' : '';
+    window.API_URL = `${window.BASE_PATH}/api`;
+    window.DB_API_URL = window.API_URL;
+}
 
 // Helper: Fetch with Timeout (Polyfill if missing)
 if (typeof fetchWithTimeout === 'undefined') {
@@ -331,8 +333,8 @@ async function loadAdminStats() {
     try {
         // Parallel fetching
         const [uRes, pnlRes] = await Promise.allSettled([
-            fetchWithTimeout(`${API_URL}/users.php?action=count`, { timeout: 3000, credentials: 'include' }),
-            fetchWithTimeout(`${API_URL}/reports.php?type=profit-loss&from_date=1970-01-01`, { timeout: 3000, credentials: 'include' })
+            fetchWithTimeout(`${API_URL}/users.php?action=count`, { timeout: 8000, credentials: 'include' }),
+            fetchWithTimeout(`${API_URL}/reports.php?type=profit-loss&from_date=1970-01-01`, { timeout: 8000, credentials: 'include' })
         ]);
 
         // 1. Users Stats
@@ -476,7 +478,7 @@ async function loadUsersWithPagination(page = 1) {
     loadUsersFromMock(page);
 
     try {
-        const response = await fetchWithTimeout(`${API_URL}/users.php?action=list&page=${page}`, { timeout: 3000, credentials: 'include' });
+        const response = await fetchWithTimeout(`${API_URL}/users.php?action=list&page=${page}`, { timeout: 8000, credentials: 'include' });
         const data = await response.json();
 
         if (data.success) {
@@ -1670,7 +1672,7 @@ async function submitAddUserForm(e) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user_id: editingId, ...payload }),
                 credentials: 'include',
-                timeout: 5000
+                timeout: 8000
             });
             const data = await res.json();
             console.log('Update response:', data);
@@ -1699,7 +1701,7 @@ async function submitAddUserForm(e) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
                 credentials: 'include',
-                timeout: 5000
+                timeout: 8000
             });
 
             console.log('Create response status:', res.status);
@@ -2088,7 +2090,7 @@ async function generateDynamicReport(type) {
     `;
 
     try {
-        const res = await fetchWithTimeout(`${API_URL}/reports.php?type=${type}`, { timeout: 5000, credentials: 'include' });
+        const res = await fetchWithTimeout(`${API_URL}/reports.php?type=${type}`, { timeout: 8000, credentials: 'include' });
         const json = await res.json();
 
         if (!json.success) {
