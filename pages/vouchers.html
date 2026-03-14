@@ -68,8 +68,13 @@
         <!-- Main Content -->
         <main class="main-content">
             <header class="header">
-                <div class="header-title">
-                    <h1>Vouchers</h1>
+                <div class="header-left" style="display: flex; align-items: center;">
+                    <button class="mobile-toggle" id="mobileToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="header-title">
+                        <h1>Vouchers</h1>
+                    </div>
                 </div>
 
                 <div class="header-actions">
@@ -248,7 +253,7 @@
             <div class="modal-body" style="padding: 30px; max-height: 75vh; overflow-y: auto;">
                 <!-- Header Info -->
                 <div
-                    style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; padding: 20px; background: var(--bg-body, #f8fafc); border-radius: 12px; border: 1px solid var(--border-color, #f1f5f9);">
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; margin-bottom: 30px; padding: 20px; background: var(--bg-body, #f8fafc); border-radius: 12px; border: 1px solid var(--border-color, #f1f5f9);">
                     <div>
                         <div
                             style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600;">

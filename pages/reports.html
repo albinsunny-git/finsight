@@ -71,8 +71,13 @@
     <div class="main-content">
       <!-- Header -->
       <header class="header">
-        <div class="header-title">
-          <h1>Financial Reports</h1>
+        <div class="header-left" style="display: flex; align-items: center;">
+          <button class="mobile-toggle" id="mobileToggle">
+            <i class="fas fa-bars"></i>
+          </button>
+          <div class="header-title">
+            <h1>Financial Reports</h1>
+          </div>
         </div>
 
         <div class="header-actions">
@@ -111,7 +116,7 @@
             style="margin-bottom: 20px; font-size: 18px; color: var(--text-main); border-left: 4px solid var(--primary-color); padding-left: 10px;">
             Financial Analytics</h3>
 
-          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px;">
             <!-- Cash Flow Chart -->
             <div
               style="background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: relative;">
