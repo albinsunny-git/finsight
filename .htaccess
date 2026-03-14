@@ -1,12 +1,12 @@
+# Basic .htaccess for InfinityFree
 RewriteEngine On
 
-# Allow API requests
-RewriteCond %{REQUEST_URI} ^/api/
-RewriteRule ^ - [L]
+# Ensure PHP is used for files if needed (usually handled by provider)
+# Add index.php / index.html to DirectoryIndex
+DirectoryIndex index.html index.php
 
-# If file exists, serve it normally
+# Routing - if navigating to /dashboard it might look for dashboard.html
+# This allows cleaner URLs or prevents 404s on refresh
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-
-# Otherwise go to index
-RewriteRule ^ index.html [L]
+RewriteRule ^(.*)$ index.html [L]
