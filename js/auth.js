@@ -1,5 +1,6 @@
-// Authentication JavaScript
-const API_URL = window.location.pathname.includes('/pages/') ? '../api/auth.php' : 'api/auth.php';
+// Consistent API URL resolution
+const BASE_PATH = window.location.pathname.includes('/finsight') ? '/finsight' : '';
+const API_URL = `${BASE_PATH}/api/auth.php`;
 
 // Helper to determine redirect URL based on role
 function resolveRedirectUrl(role) {

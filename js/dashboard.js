@@ -1,5 +1,7 @@
-// Dashboard Core Functions
-const DB_API_URL = window.location.pathname.includes('/pages/') ? '../api' : 'api';
+// Reliable API URL resolution
+const BASE_PATH = window.location.pathname.includes('/finsight') ? '/finsight' : '';
+const API_URL = `${BASE_PATH}/api`;
+const DB_API_URL = API_URL;
 
 // ============================================
 // GLOBAL ALERT OVERRIDE
@@ -190,7 +192,7 @@ function getTimezone() {
 
 // Utility: Fetch with Timeout with Global Auth Error Handling
 async function fetchWithTimeout(resource, options = {}) {
-    const { timeout = 3000 } = options;
+    const { timeout = 8000 } = options;
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), timeout);
 
@@ -582,8 +584,8 @@ async function loadDashboardStats() {
 
         // 2. Fetch from API in parallel
         const [uRes, aRes] = await Promise.allSettled([
-            fetchWithTimeout(`${DB_API_URL}/users.php?action=count`, { timeout: 2000 }),
-            fetchWithTimeout(`${DB_API_URL}/accounts.php?action=list`, { timeout: 2000 })
+            fetchWithTimeout(`${DB_API_URL}/users.php?action=count`),
+            fetchWithTimeout(`${DB_API_URL}/accounts.php?action=list`)
         ]);
 
         let userCount = mockUsers.length;
@@ -631,7 +633,7 @@ async function loadRecentTransactions() {
     if (!tbody) return;
 
     try {
-        const res = await fetchWithTimeout(`${DB_API_URL}/vouchers.php?action=list`, { timeout: 2000 });
+        const res = await fetchWithTimeout(`${DB_API_URL}/vouchers.php?action=list`);
         const data = await res.json();
 
         let vouchers = [];
