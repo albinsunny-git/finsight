@@ -90,6 +90,9 @@ class AuthController {
         // Normalize input and perform case-insensitive lookup for email/username
         $emailOrUsername = trim($data['email_or_username']);
         $stmt = $this->db->prepare("SELECT id, email, username, password_hash, first_name, last_name, role, phone, is_active, profile_image FROM users WHERE (LOWER(email) = LOWER(?) OR LOWER(username) = LOWER(?))");
+        if (!$stmt) {
+             sendResponse(false, null, 'Database error. Please run the setup script.', 500);
+        }
         $stmt->bind_param("ss", $emailOrUsername, $emailOrUsername);
         $stmt->execute();
         $result = $stmt->get_result();

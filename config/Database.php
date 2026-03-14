@@ -55,8 +55,10 @@ class Database {
     }
     
     public function query($sql) {
+        if (!$this->pdo) return false;
         try {
             $stmt = $this->pdo->query($sql);
+            if (!$stmt) return false;
             return new ShimResult($stmt);
         } catch (PDOException $e) {
             return false;
@@ -98,7 +100,8 @@ class Database {
 
     protected function sendError($message, $code = 500) {
         http_response_code($code);
-        echo json_encode(['success' => false, 'error' => $message]);
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'message' => $message]);
         exit;
     }
 }
