@@ -1,10 +1,12 @@
 RewriteEngine On
 
-# Redirect root to htdocs modern UI
-RewriteCond %{REQUEST_URI} ^/$
-RewriteRule ^$ htdocs/index.html [L,R=301]
+# Allow API requests
+RewriteCond %{REQUEST_URI} ^/api/
+RewriteRule ^ - [L]
 
-# Support clean URLs if needed
+# If file exists, serve it normally
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ htdocs/index.html [L]
+
+# Otherwise go to index
+RewriteRule ^ index.html [L]
