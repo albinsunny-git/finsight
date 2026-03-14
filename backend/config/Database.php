@@ -1,67 +1,163 @@
 <?php
-// Database Connection Class
+// Database Connection Class - Refactored for PostgreSQL PDO with mysqli compatibility shim
 require_once __DIR__ . '/config.php';
 
 class Database {
-    private $connection;
+    private $pdo;
     
     public function __construct() {
+        $host = DB_HOST;
+        $db   = DB_NAME;
+        $user = DB_USER;
+        $pass = DB_PASS;
+        $port = DB_PORT;
+        
         try {
-            $this->connection = mysqli_init();
-            if (!$this->connection) {
-                throw new Exception("mysqli_init failed");
-            }
-
-            $this->connection->options(MYSQLI_OPT_CONNECT_TIMEOUT, 5);
-            $this->connection->real_connect(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-            
-            if ($this->connection->connect_error) {
-                throw new Exception("Connection failed: " . $this->connection->connect_error);
-            }
-            
-            $this->connection->set_charset("utf8mb4");
-        } catch (Exception $e) {
+            $dsn = "pgsql:host=$host;port=$port;dbname=$db";
+            $this->pdo = new PDO($dsn, $user, $pass, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false,
+            ]);
+        } catch (PDOException $e) {
             $this->sendError("Database connection error: " . $e->getMessage());
         }
     }
     
     public function query($sql) {
-        return $this->connection->query($sql);
+        try {
+            $stmt = $this->pdo->query($sql);
+            return new ShimResult($stmt);
+        } catch (PDOException $e) {
+            return false;
+        }
     }
     
     public function prepare($sql) {
-        return $this->connection->prepare($sql);
+        try {
+            $stmt = $this->pdo->prepare($sql);
+            return new ShimStatement($stmt, $this->pdo);
+        } catch (PDOException $e) {
+            return false;
+        }
     }
     
     public function escape($string) {
-        return $this->connection->real_escape_string($string);
+        return trim($this->pdo->quote($string), "'");
     }
     
     public function getConnection() {
-        return $this->connection;
+        return new ConnectionProxy($this->pdo);
     }
     
     public function closeConnection() {
-        if ($this->connection) {
-            $this->connection->close();
-        }
+        $this->pdo = null;
     }
     
     public function getValidatedUserId($id) {
         if (empty($id)) return null;
-        $stmt = $this->connection->prepare("SELECT id FROM users WHERE id = ?");
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $exists = ($result->num_rows > 0);
-        $stmt->close();
-        return $exists ? $id : null;
+        try {
+            $stmt = $this->pdo->prepare("SELECT id FROM users WHERE id = ?");
+            $stmt->execute([$id]);
+            $exists = $stmt->fetch();
+            return $exists ? $id : null;
+        } catch (PDOException $e) {
+            return null;
+        }
     }
 
     protected function sendError($message, $code = 500) {
         http_response_code($code);
         echo json_encode(['success' => false, 'error' => $message]);
         exit;
+    }
+}
+
+// Shim to mimic mysqli_stmt behavior
+class ShimStatement {
+    private $stmt;
+    private $pdo;
+    private $params = [];
+
+    public function __construct($stmt, $pdo) {
+        $this->stmt = $stmt;
+        $this->pdo = $pdo;
+    }
+
+    public function bind_param($types, ...$vars) {
+        $this->params = $vars;
+        return true;
+    }
+
+    public function execute() {
+        try {
+            return $this->stmt->execute($this->params);
+        } catch (PDOException $e) {
+            error_log("PDO Execute Error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function get_result() {
+        return new ShimResult($this->stmt);
+    }
+
+    public function close() {
+        return true;
+    }
+    
+    public function __get($name) {
+        if ($name === 'num_rows') {
+            return $this->stmt->rowCount();
+        }
+        return null;
+    }
+}
+
+// Shim to mimic mysqli_result behavior
+class ShimResult {
+    private $stmt;
+    public $num_rows;
+
+    public function __construct($stmt) {
+        $this->stmt = $stmt;
+        $this->num_rows = $stmt->rowCount();
+    }
+
+    public function fetch_assoc() {
+        return $this->stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function fetch_all($mode = PDO::FETCH_ASSOC) {
+        return $this->stmt->fetchAll($mode);
+    }
+    
+    public function close() {
+        return true;
+    }
+}
+
+// Shim to mimic mysqli object properties
+class ConnectionProxy {
+    private $pdo;
+
+    public function __construct($pdo) {
+        $this->pdo = $pdo;
+    }
+    
+    public function __get($name) {
+        if ($name === 'insert_id') {
+            return $this->pdo->lastInsertId();
+        }
+        if ($name === 'error') {
+            $error = $this->pdo->errorInfo();
+            return $error[2] ?? '';
+        }
+        return null;
+    }
+    
+    public function close() {
+        return true;
     }
 }
 
@@ -93,7 +189,6 @@ function logAudit($userId, $action, $entityType, $entityId, $oldValue = null, $n
     $ipAddress = $_SERVER['REMOTE_ADDR'] ?? '';
     $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
     
-    // Ensure userId is null if it's 0 or empty to avoid foreign key issues
     $finalUserId = (empty($userId) || $userId === 0) ? null : $userId;
     
     $stmt = $db->prepare("INSERT INTO audit_trail (user_id, action, entity_type, entity_id, old_value, new_value, ip_address, user_agent) 
@@ -101,9 +196,6 @@ function logAudit($userId, $action, $entityType, $entityId, $oldValue = null, $n
     if ($stmt) {
         $stmt->bind_param("ississss", $finalUserId, $action, $entityType, $entityId, $oldValue, $newValue, $ipAddress, $userAgent);
         $stmt->execute();
-        $stmt->close();
-    } else {
-        error_log("Audit Log Error: " . $db->getConnection()->error);
     }
 }
 
@@ -112,7 +204,6 @@ function validateEmail($email) {
 }
 
 function validatePassword($password) {
-    // At least 8 characters, 1 uppercase, 1 lowercase, 1 number, 1 special character
     $pattern = '/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/';
     return preg_match($pattern, $password);
 }

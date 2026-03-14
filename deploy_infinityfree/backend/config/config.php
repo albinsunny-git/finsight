@@ -1,10 +1,10 @@
 <?php
 // Database Configuration
-define('DB_HOST', 'sql300.infinityfree.com');
-define('DB_USER', 'if0_41386393');
-define('DB_PASS', 'Leelamma3640');
-define('DB_NAME', 'if0_41386393_finsight');
-define('DB_PORT', getenv('DB_PORT') ?: '3306');
+define('DB_HOST', getenv('DB_HOST') ?: 'dpg-d6qfreea2pns73a03q80-a');
+define('DB_USER', getenv('DB_USER') ?: 'admin');
+define('DB_PASS', getenv('DB_PASSWORD') ?: 'kln0b6ip4FqayZvh3x5Or6u9QuxsW3E2');
+define('DB_NAME', getenv('DB_NAME') ?: 'finsight_db_2i8q');
+define('DB_PORT', getenv('DB_PORT') ?: '5432');
 
 // Application Configuration
 define('APP_NAME', 'FinSight');
