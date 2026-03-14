@@ -15,9 +15,11 @@ if (file_exists(__DIR__ . '/../.env')) {
 
 // 2. Environment Detection
 $isLocalhost = ($_SERVER['HTTP_HOST'] === 'localhost' || $_SERVER['SERVER_NAME'] === 'localhost' || $_SERVER['REMOTE_ADDR'] === '127.0.0.1');
-$isRender = (getenv('RENDER') === 'true' || strpos($_SERVER['HTTP_HOST'] ?? '', 'onrender.com') !== false);
 
-// 3. Database Configuration
+/**
+ * 3. Database Configuration
+ * We explicitly override DATABASE_URL for Render to ignore any old environment variables.
+ */
 if ($isLocalhost) {
     // Localhost XAMPP Settings
     define('DB_HOST', 'localhost');
@@ -26,10 +28,11 @@ if ($isLocalhost) {
     define('DB_NAME', 'finsight_db');
     define('DB_PORT', '3306');
 } else {
-    /** 
-     * RENDER PRODUCTION SETTINGS
-     * We hardcode these to ensure they take precedence over old dashboard variables.
-     */
+    // RENDER PRODUCTION SETTINGS
+    // Using the Postgres URL directly overrides any old dashboard environment variables.
+    define('DATABASE_URL', 'postgresql://admin:kln0b6ip4FqayZvh3x5Or6u9QuxsW3E2@dpg-d6qfreea2pns73a03q80-a.oregon-postgres.render.com/finsight_db_2i8q');
+    
+    // Individual constants as fallback
     define('DB_HOST', 'dpg-d6qfreea2pns73a03q80-a.oregon-postgres.render.com'); 
     define('DB_USER', 'admin');
     define('DB_PASS', 'kln0b6ip4FqayZvh3x5Or6u9QuxsW3E2');
