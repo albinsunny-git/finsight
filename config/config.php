@@ -1,6 +1,7 @@
 <?php
 /**
  * FinSight Master Configuration
+ * Environment: Local (XAMPP MySQL) vs Production (Railway MySQL)
  */
 
 // 1. Load .env file if it exists (Local Dev)
@@ -16,28 +17,25 @@ if (file_exists(__DIR__ . '/../.env')) {
 // 2. Environment Detection
 $isLocalhost = ($_SERVER['HTTP_HOST'] === 'localhost' || $_SERVER['SERVER_NAME'] === 'localhost' || $_SERVER['REMOTE_ADDR'] === '127.0.0.1');
 
-/**
- * 3. Database Configuration
- * We explicitly override DATABASE_URL for Render to ignore any old environment variables.
- */
+// 3. Database Configuration
 if ($isLocalhost) {
-    // Localhost XAMPP Settings
+    // Localhost XAMPP Settings (MySQL)
     define('DB_HOST', 'localhost');
     define('DB_USER', 'root');
     define('DB_PASS', '');
     define('DB_NAME', 'finsight_db');
     define('DB_PORT', '3306');
 } else {
-    // RENDER PRODUCTION SETTINGS
-    // Using the Postgres URL directly overrides any old dashboard environment variables.
-    define('DATABASE_URL', 'postgresql://admin:kln0b6ip4FqayZvh3x5Or6u9QuxsW3E2@dpg-d6qfreea2pns73a03q80-a.oregon-postgres.render.com/finsight_db_2i8q');
+    // Railway MySQL Production Settings
+    // Priority: Environment Variable (Render Dashboard) -> Hardcoded Railway Failback
+    define('DATABASE_URL', getenv('DATABASE_URL') ?: 'mysql://root:JFdaAfOpwWsyXermUpsXMISgOyiqHDHO@turntable.proxy.rlwy.net:43079/railway');
     
-    // Individual constants as fallback
-    define('DB_HOST', 'dpg-d6qfreea2pns73a03q80-a.oregon-postgres.render.com'); 
-    define('DB_USER', 'admin');
-    define('DB_PASS', 'kln0b6ip4FqayZvh3x5Or6u9QuxsW3E2');
-    define('DB_NAME', 'finsight_db_2i8q');
-    define('DB_PORT', '5432');
+    // Individual constants used by some scripts (fallback to Railway)
+    define('DB_HOST', getenv('DB_HOST') ?: 'turntable.proxy.rlwy.net');
+    define('DB_USER', getenv('DB_USER') ?: 'root');
+    define('DB_PASS', getenv('DB_PASSWORD') ?: 'JFdaAfOpwWsyXermUpsXMISgOyiqHDHO');
+    define('DB_NAME', getenv('DB_NAME') ?: 'railway');
+    define('DB_PORT', getenv('DB_PORT') ?: '43079');
 }
 
 // 4. Application Configuration
@@ -45,19 +43,18 @@ define('APP_NAME', 'FinSight');
 define('APP_URL', $isLocalhost ? 'http://localhost/finsight' : 'https://finsight-1-a1ov.onrender.com');
 define('APP_VERSION', '1.0.0');
 
-// 5. Security & Secrets (Loaded from Env)
+// 5. Security & Secrets (Loaded from Env or defaults)
 define('GOOGLE_CLIENT_ID', getenv('GOOGLE_CLIENT_ID') ?: '235402120316-oi9307meejpv5jlbtt7b4lfr4remn8js.apps.googleusercontent.com');
 define('GOOGLE_CLIENT_SECRET', getenv('GOOGLE_CLIENT_SECRET') ?: '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');
 define('MAIL_USER', getenv('MAIL_USER') ?: 'sunnyalbin3640@gmail.com');
 define('MAIL_PASS', getenv('MAIL_PASS') ?: 'mdig dpag dila gfey');
 
-// 6. Generic Settings
-define('SESSION_TIMEOUT', 3600);
+// Meta
 date_default_timezone_set('UTC');
 error_reporting($isLocalhost ? E_ALL : 0);
 ini_set('display_errors', $isLocalhost ? 1 : 0);
 
-// 7. CORS & Session
+// CORS & Session
 if (isset($_SERVER['HTTP_ORIGIN'])) {
     header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
     header('Access-Control-Allow-Credentials: true');
@@ -70,6 +67,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 if (session_status() === PHP_SESSION_NONE && php_sapi_name() !== 'cli') {
-    session_set_cookie_params(['lifetime' => 0, 'path' => '/', 'secure' => !$isLocalhost, 'httponly' => true, 'samesite' => 'Lax']);
     session_start();
 }
