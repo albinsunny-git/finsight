@@ -1,13 +1,13 @@
 <?php
 /**
- * FinSight Master Configuration
+ * Master Config - Unified for Local and Production
  */
 
-// 1. Force Production if not on a known local host
-$host = $_SERVER['HTTP_HOST'] ?? '';
-$isLocalhost = ($host === 'localhost' || $host === '127.0.0.1' || strpos($host, '192.168.') === 0 || empty($host));
+// 1. Environment Detection (Much stricter)
+$isRender = (getenv('RENDER') === 'true' || (isset($_SERVER['HTTP_HOST']) && strpos($_SERVER['HTTP_HOST'], 'onrender.com') !== false));
+$isLocalhost = !$isRender;
 
-// 2. Database Configuration (RAILWAY MYSQL)
+// 2. Database Configuration
 if ($isLocalhost) {
     define('DB_HOST', '127.0.0.1');
     define('DB_USER', 'root');
@@ -15,7 +15,7 @@ if ($isLocalhost) {
     define('DB_NAME', 'finsight_db');
     define('DB_PORT', '3306');
 } else {
-    // Railway MySQL Credentials (FROM YOUR SCREENSHOT)
+    // RAILWAY MYSQL PRODUCTION
     define('DB_HOST', 'turntable.proxy.rlwy.net');
     define('DB_USER', 'root');
     define('DB_PASS', 'JFdaAfOpwWsyXermUpsXMISgOyiqHDHO');
@@ -23,11 +23,11 @@ if ($isLocalhost) {
     define('DB_PORT', '43079');
 }
 
-// 4. Application Configuration
+// 3. Application Configuration
 define('APP_NAME', 'FinSight');
 define('APP_URL', $isLocalhost ? 'http://localhost/finsight' : 'https://finsight-1-a1ov.onrender.com');
 
-// 5. Secrets
+// 4. Secrets
 define('GOOGLE_CLIENT_ID', '235402120316-oi9307meejpv5jlbtt7b4lfr4remn8js.apps.googleusercontent.com');
 define('MAIL_USER', 'sunnyalbin3640@gmail.com');
 define('MAIL_PASS', 'mdig dpag dila gfey');
