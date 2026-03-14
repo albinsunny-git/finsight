@@ -19,13 +19,13 @@ define('PASSWORD_RESET_TIMEOUT', 3600); // 1 hour
 // Email Configuration
 define('MAIL_HOST', getenv('MAIL_HOST') ?: 'smtp.gmail.com');
 define('MAIL_PORT', getenv('MAIL_PORT') ?: 587);
-define('MAIL_USER', getenv('MAIL_USER') ?: 'your_email@gmail.com');
-define('MAIL_PASS', getenv('MAIL_PASS') ?: 'your_app_password');
+define('MAIL_USER', getenv('MAIL_USER') ?: 'sunnyalbin3640@gmail.com');
+define('MAIL_PASS', getenv('MAIL_PASS') ?: 'mdig dpag dila gfey');
 define('MAIL_FROM', getenv('MAIL_FROM') ?: 'noreply@finsight.com');
 
 // Google OAuth Configuration
 define('GOOGLE_CLIENT_ID', getenv('GOOGLE_CLIENT_ID') ?: '235402120316-oi9307meejpv5jlbtt7b4lfr4remn8js.apps.googleusercontent.com');
-define('GOOGLE_CLIENT_SECRET', getenv('GOOGLE_CLIENT_SECRET') ?: 'YOUR_GOOGLE_CLIENT_SECRET');
+define('GOOGLE_CLIENT_SECRET', getenv('GOOGLE_CLIENT_SECRET') ?: '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');
 define('GOOGLE_REDIRECT_URI', APP_URL . '/backend/api/auth/google-callback.php');
 
 // Firebase Configuration
