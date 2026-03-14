@@ -18,18 +18,26 @@ class Database {
             $db   = DB_NAME;
             $user = DB_USER;
             $pass = DB_PASS;
-            $port = DB_PORT ?: 5432;
+            $port = DB_PORT ?: 3306;
+            $scheme = "mysql";
         } else {
             $parts = parse_url($dbUrl);
+            $scheme = $parts["scheme"] ?? "mysql";
+            if ($scheme === "postgresql") $scheme = "pgsql";
             $host = $parts["host"] ?? '';
-            $port = $parts["port"] ?? 5432;
+            $port = $parts["port"] ?? ($scheme === "pgsql" ? 5432 : 3306);
             $user = $parts["user"] ?? '';
             $pass = $parts["pass"] ?? '';
             $db   = isset($parts["path"]) ? ltrim($parts["path"], "/") : '';
         }
 
         try {
-            $dsn = "pgsql:host=$host;port=$port;dbname=$db";
+            $dsn = "$scheme:host=$host;port=$port;dbname=$db";
+            // MySQL and Postgres have slightly different DSN formats for charset
+            if ($scheme === "mysql") {
+                $dsn .= ";charset=utf8mb4";
+            }
+
             $conn = new PDO($dsn, $user, $pass, [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,

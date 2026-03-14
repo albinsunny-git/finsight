@@ -1,0 +1,10 @@
+RewriteEngine On
+
+# Redirect root to htdocs modern UI
+RewriteCond %{REQUEST_URI} ^/$
+RewriteRule ^$ htdocs/index.html [L,R=301]
+
+# Support clean URLs if needed
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ htdocs/index.html [L]

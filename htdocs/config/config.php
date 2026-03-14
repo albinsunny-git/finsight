@@ -1,10 +1,9 @@
-// Database Configuration
-define('DATABASE_URL', getenv('DATABASE_URL') ?: 'postgresql://admin:kln0b6ip4FqayZvh3x5Or6u9QuxsW3E2@dpg-d6qfreea2pns73a03q80-a:5432/finsight_db_2i8q');
-define('DB_HOST', getenv('DB_HOST') ?: 'dpg-d6qfreea2pns73a03q80-a');
-define('DB_USER', getenv('DB_USER') ?: 'admin');
-define('DB_PASS', getenv('DB_PASSWORD') ?: 'kln0b6ip4FqayZvh3x5Or6u9QuxsW3E2');
-define('DB_NAME', getenv('DB_NAME') ?: 'finsight_db_2i8q');
-define('DB_PORT', getenv('DB_PORT') ?: '5432');
+define('DATABASE_URL', getenv('DATABASE_URL') ?: 'mysql://root:JFdaAfOpwWsyXermUpsXMISgOyiqHDHO@turntable.proxy.rlwy.net:43079/railway');
+define('DB_HOST', getenv('DB_HOST') ?: 'turntable.proxy.rlwy.net');
+define('DB_USER', getenv('DB_USER') ?: 'root');
+define('DB_PASS', getenv('DB_PASSWORD') ?: 'JFdaAfOpwWsyXermUpsXMISgOyiqHDHO');
+define('DB_NAME', getenv('DB_NAME') ?: 'railway');
+define('DB_PORT', getenv('DB_PORT') ?: '43079');
 
 // Application Configuration
 define('APP_NAME', 'FinSight');

@@ -1,12 +1,14 @@
 FROM php:8.2-apache
 
-COPY htdocs/ /var/www/html/
-
+# Install dependencies and extensions
 RUN apt-get update && apt-get install -y libpq-dev \
     && docker-php-ext-install mysqli pdo pdo_mysql pdo_pgsql
 
 # Enable mod_rewrite
 RUN a2enmod rewrite
+
+# Copy everything
+COPY . /var/www/html/
 
 # Configure Apache: listen on 8080, AllowOverride All, and suppress ServerName warning
 RUN sed -i 's/Listen 80/Listen 8080/' /etc/apache2/ports.conf && \
