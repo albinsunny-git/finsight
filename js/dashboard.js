@@ -251,8 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Auto-load stats if elements exist
     if (document.getElementById('stat-users')) {
-        loadDashboardStats();
-        loadRecentTransactions();
+        loadDashboardData();
     }
 
     // Initialize Notifications
@@ -309,6 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function fetchNotifications() {
     try {
+        // If we are on dashboard, we might already have this from combined load
         const res = await fetchWithTimeout(`${DB_API_URL}/notifications.php?action=list`, { credentials: 'include' });
         const data = await res.json();
         if (data.success) {
@@ -573,42 +573,43 @@ window.customConfirmAsync = function (message, options = {}) {
     });
 };
 
-// --- Stats & Charts (Dashboard Page) ---
-async function loadDashboardStats() {
+// --- Optimised Combined Dashboard Loader ---
+async function loadDashboardData() {
+    const tbody = document.getElementById('recentTransactionsBody');
+    
     try {
-        // 1. Load from Mock immediately for speed
+        // 1. Initial Mock UI Update (Zero Latency)
         const mockUsers = JSON.parse(localStorage.getItem('mock_users') || '[]');
         const mockAccounts = JSON.parse(localStorage.getItem('mock_accounts') || '[]');
-
         updateStatsUI(mockUsers.length, mockAccounts);
 
-        // 2. Fetch from API in parallel
-        const [uRes, aRes] = await Promise.allSettled([
-            fetchWithTimeout(`${DB_API_URL}/users.php?action=count`),
-            fetchWithTimeout(`${DB_API_URL}/accounts.php?action=list`)
-        ]);
+        // 2. Fetch Combined Data (1 API call instead of 4)
+        const res = await fetchWithTimeout(`${DB_API_URL}/dashboard.php`);
+        const data = await res.json();
 
-        let userCount = mockUsers.length;
-        let accounts = mockAccounts;
+        if (data.success) {
+            const d = data.data;
+            
+            // Update Stats
+            updateStatsUI(d.user_count, [], d); // Pass the raw data object for combined fields
 
-        if (uRes.status === 'fulfilled' && uRes.value.ok) {
-            const data = await uRes.value.json();
-            if (data.success) userCount = data.data.count;
+            // Update Recent Transactions
+            if (tbody) {
+                renderVoucherTable(tbody, d.recent_vouchers);
+            }
+
+            // Update Notification Badge (if already loaded)
+            updateNotificationUI([], d.unread_notifications);
         }
-
-        if (aRes.status === 'fulfilled' && aRes.value.ok) {
-            const data = await aRes.value.json();
-            if (data.success) accounts = data.data;
-        }
-
-        updateStatsUI(userCount, accounts);
 
     } catch (e) {
-        console.warn("Dashboard stats refresh failed, used cached data.", e);
+        console.warn("Unified Dashboard Refresh Failed:", e);
+        // Fallback to separate loaders if needed or show offline message
+        if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="text-center">Using locally cached data</td></tr>';
     }
 }
 
-function updateStatsUI(userCount, accounts) {
+function updateStatsUI(userCount, accounts, combinedData = null) {
     const elUsers = document.getElementById('stat-users');
     const elRev = document.getElementById('stat-revenue');
     const elProf = document.getElementById('stat-profit');
@@ -616,55 +617,45 @@ function updateStatsUI(userCount, accounts) {
 
     if (elUsers) elUsers.textContent = userCount;
 
-    const totalIncome = accounts.filter(a => a.type === 'Income').reduce((s, a) => s + (parseFloat(a.balance) || 0), 0);
-    const totalExpense = accounts.filter(a => a.type === 'Expense').reduce((s, a) => s + (parseFloat(a.balance) || 0), 0);
-    const netProfit = totalIncome - totalExpense;
+    let revenue, expenses, profit;
 
-    if (elRev) elRev.textContent = formatCurrency(totalIncome);
-    if (elExp) elExp.textContent = formatCurrency(totalExpense);
+    if (combinedData) {
+        revenue = combinedData.revenue;
+        expenses = combinedData.expenses;
+        profit = combinedData.profit;
+    } else {
+        revenue = accounts.filter(a => a.type === 'Income').reduce((s, a) => s + (parseFloat(a.balance) || 0), 0);
+        expenses = accounts.filter(a => a.type === 'Expense').reduce((s, a) => s + (parseFloat(a.balance) || 0), 0);
+        profit = revenue - expenses;
+    }
+
+    if (elRev) elRev.textContent = formatCurrency(revenue);
+    if (elExp) elExp.textContent = formatCurrency(expenses);
     if (elProf) {
-        elProf.textContent = formatCurrency(netProfit);
-        elProf.style.color = netProfit >= 0 ? 'var(--secondary-color)' : 'var(--danger-color)';
+        elProf.textContent = formatCurrency(profit);
+        elProf.style.color = profit >= 0 ? 'var(--secondary-color)' : 'var(--danger-color)';
     }
 }
 
-async function loadRecentTransactions() {
-    const tbody = document.getElementById('recentTransactionsBody');
-    if (!tbody) return;
-
-    try {
-        const res = await fetchWithTimeout(`${DB_API_URL}/vouchers.php?action=list`);
-        const data = await res.json();
-
-        let vouchers = [];
-        if (data.success) {
-            vouchers = data.data.slice(0, 5); // Latest 5
-        } else {
-            vouchers = JSON.parse(localStorage.getItem('mock_vouchers') || '[]').slice(0, 5);
-        }
-
-        if (vouchers.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center">No recent transactions</td></tr>';
-            return;
-        }
-
-        tbody.innerHTML = '';
-        vouchers.forEach(v => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${v.voucher_number || v.id}</td>
-                <td>${new Date(v.voucher_date).toLocaleDateString('en-IN')}</td>
-                <td>${v.voucher_type_name} - ${v.first_name || 'User'}</td>
-                <td>${formatCurrency(v.total_debit || 0)}</td>
-                <td><span class="badge badge-${(v.status || 'draft').toLowerCase()}">${v.status || 'Draft'}</span></td>
-                <td><button class="btn btn-sm btn-sm-secondary" onclick="viewVoucher('${v.id}')"><i class="fas fa-eye"></i></button></td>
-            `;
-            tbody.appendChild(row);
-        });
-
-    } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center">Offline: Using local data</td></tr>';
+function renderVoucherTable(tbody, vouchers) {
+    if (!vouchers || vouchers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center">No recent transactions</td></tr>';
+        return;
     }
+
+    tbody.innerHTML = '';
+    vouchers.forEach(v => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${v.voucher_number || v.id}</td>
+            <td>${new Date(v.voucher_date).toLocaleDateString('en-IN')}</td>
+            <td>${v.voucher_type_name} - ${v.first_name || 'User'}</td>
+            <td>${formatCurrency(v.total_debit || 0)}</td>
+            <td><span class="badge badge-${(v.status || 'draft').toLowerCase()}">${v.status || 'Draft'}</span></td>
+            <td><button class="btn btn-sm btn-sm-secondary" onclick="viewVoucher('${v.id}')"><i class="fas fa-eye"></i></button></td>
+        `;
+        tbody.appendChild(row);
+    });
 }
 
 function initCharts() {

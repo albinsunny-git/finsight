@@ -52,3 +52,8 @@ if (php_sapi_name() !== 'cli') {
         session_start();
     }
 }
+
+// Enable Gzip compression for all output
+if (php_sapi_name() !== 'cli' && !in_array('ob_gzhandler', ob_list_handlers())) {
+    ob_start("ob_gzhandler");
+}

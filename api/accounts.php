@@ -44,7 +44,7 @@ class AccountController {
             sendResponse(false, null, 'Account ID is required', 400);
         }
         
-        $stmt = $this->db->prepare("SELECT * FROM account_chart WHERE id = ?");
+        $stmt = $this->db->prepare("SELECT id, code, name, type, sub_type, description, opening_balance, balance, is_active, created_at FROM account_chart WHERE id = ?");
         $stmt->bind_param("i", $accountId);
         $stmt->execute();
         $result = $stmt->get_result();

@@ -20,7 +20,7 @@ class VoucherController {
         $startDate = $_GET['start_date'] ?? null;
         $endDate = $_GET['end_date'] ?? null;
         
-        $sql = "SELECT v.*, u.first_name, u.last_name, vt.name as voucher_type_name, 
+        $sql = "SELECT v.id, v.voucher_number, v.voucher_type_id, v.voucher_date, v.narration, v.total_debit, v.total_credit, v.status, v.created_at, u.first_name, u.last_name, vt.name as voucher_type_name, 
                 COALESCE(ac_from.name, (SELECT ac.name FROM voucher_details vd JOIN account_chart ac ON vd.account_id=ac.id WHERE vd.voucher_id=v.id AND vd.credit > 0 LIMIT 1)) as from_account,
                 COALESCE(ac_to.name, (SELECT ac.name FROM voucher_details vd JOIN account_chart ac ON vd.account_id=ac.id WHERE vd.voucher_id=v.id AND vd.debit > 0 LIMIT 1)) as to_account
                 FROM vouchers v
@@ -69,7 +69,7 @@ class VoucherController {
             sendResponse(false, null, 'Voucher ID is required', 400);
         }
         
-        $stmt = $this->db->prepare("SELECT v.*, u.first_name, u.last_name, vt.name as voucher_type_name 
+        $stmt = $this->db->prepare("SELECT v.id, v.voucher_number, v.voucher_type_id, v.voucher_date, v.narration, v.total_debit, v.total_credit, v.status, v.created_at, v.created_by, u.first_name, u.last_name, vt.name as voucher_type_name 
                                    FROM vouchers v
                                    LEFT JOIN users u ON v.created_by = u.id
                                    JOIN voucher_types vt ON v.voucher_type_id = vt.id
