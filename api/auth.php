@@ -1,4 +1,15 @@
 <?php
+header("Content-Type: application/json");
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+header("Access-Control-Allow-Methods: POST, GET, OPTIONS");
+
+// If this is an OPTIONS request, exit immediately
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
+
 require_once __DIR__ . '/../config/Database.php';
 
 class AuthController {
@@ -574,4 +585,3 @@ switch ($path) {
     default:
         sendResponse(false, null, 'Invalid action: ' . ($path ?? 'none provided') . '. Valid actions: register, login, logout, forgot-password, reset-password, change-password, google-callback', 400);
 }
-?>

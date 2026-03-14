@@ -1,12 +1,18 @@
-# Basic .htaccess for InfinityFree
+# Basic .htaccess
 RewriteEngine On
 
-# Ensure PHP is used for files if needed (usually handled by provider)
-# Add index.php / index.html to DirectoryIndex
+# Ensure PHP is used for files if needed
 DirectoryIndex index.html index.php
 
-# Routing - if navigating to /dashboard it might look for dashboard.html
-# This allows cleaner URLs or prevents 404s on refresh
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ index.html [L]
+# ROUTING RULES
+# 1. Do not rewrite actual files or directories
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# 2. Prevent /api/ from falling back to index.html (return real 404 if missing)
+RewriteCond %{REQUEST_URI} ^/api/
+RewriteRule ^ - [R=404,L]
+
+# 3. All other non-existent paths go to index.html (SPA routing)
+RewriteRule ^ index.html [L]
