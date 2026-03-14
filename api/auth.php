@@ -438,7 +438,47 @@ class AuthController {
             }
         } else {
             $stmt->close();
-            sendResponse(false, null, 'Access blocked for unknown users, contact admin', 403);
+            // Auto-create user for verified Google login
+            $firstName = $payload['given_name'] ?? strtok($payload['name'] ?? '', ' ');
+            $lastName = $payload['family_name'] ?? trim(str_replace($firstName, '', ($payload['name'] ?? '')));
+            
+            // Create a safe username
+            $baseUsername = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $firstName . $lastName));
+            $username = $baseUsername ?: 'user_' . substr(md5($email), 0, 8);
+            
+            // Check if username already exists, if so append random digits
+            $checkStmt = $this->db->prepare("SELECT id FROM users WHERE username = ?");
+            $checkStmt->bind_param("s", $username);
+            $checkStmt->execute();
+            if ($checkStmt->get_result()->num_rows > 0) {
+                $username .= rand(100, 999);
+            }
+            $checkStmt->close();
+
+            $passwordHash = hashPassword(bin2hex(random_bytes(16))); // Random secure password
+            $role = 'accountant'; // Default role
+            $picture = $payload['picture'] ?? null;
+
+            $stmt = $this->db->prepare("INSERT INTO users (email, username, password_hash, first_name, last_name, role, is_active, profile_image) VALUES (?, ?, ?, ?, ?, ?, 1, ?)");
+            $stmt->bind_param("sssssss", $email, $username, $passwordHash, $firstName, $lastName, $role, $picture);
+            
+            if ($stmt->execute()) {
+                $newUserId = $this->db->getConnection()->insert_id;
+                $user = [
+                    'id' => $newUserId,
+                    'email' => $email,
+                    'username' => $username,
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
+                    'role' => $role,
+                    'is_active' => 1,
+                    'profile_image' => $picture
+                ];
+                logAudit($newUserId, 'USER_REGISTERED_GOOGLE', 'users', $newUserId);
+            } else {
+                sendResponse(false, null, 'Failed to auto-create user account via Google', 500);
+            }
+            $stmt->close();
         }
 
         // Set session and update last_login

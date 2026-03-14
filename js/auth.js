@@ -76,9 +76,17 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
 
 // Handle Google Sign In Response
 async function handleGoogleSignIn(response) {
+    console.log("Google Sign-In response received:", response);
     const token = response.credential;
 
+    if (!token) {
+        console.error("No Google token found in response");
+        showError('login_error', 'Failed to retrieve Google credentials');
+        return;
+    }
+
     try {
+        console.log("Sending token to backend:", `${API_URL}?action=google-callback`);
         const apiResponse = await fetch(`${API_URL}?action=google-callback`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -89,6 +97,7 @@ async function handleGoogleSignIn(response) {
         });
 
         const result = await apiResponse.json();
+        console.log("Backend response for Google Sign-In:", result);
 
         if (result.success) {
             const payload = result.data || {};
