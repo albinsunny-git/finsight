@@ -10,41 +10,21 @@ class Database {
     }
 
     public function connect() {
-        $dbUrl = defined('DATABASE_URL') ? DATABASE_URL : getenv("DATABASE_URL");
-        
-        if (!$dbUrl) {
-            // Fallback to individual constants if URL is missing
-            $host = defined('DB_HOST') ? DB_HOST : 'localhost';
-            $db   = defined('DB_NAME') ? DB_NAME : '';
-            $user = defined('DB_USER') ? DB_USER : 'root';
-            $pass = defined('DB_PASS') ? DB_PASS : '';
-            $port = defined('DB_PORT') ? DB_PORT : 3306;
-            
-            // Auto-detect scheme based on port
-            $scheme = ($port == 5432) ? "pgsql" : "mysql";
-        } else {
-            $parts = parse_url($dbUrl);
-            $scheme = $parts["scheme"] ?? "mysql";
-            if (strpos($dbUrl, 'mysql://') === 0) $scheme = "mysql"; // Force MySQL if specified in URL
-            if ($scheme === "postgresql" || $scheme === "postgres") $scheme = "pgsql";
-            $host = $parts["host"] ?? '';
-            $port = $parts["port"] ?? ($scheme === "pgsql" ? 5432 : 3306);
-            $user = $parts["user"] ?? '';
-            $pass = $parts["pass"] ?? '';
-            $db   = isset($parts["path"]) ? ltrim($parts["path"], "/") : '';
-        }
+        $host = defined('DB_HOST') ? DB_HOST : 'localhost';
+        $db   = defined('DB_NAME') ? DB_NAME : '';
+        $user = defined('DB_USER') ? DB_USER : 'root';
+        $pass = defined('DB_PASS') ? DB_PASS : '';
+        $port = defined('DB_PORT') ? DB_PORT : 3306;
 
         try {
-            $dsn = "$scheme:host=$host;port=$port;dbname=$db";
-            // MySQL and Postgres have slightly different DSN formats for charset
-            if ($scheme === "mysql") {
-                $dsn .= ";charset=utf8mb4";
-            }
-
+            // Force MySQL TCP connection to avoid "No such file or directory" socket errors
+            $dsn = "mysql:host=$host;port=$port;dbname=$db;charset=utf8mb4";
+            
             $conn = new PDO($dsn, $user, $pass, [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES => false,
+                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4"
             ]);
             return $conn;
         } catch (PDOException $e) {
