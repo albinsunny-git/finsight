@@ -8,7 +8,7 @@ define('DB_PORT', getenv('DB_PORT') ?: '3306');
 
 // Application Configuration
 define('APP_NAME', 'FinSight');
-define('APP_URL', getenv('APP_URL') ?: 'http://localhost/finsight');
+define('APP_URL', getenv('APP_URL') ?: ''); // Relative empty or set based on deployment
 define('APP_VERSION', '1.0.0');
 
 // Security Configuration
@@ -26,7 +26,7 @@ define('MAIL_FROM', getenv('MAIL_FROM') ?: 'noreply@finsight.com');
 // Google OAuth Configuration
 define('GOOGLE_CLIENT_ID', getenv('GOOGLE_CLIENT_ID') ?: '235402120316-oi9307meejpv5jlbtt7b4lfr4remn8js.apps.googleusercontent.com');
 define('GOOGLE_CLIENT_SECRET', getenv('GOOGLE_CLIENT_SECRET') ?: 'YOUR_GOOGLE_CLIENT_SECRET');
-define('GOOGLE_REDIRECT_URI', APP_URL . '/backend/api/auth/google-callback.php');
+define('GOOGLE_REDIRECT_URI', APP_URL . '/api/auth.php?action=google-callback');
 
 // Firebase Configuration
 define('FIREBASE_API_KEY', getenv('FIREBASE_API_KEY') ?: 'AIzaSyBIchbChhsl1arZvzUGjAZc4K2q-UAxXDM');
@@ -40,7 +40,7 @@ define('FIREBASE_WEB_CLIENT_ID', getenv('FIREBASE_WEB_CLIENT_ID') ?: '2354021203
 
 // File Upload Configuration
 define('MAX_FILE_SIZE', 5242880); // 5MB
-define('UPLOAD_PATH', __DIR__ . '/../../uploads/');
+define('UPLOAD_PATH', __DIR__ . '/../uploads/');
 define('ALLOWED_EXTENSIONS', ['jpg', 'jpeg', 'png', 'pdf', 'csv', 'xlsx']);
 
 // Timezone

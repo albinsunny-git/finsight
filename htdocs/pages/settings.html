@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - FinSight</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/modern-dashboard.css?v=13">
+
+</head>
+
+<body>
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="../index.html" class="brand-logo">
+          <i class="fas fa-chart-line"></i>
+          <span class="brand-logo-name">FINSIGHT</span>
+        </a>
+      </div>
+
+      <nav class="sidebar-nav">
+
+        <a href="dashboard.html" class="nav-link">
+          <i class="fas fa-columns"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="users.html" class="nav-link">
+          <i class="fas fa-users"></i>
+          <span>Users</span>
+        </a>
+        <a href="accounts.html" class="nav-link">
+          <i class="fas fa-sitemap"></i>
+          <span>Accounts</span>
+        </a>
+        <a href="vouchers.html" class="nav-link">
+          <i class="fas fa-receipt"></i>
+          <span>Vouchers</span>
+        </a>
+        <a href="reports.html" class="nav-link">
+          <i class="fas fa-chart-pie"></i>
+          <span>Reports</span>
+        </a>
+        <a href="settings.html" class="nav-link active">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-user-profile">
+        <div class="sidebar-user-avatar" id="sidebarUserAvatar">A</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebarUserName">Admin User</div>
+          <div class="sidebar-user-role" id="sidebarUserRole">Admin</div>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <button onclick="logout()" class="btn-logout">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <header class="header">
+        <div class="header-title">
+          <h1>Settings</h1>
+        </div>
+
+        <div class="header-actions">
+
+          <div class="user-menu">
+            <div class="user-avatar" id="userAvatar">A</div>
+            <div class="user-info">
+              <div class="user-name" id="userName">Admin User</div>
+              <div class="user-role" id="userRole">Administrator</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="page-content">
+        <div class="settings-container">
+          <div class="settings-grid">
+            <!-- Settings Navigation -->
+            <div class="settings-sidebar">
+              <div class="settings-nav-item active" data-section="profile">
+                <i class="fas fa-user-circle"></i>
+                <span>Profile Settings</span>
+              </div>
+              <div class="settings-nav-item" data-section="security">
+                <i class="fas fa-shield-alt"></i>
+                <span>Security & Password</span>
+              </div>
+              <div class="settings-nav-item" data-section="appearance">
+                <i class="fas fa-palette"></i>
+                <span>Appearance</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Settings Content -->
+          <div class="settings-content">
+            <!-- Profile Settings -->
+            <div class="settings-section active" id="profile">
+              <h2 class="section-title"><i class="fas fa-user-circle"></i> Profile Information</h2>
+
+              <!-- Profile Photo -->
+              <div class="profile-photo-section">
+                <div class="profile-photo-preview">
+                  <div class="profile-photo-avatar" id="profilePhotoPreview">
+                    <span id="profileInitial">A</span>
+                  </div>
+                  <label for="profilePhotoInput" class="photo-upload-btn">
+                    <i class="fas fa-camera"></i>
+                  </label>
+                  <input type="file" id="profilePhotoInput" accept="image/*" style="display: none;">
+                </div>
+                <div>
+                  <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Profile Photo</h3>
+                  <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 12px;">Upload a professional
+                    photo for your profile</p>
+                  <button class="btn btn-secondary btn-sm"
+                    onclick="document.getElementById('profilePhotoInput').click()">
+                    <i class="fas fa-upload"></i> Choose Photo
+                  </button>
+                  <button class="btn btn-sm" onclick="removeProfilePhoto()"
+                    style="margin-left: 8px; color: var(--danger-color); background: #fee2e2;">
+                    <i class="fas fa-trash"></i> Remove
+                  </button>
+                </div>
+              </div>
+
+              <!-- Profile Form -->
+              <form id="profileForm">
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label><i class="fas fa-user"></i> First Name</label>
+                    <input type="text" id="profileFirstName" required>
+                  </div>
+                  <div class="form-group">
+                    <label><i class="fas fa-user"></i> Last Name</label>
+                    <input type="text" id="profileLastName" required>
+                  </div>
+                  <div class="form-group full-width">
+                    <label><i class="fas fa-envelope"></i> Email Address</label>
+                    <input type="email" id="profileEmail" required>
+                  </div>
+                  <div class="form-group">
+                    <label><i class="fas fa-phone"></i> Phone Number</label>
+                    <input type="tel" id="profilePhone" placeholder="+91 98765 43210">
+                  </div>
+                  <div class="form-group">
+                    <label><i class="fas fa-building"></i> Department</label>
+                    <input type="text" id="profileDepartment">
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 20px; padding: 14px 28px;">
+                  <i class="fas fa-save"></i> Save Profile Changes
+                </button>
+              </form>
+            </div>
+
+            <!-- Security Settings -->
+            <div class="settings-section" id="security">
+              <h2 class="section-title"><i class="fas fa-shield-alt"></i> Security & Password</h2>
+
+              <div class="info-card">
+                <i class="fas fa-info-circle"></i>
+                <strong>Password Requirements:</strong> Minimum 8 characters, including uppercase, lowercase, number,
+                and special character.
+              </div>
+
+              <form id="passwordForm">
+                <div class="form-group">
+                  <label><i class="fas fa-lock"></i> Current Password</label>
+                  <input type="password" id="currentPassword" required>
+                </div>
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label><i class="fas fa-key"></i> New Password</label>
+                    <input type="password" id="newPassword" required minlength="8">
+                  </div>
+                  <div class="form-group">
+                    <label><i class="fas fa-check-circle"></i> Confirm New Password</label>
+                    <input type="password" id="confirmPassword" required minlength="8">
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 20px; padding: 14px 28px;">
+                  <i class="fas fa-shield-alt"></i> Update Password
+                </button>
+              </form>
+            </div>
+
+            <!-- Appearance Settings -->
+            <div class="settings-section" id="appearance">
+              <h2 class="section-title"><i class="fas fa-palette"></i> Appearance Settings</h2>
+
+              <div class="subsection-title">
+                <i class="fas fa-moon"></i> Theme Mode
+              </div>
+              <div class="theme-cards">
+                <div class="theme-card theme-card-light active" data-theme="light" onclick="setTheme('light')">
+                  <div class="theme-preview">
+                    <div class="theme-preview-bar"></div>
+                    <div class="theme-preview-bar"></div>
+                  </div>
+                  <div class="theme-name">Light Mode</div>
+                </div>
+                <div class="theme-card theme-card-dark" data-theme="dark" onclick="setTheme('dark')">
+                  <div class="theme-preview">
+                    <div class="theme-preview-bar"></div>
+                    <div class="theme-preview-bar"></div>
+                  </div>
+                  <div class="theme-name">Dark Mode</div>
+                </div>
+              </div>
+
+              <div class="subsection-title">
+                <i class="fas fa-fill-drip"></i> Accent Color
+              </div>
+              <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 8px;">Choose your preferred accent
+                color for buttons and highlights</p>
+              <div class="color-options">
+                <div class="color-option active" style="background: #ef4444;" data-color="#ef4444" title="Red (Default)"
+                  onclick="setAccentColor('#ef4444')"></div>
+                <div class="color-option" style="background: #3b82f6;" data-color="#3b82f6" title="Blue"
+                  onclick="setAccentColor('#3b82f6')"></div>
+                <div class="color-option" style="background: #10b981;" data-color="#10b981" title="Green"
+                  onclick="setAccentColor('#10b981')"></div>
+                <div class="color-option" style="background: #8b5cf6;" data-color="#8b5cf6" title="Purple"
+                  onclick="setAccentColor('#8b5cf6')"></div>
+                <div class="color-option" style="background: #f59e0b;" data-color="#f59e0b" title="Orange"
+                  onclick="setAccentColor('#f59e0b')"></div>
+                <div class="color-option" style="background: #ec4899;" data-color="#ec4899" title="Pink"
+                  onclick="setAccentColor('#ec4899')"></div>
+                <div class="color-option" style="background: #14b8a6;" data-color="#14b8a6" title="Teal"
+                  onclick="setAccentColor('#14b8a6')"></div>
+              </div>
+
+              <div class="subsection-title">
+                <i class="fas fa-text-height"></i> Font Size
+              </div>
+              <div class="font-size-preview">
+                <span class="font-size-label">A</span>
+                <input type="range" id="fontSizeSlider" min="12" max="20" value="14" oninput="setFontSize(this.value)">
+                <span class="font-size-label" style="font-size: 18px;">A</span>
+                <span id="fontSizeValue"
+                  style="font-weight: 600; color: var(--primary-color); min-width: 50px;">14px</span>
+              </div>
+
+              <div class="pref-row" style="margin-top: 30px;">
+                <div class="pref-info">
+                  <h4>Compact Mode</h4>
+                  <p>Reduce spacing and padding for more content on screen</p>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="compactMode" onchange="toggleCompactMode()">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <div class="pref-row">
+                <div class="pref-info">
+                  <h4>Sidebar Always Open</h4>
+                  <p>Keep the sidebar expanded on all screen sizes</p>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="sidebarExpanded" checked onchange="toggleSidebarSetting()">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+
+              <button class="btn btn-primary" style="margin-top: 20px; padding: 14px 28px;"
+                onclick="saveAppearanceSettings()">
+                <i class="fas fa-save"></i> Save Appearance Settings
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+  </div>
+  </main>
+  </div>
+
+  <script src="../js/dashboard.js"></script>
+  <script>
+    // Settings Navigation
+    document.querySelectorAll('.settings-nav-item').forEach(item => {
+      item.addEventListener('click', () => {
+        // Update active nav
+        document.querySelectorAll('.settings-nav-item').forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+
+        // Show corresponding section
+        const section = item.dataset.section;
+        document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
+        document.getElementById(section).classList.add('active');
+      });
+    });
+
+    // ============================================
+    // TOAST NOTIFICATIONS
+    // ============================================
+
+    function showToast(title, message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+
+      let icon = 'fa-check-circle';
+      if (type === 'error') icon = 'fa-times-circle';
+      if (type === 'warning') icon = 'fa-exclamation-circle';
+
+      toast.innerHTML = `
+        <i class="fas ${icon}"></i>
+        <div class="toast-content">
+          <div class="toast-title">${title}</div>
+          <div class="toast-message">${message}</div>
+        </div>
+        <button class="toast-close" onclick="this.parentElement.remove()">
+          <i class="fas fa-times"></i>
+        </button>
+      `;
+
+      container.appendChild(toast);
+
+      // Auto remove after 5 seconds
+      setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease forwards';
+        setTimeout(() => toast.remove(), 300);
+      }, 5000);
+    }
+
+    // ============================================
+    // PROFILE SETTINGS
+    // ============================================
+
+    // Load user profile data
+    document.addEventListener('DOMContentLoaded', () => {
+      const userStr = localStorage.getItem('user');
+      if (!userStr) {
+        window.location.href = '../index.html';
+        return;
+      }
+
+      const user = JSON.parse(userStr);
+
+      // Role-based UI Adjustments
+      if (user.role && user.role.toLowerCase() === 'accountant') {
+        // 1. Hide Users Link
+        const usersLink = document.querySelector('a[href="users.html"]');
+        if (usersLink) usersLink.style.display = 'none';
+
+        // 2. Hide Regional Settings in Preferences
+        const subsectionTitles = document.querySelectorAll('.subsection-title');
+        subsectionTitles.forEach(title => {
+          if (title.textContent.trim().includes('Regional Settings')) {
+            title.style.display = 'none';
+            // Hide the next 4 div.pref-row elements
+            let sibling = title.nextElementSibling;
+            let count = 0;
+            while (sibling && count < 4) {
+              if (sibling.classList.contains('pref-row')) {
+                sibling.style.display = 'none';
+                count++;
+              }
+              sibling = sibling.nextElementSibling;
+            }
+          }
+        });
+
+        // 3. Hide Financial Year Start
+        const headings = document.querySelectorAll('h4');
+        headings.forEach(h4 => {
+          if (h4.textContent.trim() === 'Financial Year Start') {
+            const row = h4.closest('.pref-row');
+            if (row) row.style.display = 'none';
+          }
+        });
+      }
+
+      // Show Company Settings link if Admin/Manager
+      if (user.role && (user.role.toLowerCase() === 'admin' || user.role.toLowerCase() === 'manager')) {
+        const companyNavItem = document.getElementById('companyNavItem');
+        if (companyNavItem) {
+          companyNavItem.style.display = 'flex';
+          loadCompanySettings();
+        }
+      }
+
+      // Populate profile form
+      document.getElementById('profileFirstName').value = user.first_name || '';
+      document.getElementById('profileLastName').value = user.last_name || '';
+      document.getElementById('profileEmail').value = user.email || '';
+      document.getElementById('profilePhone').value = user.phone || '';
+      document.getElementById('profileDepartment').value = user.department || '';
+
+      // Set profile initial
+      const initial = (user.first_name || 'U').charAt(0).toUpperCase();
+      document.getElementById('profileInitial').textContent = initial;
+
+      // Load profile photo if exists
+      const savedPhoto = localStorage.getItem('profile_photo');
+      if (savedPhoto) {
+        const preview = document.getElementById('profilePhotoPreview');
+        preview.innerHTML = `<img src="${savedPhoto}" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;">`;
+        const uploadBtn = document.createElement('label');
+        uploadBtn.className = 'photo-upload-btn';
+        uploadBtn.setAttribute('for', 'profilePhotoInput');
+        uploadBtn.innerHTML = '<i class="fas fa-camera"></i>';
+        preview.appendChild(uploadBtn);
+      }
+    });
+
+    // Profile photo upload
+    document.getElementById('profilePhotoInput').addEventListener('change', function (e) {
+      const file = e.target.files[0];
+      if (file) {
+        if (file.size > 2 * 1024 * 1024) {
+          showToast('Upload Failed', 'File size must be less than 2MB', 'error');
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          const preview = document.getElementById('profilePhotoPreview');
+          preview.innerHTML = `<img src="${event.target.result}" alt="Profile" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block;">`;
+
+          const uploadBtn = document.createElement('label');
+          uploadBtn.className = 'photo-upload-btn';
+          uploadBtn.setAttribute('for', 'profilePhotoInput');
+          uploadBtn.innerHTML = '<i class="fas fa-camera"></i>';
+          preview.appendChild(uploadBtn);
+
+          // Save to localStorage
+          localStorage.setItem('profile_photo', event.target.result);
+
+          // Update header avatar immediately
+          const user = JSON.parse(localStorage.getItem('user'));
+          if (typeof updateUserProfile === 'function') {
+            updateUserProfile(user);
+          }
+
+          showToast('Success', 'Profile photo updated successfully!', 'success');
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    function removeProfilePhoto() {
+      window.customConfirm(
+        'Are you sure you want to remove your profile photo?',
+        () => {
+          localStorage.removeItem('profile_photo');
+          const user = JSON.parse(localStorage.getItem('user'));
+          const initial = (user.first_name || 'U').charAt(0).toUpperCase();
+          document.getElementById('profilePhotoPreview').innerHTML = `
+                    <div class="profile-photo-avatar">
+                        <span id="profileInitial">${initial}</span>
+                    </div>
+                    <label for="profilePhotoInput" class="photo-upload-btn">
+                        <i class="fas fa-camera"></i>
+                    </label>
+                `;
+
+          // Update header avatar immediately
+          if (typeof updateUserProfile === 'function') {
+            updateUserProfile(user);
+          }
+
+          showToast('Success', 'Profile photo removed', 'success');
+        },
+        null,
+        {
+          title: 'Remove Photo?',
+          icon: 'fas fa-trash',
+          confirmText: 'Yes, Remove'
+        }
+      );
+    }
+
+    // Profile form submission
+    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const user = JSON.parse(localStorage.getItem('user'));
+      const updatedUser = {
+        ...user,
+        first_name: document.getElementById('profileFirstName').value,
+        last_name: document.getElementById('profileLastName').value,
+        email: document.getElementById('profileEmail').value,
+        phone: document.getElementById('profilePhone').value,
+        department: document.getElementById('profileDepartment').value
+      };
+
+      // Save to localStorage
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+
+      // Update UI immediately across all pages
+      if (typeof updateUserProfile === 'function') {
+        updateUserProfile(updatedUser);
+      }
+      document.getElementById('profileInitial').textContent = updatedUser.first_name.charAt(0).toUpperCase();
+
+      showToast('Success', 'Profile updated successfully!', 'success');
+    });
+
+    // Password form submission
+    document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const currentPassword = document.getElementById('currentPassword').value;
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+
+      if (newPassword !== confirmPassword) {
+        showToast('Error', 'New passwords do not match!', 'error');
+        return;
+      }
+
+      if (newPassword.length < 8) {
+        showToast('Error', 'Password must be at least 8 characters long!', 'error');
+        return;
+      }
+
+      try {
+        const response = await fetchWithTimeout(`${API_URL}/auth.php?action=change-password`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            action: 'change-password',
+            current_password: currentPassword,
+            new_password: newPassword,
+            confirm_password: confirmPassword
+          }),
+          credentials: 'include'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          showToast('Success', 'Password updated successfully!', 'success');
+          document.getElementById('passwordForm').reset();
+        } else {
+          showToast('Error', data.message || 'Failed to update password', 'error');
+        }
+      } catch (error) {
+        console.error('Password Change Error:', error);
+        showToast('Error', 'An error occurred while updating the password', 'error');
+      }
+    });
+
+    // ============================================
+    // APPEARANCE SETTINGS
+    // ============================================
+
+    // Load saved appearance settings on page load
+    document.addEventListener('DOMContentLoaded', loadAppearanceSettings);
+
+    function loadAppearanceSettings() {
+      const settings = JSON.parse(localStorage.getItem('appearance_settings') || '{}');
+
+      // Theme
+      const savedTheme = settings.theme || 'light';
+      setTheme(savedTheme, false);
+
+      // Accent Color
+      const savedColor = settings.accentColor || '#ef4444';
+      setAccentColor(savedColor, false);
+
+      // Font Size
+      const savedFontSize = settings.fontSize || 14;
+      const slider = document.getElementById('fontSizeSlider');
+      if (slider) {
+        slider.value = savedFontSize;
+        setFontSize(savedFontSize, false);
+      }
+
+      // Compact Mode
+      const compactMode = document.getElementById('compactMode');
+      if (compactMode) compactMode.checked = settings.compactMode || false;
+
+      // Sidebar Expanded
+      const sidebarExpanded = document.getElementById('sidebarExpanded');
+      if (sidebarExpanded) sidebarExpanded.checked = settings.sidebarExpanded !== false;
+    }
+
+    function setTheme(theme, showFeedback = true) {
+      document.querySelectorAll('.theme-card').forEach(card => {
+        card.classList.remove('active');
+        if (card.dataset.theme === theme) {
+          card.classList.add('active');
+        }
+      });
+
+      document.documentElement.setAttribute('data-theme', theme);
+
+      if (showFeedback) {
+        updateAppearanceSetting('theme', theme);
+      }
+    }
+
+    function setAccentColor(color, showFeedback = true) {
+      document.querySelectorAll('.color-option').forEach(opt => {
+        opt.classList.remove('active');
+        if (opt.dataset.color === color) {
+          opt.classList.add('active');
+        }
+      });
+
+      document.documentElement.style.setProperty('--primary-color', color);
+
+      // Calculate hover color (slightly darker)
+      const hoverColor = adjustColor(color, -15);
+      document.documentElement.style.setProperty('--primary-hover', hoverColor);
+
+      if (showFeedback) {
+        updateAppearanceSetting('accentColor', color);
+      }
+    }
+
+    function adjustColor(color, percent) {
+      const num = parseInt(color.replace('#', ''), 16);
+      const amt = Math.round(2.55 * percent);
+      const R = (num >> 16) + amt;
+      const G = (num >> 8 & 0x00FF) + amt;
+      const B = (num & 0x0000FF) + amt;
+      return '#' + (0x1000000 +
+        (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
+        (G < 255 ? (G < 1 ? 0 : G) : 255) * 0x100 +
+        (B < 255 ? (B < 1 ? 0 : B) : 255)
+      ).toString(16).slice(1);
+    }
+
+    function setFontSize(size, showFeedback = true) {
+      document.getElementById('fontSizeValue').textContent = size + 'px';
+      document.documentElement.style.setProperty('--base-font-size', size + 'px');
+
+      // Update slider visual
+      const slider = document.getElementById('fontSizeSlider');
+      const min = slider.min;
+      const max = slider.max;
+      const percentage = ((size - min) / (max - min)) * 100;
+      slider.style.setProperty('--value', percentage + '%');
+
+      if (showFeedback) {
+        updateAppearanceSetting('fontSize', parseInt(size));
+      }
+    }
+
+    function toggleCompactMode() {
+      const isCompact = document.getElementById('compactMode').checked;
+      document.body.classList.toggle('compact-mode', isCompact);
+      updateAppearanceSetting('compactMode', isCompact);
+    }
+
+    function toggleSidebarSetting() {
+      const expanded = document.getElementById('sidebarExpanded').checked;
+      updateAppearanceSetting('sidebarExpanded', expanded);
+    }
+
+    function updateAppearanceSetting(key, value) {
+      const settings = JSON.parse(localStorage.getItem('appearance_settings') || '{}');
+      settings[key] = value;
+      localStorage.setItem('appearance_settings', JSON.stringify(settings));
+    }
+
+    function saveAppearanceSettings() {
+      const settings = {
+        theme: document.querySelector('.theme-card.active')?.dataset.theme || 'light',
+        accentColor: document.querySelector('.color-option.active')?.dataset.color || '#ef4444',
+        fontSize: parseInt(document.getElementById('fontSizeSlider').value) || 14,
+        compactMode: document.getElementById('compactMode').checked,
+        sidebarExpanded: document.getElementById('sidebarExpanded').checked
+      };
+
+      localStorage.setItem('appearance_settings', JSON.stringify(settings));
+      showToast('Success', 'Appearance settings saved successfully!', 'success');
+    }
+
+    // ============================================
+    // APP PREFERENCES
+    // ============================================
+
+    document.addEventListener('DOMContentLoaded', loadPreferences);
+
+    function loadPreferences() {
+      const prefs = JSON.parse(localStorage.getItem('app_preferences') || '{}');
+
+      // Regional Settings
+      if (prefs.currency) document.getElementById('prefCurrency').value = prefs.currency;
+      if (prefs.dateFormat) document.getElementById('prefDateFormat').value = prefs.dateFormat;
+      if (prefs.timezone) document.getElementById('prefTimezone').value = prefs.timezone;
+      if (prefs.language) document.getElementById('prefLanguage').value = prefs.language;
+
+      // General Settings
+      if (prefs.defaultPage) document.getElementById('prefDefaultPage').value = prefs.defaultPage;
+      if (prefs.fyStart) document.getElementById('prefFYStart').value = prefs.fyStart;
+
+      // Toggles
+      const autoSave = document.getElementById('prefAutoSave');
+      if (autoSave) autoSave.checked = prefs.autoSave !== false;
+
+      const showCodes = document.getElementById('prefShowCodes');
+      if (showCodes) showCodes.checked = prefs.showCodes !== false;
+    }
+
+    function savePreferences() {
+      const prefs = {
+        currency: document.getElementById('prefCurrency').value,
+        dateFormat: document.getElementById('prefDateFormat').value,
+        timezone: document.getElementById('prefTimezone').value,
+        language: document.getElementById('prefLanguage').value,
+        defaultPage: document.getElementById('prefDefaultPage').value,
+        fyStart: document.getElementById('prefFYStart').value,
+        autoSave: document.getElementById('prefAutoSave').checked,
+        showCodes: document.getElementById('prefShowCodes').checked
+      };
+
+      localStorage.setItem('app_preferences', JSON.stringify(prefs));
+
+      // Force reload to apply new settings (currency/date formats) globally
+      showToast('Success', 'Preferences saved! Reloading to apply changes...', 'success');
+      setTimeout(() => location.reload(), 1500);
+    }
+
+    // ============================================
+    // NOTIFICATION SETTINGS
+    // ============================================
+
+    document.addEventListener('DOMContentLoaded', loadNotificationSettings);
+
+    function loadNotificationSettings() {
+      const notify = JSON.parse(localStorage.getItem('notification_settings') || '{}');
+
+      // Email Notifications
+      const dailySummary = document.getElementById('notifyDailySummary');
+      if (dailySummary) dailySummary.checked = notify.dailySummary || false;
+
+      const voucherApproval = document.getElementById('notifyVoucherApproval');
+      if (voucherApproval) voucherApproval.checked = notify.voucherApproval !== false;
+
+      const paymentReminder = document.getElementById('notifyPaymentReminder');
+      if (paymentReminder) paymentReminder.checked = notify.paymentReminder !== false;
+
+      const monthlyReport = document.getElementById('notifyMonthlyReport');
+      if (monthlyReport) monthlyReport.checked = notify.monthlyReport !== false;
+
+      // In-App Notifications
+      const sound = document.getElementById('notifySound');
+      if (sound) sound.checked = notify.sound || false;
+
+      const desktop = document.getElementById('notifyDesktop');
+      if (desktop) desktop.checked = notify.desktop || false;
+
+      const realtime = document.getElementById('notifyRealtime');
+      if (realtime) realtime.checked = notify.realtime !== false;
+    }
+
+    function saveNotificationSettings() {
+      const notify = {
+        dailySummary: document.getElementById('notifyDailySummary').checked,
+        voucherApproval: document.getElementById('notifyVoucherApproval').checked,
+        paymentReminder: document.getElementById('notifyPaymentReminder').checked,
+        monthlyReport: document.getElementById('notifyMonthlyReport').checked,
+        sound: document.getElementById('notifySound').checked,
+        desktop: document.getElementById('notifyDesktop').checked,
+        realtime: document.getElementById('notifyRealtime').checked
+      };
+
+      localStorage.setItem('notification_settings', JSON.stringify(notify));
+
+      // Request browser notification permission if desktop notifications enabled
+      if (notify.desktop && 'Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+
+      showToast('Success', 'Notification settings saved successfully!', 'success');
+    }
+
+    // ============================================
+    // COMPANY SETTINGS
+    // ============================================
+
+    async function loadCompanySettings() {
+      try {
+        const response = await fetchWithTimeout(`${API_URL}/settings.php`, { credentials: 'include' });
+        const data = await response.json();
+        if (data.success) {
+          const s = data.data;
+          document.getElementById('companyName').value = s.company_name || '';
+          document.getElementById('companyTagline').value = s.company_tagline || '';
+          document.getElementById('companyEmail').value = s.company_email || '';
+          document.getElementById('companyPhone').value = s.company_phone || '';
+          document.getElementById('companyAddress').value = s.company_address || '';
+          document.getElementById('companyWebsite').value = s.company_website || '';
+        }
+      } catch (error) {
+        console.error('Error loading company settings:', error);
+      }
+    }
+
+    document.getElementById('companyForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const companyData = {
+        company_name: document.getElementById('companyName').value,
+        company_tagline: document.getElementById('companyTagline').value,
+        company_email: document.getElementById('companyEmail').value,
+        company_phone: document.getElementById('companyPhone').value,
+        company_address: document.getElementById('companyAddress').value,
+        company_website: document.getElementById('companyWebsite').value
+      };
+
+      try {
+        const response = await fetchWithTimeout(`${API_URL}/settings.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(companyData),
+          credentials: 'include'
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          showToast('Success', 'Company settings updated successfully!', 'success');
+        } else {
+          showToast('Error', data.message || 'Failed to update company settings', 'error');
+        }
+      } catch (error) {
+        console.error('Error saving company settings:', error);
+        showToast('Error', 'An error occurred while saving company settings', 'error');
+      }
+    });
+  </script>
+  <script src="../js/admin-dashboard.js"></script>
+</body>
+
+</html>

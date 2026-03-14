@@ -1,0 +1,41 @@
+/* Shared layout & button styles (used by all pages) */
+:root{
+    --primary:#2563eb;
+    --primary-dark:#1d4ed8;
+    --success:#10b981;
+    --danger:#ef4444;
+    --muted:#6b7280;
+    --light:#f3f4f6;
+    --bg:#ffffff;
+}
+
+body{background:var(--light);font-family:'Segoe UI',Tahoma,Geneva,verdana,sans-serif;color:#111}
+
+/* Common buttons */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:8px;border:none;cursor:pointer;font-weight:600}
+.btn-primary{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 100%);color:#fff}
+.btn-primary:hover{filter:brightness(.95)}
+.btn-success{background:var(--success);color:#fff}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-secondary{background:#e5e7eb;color:#111}
+.btn-sm{padding:6px 10px;border-radius:6px;font-size:13px}
+
+/* Form controls */
+.form-group input, .form-group select, .form-group textarea{width:100%;padding:10px;border:1px solid #e5e7eb;border-radius:6px}
+
+/* Modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;z-index:2000}
+.modal.active{display:flex}
+.modal .modal-content{background:var(--bg);padding:20px;border-radius:10px;min-width:320px;max-width:800px;box-shadow:0 10px 30px rgba(0,0,0,0.12)}
+.modal .close{cursor:pointer;font-size:20px}
+
+/* Table */
+.data-table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden}
+.data-table th, .data-table td{padding:12px 10px;border-bottom:1px solid #eef2f7;text-align:left}
+
+/* Helper */
+.text-center{text-align:center}
+.badge{padding:6px 10px;border-radius:6px;font-weight:700}
+
+/* Responsive tweaks */
+@media (max-width:800px){.modal .modal-content{width:95%;padding:16px}}

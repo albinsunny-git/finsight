@@ -18,19 +18,18 @@ class ApiService {
 
   static String get baseUrl {
     if (_customBaseUrl != null && _customBaseUrl!.isNotEmpty) {
-      return '$_customBaseUrl/backend/api';
+      return '$_customBaseUrl/api';
     }
     if (kIsWeb) {
-      return 'http://localhost/finsight/backend/api';
+      return 'http://localhost/api'; // Fallback for local web development
     }
     if (defaultTargetPlatform == TargetPlatform.android) {
       // Use 10.0.2.2 for Emulator or 127.0.0.1 with ADB reverse for Physical Devices
-      // Run: adb reverse tcp:8080 tcp:80
-      return 'http://127.0.0.1:8080/finsight/backend/api';
+      return 'http://127.0.0.1:8080/api';
     }
 
     // Fallback for iOS simulator or other platforms
-    return 'http://localhost/finsight/backend/api';
+    return 'http://localhost/api';
   }
 
   // Helper to store session cookie

@@ -1,0 +1,8 @@
+DirectoryIndex index.html index.php
+
+RewriteEngine On
+
+# Allow existing files and folders
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - FinSight</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/modern-dashboard.css?v=12">
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../index.html" class="brand-logo">
+                    <i class="fas fa-chart-line"></i>
+                    <span class="brand-logo-name">FINSIGHT</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+
+                <a href="dashboard.html" class="nav-link">
+                    <i class="fas fa-columns"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="users.html" class="nav-link active">
+                    <i class="fas fa-users"></i>
+                    <span>Users</span>
+                </a>
+                <a href="accounts.html" class="nav-link">
+                    <i class="fas fa-sitemap"></i>
+                    <span>Accounts</span>
+                </a>
+                <a href="vouchers.html" class="nav-link">
+                    <i class="fas fa-receipt"></i>
+                    <span>Vouchers</span>
+                </a>
+                <a href="reports.html" class="nav-link">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Reports</span>
+                </a>
+                <a href="settings.html" class="nav-link">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-user-profile">
+                <div class="sidebar-user-avatar" id="sidebarUserAvatar">A</div>
+                <div class="sidebar-user-info">
+                    <div class="sidebar-user-name" id="sidebarUserName">Admin User</div>
+                    <div class="sidebar-user-role" id="sidebarUserRole">Admin</div>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <button onclick="logout()" class="btn-logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="header">
+                <div class="header-title">
+                    <h1>User Management</h1>
+                </div>
+
+                <div class="header-actions">
+
+                    <div class="user-menu">
+                        <div class="user-avatar" id="userAvatar">A</div>
+                        <div class="user-info">
+                            <div class="user-name" id="userName">Admin User</div>
+                            <div class="user-role" id="userRole">Administrator</div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2>All Users</h2>
+                    <button class="btn btn-primary" onclick="showAddUserModal()">
+                        <i class="fas fa-user-plus"></i> Add New User
+                    </button>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Department</th>
+                                <th>Status</th>
+                                <th>Last Login</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <tr>
+                                <td colspan="7" style="text-align: center;">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit User Modal -->
+    <div id="addUserModal" class="modal">
+        <div class="modal-content" style="max-width: 750px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-circle" style="color: var(--primary-color); margin-right: 10px;"></i>User
+                    Profile</h2>
+                <button onclick="closeModal('addUserModal')" class="close-modal">&times;</button>
+            </div>
+            <form id="addUserForm">
+                <input type="hidden" id="editingUserId">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> First Name</label>
+                        <input type="text" id="newUserFirstName" placeholder="e.g. Rahul" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> Last Name</label>
+                        <input type="text" id="newUserLastName" placeholder="e.g. Sharma" required>
+                    </div>
+                    <div class="form-group full-width">
+                        <label><i class="fas fa-envelope"></i> Email Address</label>
+                        <input type="email" id="newUserEmail" placeholder="rahul.sharma@finsight.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-at"></i> Username</label>
+                        <input type="text" id="newUserUsername" placeholder="rsharma" required>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-building"></i> Department</label>
+                        <input type="text" id="newUserDepartment" placeholder="e.g. Finance">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-user-tag"></i> Role</label>
+                        <select id="newUserRole" required>
+                            <option value="accountant">Accountant</option>
+                            <option value="manager">Manager</option>
+                            <option value="admin">Administrator</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-key"></i> Password</label>
+                        <input type="password" id="newUserPassword" placeholder="Auto-generated if empty">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary"
+                    style="width: 100%; margin-top: 20px; padding: 16px; justify-content: center; font-size: 16px; font-weight: 700;">
+                    <i class="fas fa-save"></i> Save User Profile
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/dashboard.js"></script>
+    <script src="../js/admin-dashboard.js"></script>
+    <script>
+        function showAddUserModal() {
+            document.getElementById('addUserModal').classList.add('active');
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+    </script>
+</body>
+
+</html>

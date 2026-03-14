@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reports - FinSight</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/modern-dashboard.css?v=11">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+
+<body>
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="../index.html" class="brand-logo">
+          <i class="fas fa-chart-line"></i>
+          <span class="brand-logo-name">FINSIGHT</span>
+        </a>
+      </div>
+
+      <nav class="sidebar-nav">
+
+        <a href="dashboard.html" class="nav-link">
+          <i class="fas fa-columns"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="users.html" class="nav-link">
+          <i class="fas fa-users"></i>
+          <span>Users</span>
+        </a>
+        <a href="accounts.html" class="nav-link">
+          <i class="fas fa-sitemap"></i>
+          <span>Accounts</span>
+        </a>
+        <a href="vouchers.html" class="nav-link">
+          <i class="fas fa-receipt"></i>
+          <span>Vouchers</span>
+        </a>
+        <a href="reports.html" class="nav-link active">
+          <i class="fas fa-chart-pie"></i>
+          <span>Reports</span>
+        </a>
+        <a href="settings.html" class="nav-link">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-user-profile">
+        <div class="sidebar-user-avatar" id="sidebarUserAvatar">A</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebarUserName">Admin User</div>
+          <div class="sidebar-user-role" id="sidebarUserRole">Admin</div>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <button onclick="logout()" class="btn-logout">
+          <i class="fas fa-sign-out-alt"></i>
+          <span>Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-title">
+          <h1>Financial Reports</h1>
+        </div>
+
+        <div class="header-actions">
+
+          <div class="user-menu">
+            <div class="user-avatar" id="userAvatar">A</div>
+            <div class="user-info">
+              <div class="user-name" id="userName">Admin User</div>
+              <div class="user-role" id="userRole">Administrator</div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content">
+        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+          <h2>Overview</h2>
+          <div style="display: flex; gap: 12px;">
+            <button class="btn btn-secondary" onclick="exportReport()">
+              <i class="fas fa-print"></i> Print
+            </button>
+            <button class="btn btn-primary" onclick="exportPDF()"
+              style="background-color: #e11d48; border-color: #e11d48;">
+              <i class="fas fa-file-pdf"></i> Download PDF
+            </button>
+            <button class="btn btn-primary" onclick="exportCSV()">
+              <i class="fas fa-download"></i> Export CSV
+            </button>
+          </div>
+        </div>
+
+        <!-- Analytics Section -->
+        <div id="analytics-section" style="margin-bottom: 40px;">
+          <h3
+            style="margin-bottom: 20px; font-size: 18px; color: var(--text-main); border-left: 4px solid var(--primary-color); padding-left: 10px;">
+            Financial Analytics</h3>
+
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+            <!-- Cash Flow Chart -->
+            <div
+              style="background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: relative;">
+              <h4 style="margin-bottom: 15px; font-size: 14px; color: var(--text-muted); text-transform: uppercase;">
+                Monthly Cash Flow (Income vs Expense)</h4>
+              <div style="height: 300px;">
+                <canvas id="cashFlowChart"></canvas>
+              </div>
+              <button onclick="downloadChart('cashFlowChart', 'Monthly_Cash_Flow.png')" title="Download Chart"
+                style="position: absolute; bottom: 15px; right: 15px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid #e5e7eb; background: white; cursor: pointer; color: #6b7280; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.2s;">
+                <i class="fas fa-download" style="font-size: 13px;"></i>
+              </button>
+            </div>
+
+            <!-- Income vs Expense Chart -->
+            <div
+              style="background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: relative;">
+              <h4 style="margin-bottom: 15px; font-size: 14px; color: var(--text-muted); text-transform: uppercase;">
+                Income vs Expense Ratio (Last 6 Months)</h4>
+              <div style="height: 300px; display: flex; justify-content: center;">
+                <canvas id="incExpChart"></canvas>
+              </div>
+              <button onclick="downloadChart('incExpChart', 'Income_Vs_Expense.png')" title="Download Chart"
+                style="position: absolute; bottom: 15px; right: 15px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid #e5e7eb; background: white; cursor: pointer; color: #6b7280; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.2s;">
+                <i class="fas fa-download" style="font-size: 13px;"></i>
+              </button>
+            </div>
+
+            <!-- Account Type Distribution -->
+            <div
+              style="background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: relative;">
+              <h4 style="margin-bottom: 15px; font-size: 14px; color: var(--text-muted); text-transform: uppercase;">
+                Account Distribution by Type</h4>
+              <div style="height: 300px; display: flex; justify-content: center;">
+                <canvas id="accountTypeChart"></canvas>
+              </div>
+              <button onclick="downloadChart('accountTypeChart', 'Account_Distribution.png')" title="Download Chart"
+                style="position: absolute; bottom: 15px; right: 15px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid #e5e7eb; background: white; cursor: pointer; color: #6b7280; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.2s;">
+                <i class="fas fa-download" style="font-size: 13px;"></i>
+              </button>
+            </div>
+
+            <!-- Top Expenses -->
+            <div
+              style="background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: relative;">
+              <h4 style="margin-bottom: 15px; font-size: 14px; color: var(--text-muted); text-transform: uppercase;">Top
+                5 Expenses (YTD)</h4>
+              <div style="height: 300px;">
+                <canvas id="topExpChart"></canvas>
+              </div>
+              <button onclick="downloadChart('topExpChart', 'Top_Expenses.png')" title="Download Chart"
+                style="position: absolute; bottom: 15px; right: 15px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid #e5e7eb; background: white; cursor: pointer; color: #6b7280; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.2s;">
+                <i class="fas fa-download" style="font-size: 13px;"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <script>
+          function downloadChart(canvasId, fileName) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            // Create a white background version if canvas is transparent
+            // But Chart.js default is transparent. Let's composite it on white if needed.
+            // For simplicity, direct download usually works.
+
+            const link = document.createElement('a');
+            link.download = fileName;
+            link.href = canvas.toDataURL('image/png', 1.0);
+            link.click();
+          }
+        </script>
+
+        <div style="display: flex; gap: 20px; margin-bottom: 30px;">
+          <button class="btn btn-secondary" onclick="loadReportWithTracking('balance-sheet')">Balance
+            Sheet</button>
+          <button class="btn btn-secondary" onclick="loadReportWithTracking('profit-loss')">Profit &
+            Loss</button>
+          <button class="btn btn-secondary" onclick="loadReportWithTracking('trial-balance')">Trial
+            Balance</button>
+        </div>
+
+        <div id="report-container" class="table-container" style="min-height: 400px; padding: 20px;">
+          <p style="text-align: center; color: var(--text-muted); margin-top: 50px;">Select a report to view details.
+          </p>
+        </div>
+
+        <!-- Hidden PDF Template -->
+        <div id="pdf-template" style="display: none;">
+          <style>
+            .pdf-page {
+              padding: 40px;
+              background: white;
+              color: #0f172a;
+              font-family: 'Inter', sans-serif;
+            }
+
+            .pdf-header {
+              display: flex;
+              justify-content: space-between;
+              border-bottom: 2px solid #1e293b;
+              padding-bottom: 20px;
+              margin-bottom: 30px;
+            }
+
+            .pdf-brand {
+              display: flex;
+              align-items: center;
+              gap: 12px;
+            }
+
+            .pdf-brand i {
+              font-size: 32px;
+              color: #1e293b;
+            }
+
+            .pdf-brand-name {
+              font-size: 28px;
+              font-weight: 800;
+              color: #1e293b;
+            }
+
+            .pdf-company-details {
+              text-align: right;
+              font-size: 12px;
+              color: #64748b;
+              line-height: 1.5;
+            }
+
+            .pdf-title-section {
+              text-align: center;
+              margin-bottom: 30px;
+            }
+
+            .pdf-title {
+              font-size: 22px;
+              font-weight: 700;
+              color: #1e293b;
+              text-transform: uppercase;
+              margin-bottom: 5px;
+            }
+
+            .pdf-period {
+              font-size: 14px;
+              color: #64748b;
+            }
+
+            .pdf-content table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 20px;
+            }
+
+            .pdf-content th {
+              background: #f8fafc;
+              border: 1px solid #e2e8f0;
+              padding: 10px;
+              font-size: 12px;
+              text-align: left;
+            }
+
+            .pdf-content td {
+              border: 1px solid #e2e8f0;
+              padding: 10px;
+              font-size: 13px;
+            }
+
+            .pdf-footer {
+              margin-top: 50px;
+              display: flex;
+              justify-content: space-between;
+            }
+
+            .pdf-sig-box {
+              width: 180px;
+              text-align: center;
+            }
+
+            .pdf-sig-line {
+              border-top: 1px solid #0f172a;
+              margin-bottom: 10px;
+            }
+
+            .pdf-sig-label {
+              font-size: 11px;
+              font-weight: 600;
+              color: #64748b;
+            }
+
+            .text-right {
+              text-align: right;
+            }
+          </style>
+          <div class="pdf-page">
+            <div class="pdf-header">
+              <div class="pdf-brand">
+                <i class="fas fa-chart-line"></i>
+                <span class="pdf-brand-name">FINSIGHT</span>
+              </div>
+              <div class="pdf-company-details">
+                <strong style="color: #0f172a; font-size: 14px;">FINSIGHT PRIVATE LIMITED</strong><br>
+                Corporate Office: 123, Business Hub, BKC, Mumbai - 400051<br>
+                GSTIN: 27AAAAA0000A1Z5 | PAN: AAAAA0000A<br>
+                Email: accounts@finsight.com | Web: www.finsight.com
+              </div>
+            </div>
+            <div class="pdf-title-section">
+              <div class="pdf-title" id="pdf-report-title"></div>
+              <div class="pdf-period" id="pdf-report-date"></div>
+            </div>
+            <div class="pdf-content" id="pdf-report-content"></div>
+            <div class="pdf-footer">
+              <div class="pdf-sig-box">
+                <div class="pdf-sig-line"></div>
+                <div class="pdf-sig-label">Prepared By</div>
+              </div>
+              <div class="pdf-sig-box">
+                <div class="pdf-sig-line"></div>
+                <div class="pdf-sig-label">Authorized Signatory</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/dashboard.js"></script>
+  <script src="../js/admin-dashboard.js"></script>
+  <script>
+    let currentReportType = '';
+
+    function loadReportWithTracking(type) {
+      currentReportType = type;
+      generateDynamicReport(type);
+    }
+
+    function exportReport() {
+      if (!currentReportType) {
+        alert('Please select a report first.');
+        return;
+      }
+      window.open(`print-report.html?type=${currentReportType}`, '_blank');
+    }
+
+    function exportCSV() {
+      if (!currentReportType) {
+        alert('Please select a report first.');
+        return;
+      }
+      exportReportToCSV(currentReportType);
+    }
+
+    function exportPDF() {
+      if (!currentReportType) {
+        alert('Please select a report first.');
+        return;
+      }
+
+      // Prepare Template
+      const titles = {
+        'balance-sheet': 'Statement of Financial Position (Balance Sheet)',
+        'profit-loss': 'Statement of Profit and Loss',
+        'trial-balance': 'Trial Balance Summary'
+      };
+
+      document.getElementById('pdf-report-title').textContent = titles[currentReportType] || 'Financial Report';
+      document.getElementById('pdf-report-date').textContent = 'As of ' + new Date().toLocaleDateString('en-IN', {
+        year: 'numeric', month: 'long', day: 'numeric'
+      });
+
+      // Copy content from the visible report-container to the hidden template
+      // We need to clean up some UI elements (like animate-fadeIn classes) if they interfere
+      const reportHTML = document.getElementById('report-container').innerHTML;
+      document.getElementById('pdf-report-content').innerHTML = reportHTML;
+
+      const element = document.querySelector('#pdf-template .pdf-page');
+      const opt = {
+        margin: 0,
+        filename: `FinSight_${currentReportType.replace('-', '_')}_${new Date().toISOString().slice(0, 10)}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      // Show loading state
+      const btn = event.currentTarget;
+      const originalBtn = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+
+      html2pdf().set(opt).from(element).save().then(() => {
+        btn.disabled = false;
+        btn.innerHTML = originalBtn;
+      }).catch(err => {
+        console.error('PDF Error:', err);
+        btn.disabled = false;
+        btn.innerHTML = originalBtn;
+        alert('Failed to generate PDF. Please try again.');
+      });
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      const userStr = localStorage.getItem('user');
+      if (!userStr) {
+        window.location.href = '../index.html';
+        return;
+      }
+      const user = JSON.parse(userStr);
+      document.getElementById('userName').textContent = `${user.first_name} ${user.last_name}`;
+      document.getElementById('userRole').textContent = user.role;
+      document.getElementById('userAvatar').textContent = user.first_name.charAt(0).toUpperCase();
+
+      // Load Balance Sheet by default if wanted
+      // loadReportWithTracking('balance-sheet');
+
+      // Load Analytics Charts
+      loadAnalyticsCharts();
+    });
+
+    async function loadAnalyticsCharts() {
+      // Colors
+      const C_PRIMARY = '#3b82f6';
+      const C_SUCCESS = '#10b981';
+      const C_DANGER = '#ef4444';
+      const C_WARNING = '#f59e0b';
+      const C_INFO = '#06b6d4';
+
+      try {
+        const res = await fetchWithTimeout(`${API_URL}/reports.php?type=analytics`, { credentials: 'include' });
+        const json = await res.json();
+
+        if (!json.success) {
+          console.error('Analytics API failed:', json.message);
+          return;
+        }
+
+        const data = json.data;
+
+        // 1. Cash Flow (Bar + Line)
+        new Chart(document.getElementById('cashFlowChart'), {
+          type: 'bar',
+          data: {
+            labels: data.cash_flow.labels,
+            datasets: [
+              {
+                label: 'Income',
+                data: data.cash_flow.income,
+                backgroundColor: C_SUCCESS,
+                borderRadius: 4,
+                order: 2
+              },
+              {
+                label: 'Expense',
+                data: data.cash_flow.expense,
+                backgroundColor: C_DANGER,
+                borderRadius: 4,
+                order: 3
+              },
+              {
+                label: 'Net Flow',
+                data: data.cash_flow.income.map((inc, i) => inc - data.cash_flow.expense[i]),
+                type: 'line',
+                borderColor: C_PRIMARY,
+                borderWidth: 2,
+                tension: 0.3,
+                fill: false,
+                order: 1
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom' }
+            },
+            scales: {
+              y: { beginAtZero: true, grid: { color: '#f3f4f6' } },
+              x: { grid: { display: false } }
+            }
+          }
+        });
+
+        // 2. Income vs Expense Ratio (Doughnut)
+        const totalInc = data.cash_flow.income.reduce((a, b) => a + b, 0);
+        const totalExp = data.cash_flow.expense.reduce((a, b) => a + b, 0);
+
+        new Chart(document.getElementById('incExpChart'), {
+          type: 'doughnut',
+          data: {
+            labels: ['Total Income', 'Total Expense'],
+            datasets: [{
+              data: [totalInc, totalExp],
+              backgroundColor: [C_SUCCESS, C_DANGER],
+              hoverOffset: 4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom' },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    let label = context.label || '';
+                    if (label) {
+                      label += ': ';
+                    }
+                    if (context.parsed !== null) {
+                      label += formatCurrency(context.parsed);
+                    }
+                    return label;
+                  }
+                }
+              }
+            }
+          }
+        });
+
+        // 3. Account Type Distribution (Polar Area)
+        new Chart(document.getElementById('accountTypeChart'), {
+          type: 'polarArea',
+          data: {
+            labels: data.account_types.labels,
+            datasets: [{
+              data: data.account_types.data,
+              backgroundColor: [
+                'rgba(59, 130, 246, 0.7)', // Primary
+                'rgba(16, 185, 129, 0.7)', // Success
+                'rgba(239, 68, 68, 0.7)',  // Danger
+                'rgba(245, 158, 11, 0.7)', // Warning
+                'rgba(6, 182, 212, 0.7)'   // Info
+              ]
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'right' }
+            },
+            scales: {
+              r: { ticks: { backdropColor: 'transparent' } }
+            }
+          }
+        });
+
+        // 4. Top Expenses (Horizontal Bar)
+        new Chart(document.getElementById('topExpChart'), {
+          type: 'bar',
+          indexAxis: 'y',
+          data: {
+            labels: data.top_expenses.labels,
+            datasets: [{
+              label: 'Expense Amount',
+              data: data.top_expenses.data,
+              backgroundColor: C_DANGER,
+              borderRadius: 4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    return formatCurrency(context.parsed.x);
+                  }
+                }
+              }
+            },
+            scales: {
+              x: { beginAtZero: true, grid: { color: '#f3f4f6' } },
+              y: { grid: { display: false } }
+            }
+          }
+        });
+
+      } catch (err) {
+        console.error('Charts Error:', err);
+      }
+    }
+  </script>
+</body>
+
+</html>

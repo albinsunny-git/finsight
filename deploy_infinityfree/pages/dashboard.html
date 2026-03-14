@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - FinSight</title>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Your Dashboard CSS -->
+    <link rel="stylesheet" href="../css/modern-dashboard.css?v=13">
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../index.html" class="brand-logo">
+                    <i class="fas fa-chart-line"></i>
+                    <span class="brand-logo-name">FINSIGHT</span>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+
+                <a href="dashboard.html" class="nav-link active">
+                    <i class="fas fa-columns"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="users.html" class="nav-link">
+                    <i class="fas fa-users"></i>
+                    <span>Users</span>
+                </a>
+                <a href="accounts.html" class="nav-link">
+                    <i class="fas fa-sitemap"></i>
+                    <span>Accounts</span>
+                </a>
+                <a href="vouchers.html" class="nav-link">
+                    <i class="fas fa-receipt"></i>
+                    <span>Vouchers</span>
+                </a>
+                <a href="reports.html" class="nav-link">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Reports</span>
+                </a>
+                <a href="settings.html" class="nav-link">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-user-profile">
+                <div class="sidebar-user-avatar" id="sidebarUserAvatar">A</div>
+                <div class="sidebar-user-info">
+                    <div class="sidebar-user-name" id="sidebarUserName">Admin User</div>
+                    <div class="sidebar-user-role" id="sidebarUserRole">Admin</div>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <button onclick="logout()" class="btn-logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-title">
+                    <h1>Dashboard Overview</h1>
+                </div>
+
+                <div class="header-actions">
+                    <button class="btn-icon" id="notificationBtn">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge"></span>
+                    </button>
+
+                    <div class="user-menu">
+                        <div class="user-avatar" id="userAvatar">A</div>
+                        <div class="user-info">
+                            <div class="user-name" id="userName">Admin User</div>
+                            <div class="user-role" id="userRole">Administrator</div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="stat-users">0</h3>
+                            <p>Active Users</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="stat-revenue">₹0</h3>
+                            <p>Total Revenue</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="stat-profit">₹0</h3>
+                            <p>Net Profit</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple">
+                            <i class="fas fa-file-invoice-dollar"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="stat-expenses">₹0</h3>
+                            <p>Total Expenses</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Financial Insights -->
+                <div class="insights-section">
+                    <div class="insights-header">
+                        <div class="insights-icon">
+                            <i class="fas fa-magic"></i>
+                        </div>
+                        <div class="insights-title">
+                            <h3>Financial Insights</h3>
+                            <p>Smart analysis of your business performance</p>
+                        </div>
+                    </div>
+                    <div id="insightsContent" class="insights-content">
+                        <div class="pulse-skeleton">
+                            <div class="skeleton-line-1"></div>
+                            <div class="skeleton-line-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <h3>Finance Overview</h3>
+                        <canvas id="financeChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Expense Breakdown</h3>
+                        <canvas id="expenseChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions -->
+                <div class="table-container">
+                    <div class="section-header">
+                        <h3>Recent Transactions</h3>
+                        <a href="vouchers.html" class="btn btn-secondary btn-sm">View All</a>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentTransactionsBody">
+                            <tr>
+                                <td colspan="5" style="text-align: center;">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../js/dashboard.js"></script>
+    <script src="../js/admin-dashboard.js"></script>
+    <script>
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            const userStr = localStorage.getItem('user');
+            if (!userStr) {
+                window.location.href = '../index.html';
+                return;
+            }
+            const user = JSON.parse(userStr);
+            document.getElementById('userName').textContent = `${user.first_name} ${user.last_name}`;
+            document.getElementById('userRole').textContent = user.role;
+            document.getElementById('userAvatar').textContent = user.first_name.charAt(0).toUpperCase();
+
+            initCharts();
+            loadDashboardStats();
+        });
+    </script>
+    <!-- View Voucher Modal -->
+    <div id="viewVoucherModal" class="modal">
+        <div class="modal-content" style="max-width: 900px; padding: 0; overflow: hidden; border-radius: 15px;">
+            <div class="modal-header"
+                style="background: var(--bg-card); padding: 20px 30px; border-bottom: 1px solid var(--border-color);">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <div
+                        style="width: 45px; height: 45px; background: var(--info-color); color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+                    <div>
+                        <h2 style="margin: 0; font-size: 18px; font-weight: 700;">Voucher Details</h2>
+                        <span id="viewVoucherNumber"
+                            style="font-size: 13px; color: var(--text-muted); font-weight: 500;">Voucher #V000</span>
+                    </div>
+                </div>
+                <button onclick="closeModal('viewVoucherModal')" class="close-modal"
+                    style="background: #f1f5f9; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px;">&times;</button>
+            </div>
+
+            <div class="modal-body" style="padding: 30px; max-height: 75vh; overflow-y: auto;">
+                <div
+                    style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; padding: 20px; background: var(--bg-body, #f8fafc); border-radius: 12px; border: 1px solid var(--border-color, #f1f5f9);">
+                    <div>
+                        <div
+                            style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600;">
+                            Date</div>
+                        <div id="viewVoucherDate" style="font-weight: 700; color: var(--text-main);">01 Jan 2025</div>
+                    </div>
+                    <div>
+                        <div
+                            style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600;">
+                            Type</div>
+                        <div id="viewVoucherType" style="font-weight: 700; color: var(--text-main);">Journal Entry</div>
+                    </div>
+                    <div>
+                        <div
+                            style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600;">
+                            Status</div>
+                        <div id="viewVoucherStatus" style="font-weight: 700;">
+                            <span class="badge badge-active">Posted</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 30px;">
+                    <div
+                        style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 10px; font-weight: 600;">
+                        Narration / Description</div>
+                    <div id="viewVoucherNarration"
+                        style="padding: 15px; background: var(--bg-body, white); border: 1px solid var(--border-color); border-radius: 10px; font-size: 14px; line-height: 1.6; color: var(--text-main);">
+                        No narration provided.
+                    </div>
+                </div>
+
+                <div class="table-container"
+                    style="border: 1px solid var(--border-color); border-radius: 12px; overflow: hidden; background: var(--bg-card, white); margin: 0;">
+                    <table class="data-table" style="margin: 0;">
+                        <thead>
+                            <tr style="background: var(--bg-body, #f8fafc);">
+                                <th style="padding: 15px 20px;">Account Name</th>
+                                <th style="padding: 15px 20px; text-align: right;">Debit (₹)</th>
+                                <th style="padding: 15px 20px; text-align: right;">Credit (₹)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="viewVoucherEntries"></tbody>
+                        <tfoot>
+                            <tr
+                                style="background: var(--bg-body, #f8fafc); font-weight: 700; border-top: 2px solid var(--border-color, #eef2f7);">
+                                <td style="padding: 15px 20px; text-align: right;">Total</td>
+                                <td id="viewTotalDebit"
+                                    style="padding: 15px 20px; text-align: right; color: var(--primary-color);">₹0.00
+                                </td>
+                                <td id="viewTotalCredit"
+                                    style="padding: 15px 20px; text-align: right; color: var(--secondary-color);">₹0.00
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <div class="modal-footer"
+                style="padding: 20px 30px; background: var(--bg-body, #f8fafc); border-top: 1px solid var(--border-color); gap: 12px;">
+                <button class="btn btn-secondary" onclick="window.print()"
+                    style="background: transparent; border: 1px solid var(--border-color);"><i class="fas fa-print"></i>
+                    Print</button>
+                <button class="btn btn-primary" onclick="closeModal('viewVoucherModal')">Close</button>
+            </div>
+        </div>
+    </div>
+    <!-- Rejection Modal -->
+    <div id="rejectVoucherModal" class="modal">
+        <div class="modal-content" style="max-width: 500px; padding: 30px; border-radius: 16px;">
+            <div class="modal-header" style="margin-bottom: 20px;">
+                <h2
+                    style="font-size: 20px; font-weight: 700; color: var(--danger-color); display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-times-circle"></i> Reject Voucher
+                </h2>
+                <button onclick="closeModal('rejectVoucherModal')" class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--text-muted); margin-bottom: 15px;">Please provide a reason for rejecting this
+                    voucher. This will be sent to the accountant.</p>
+                <input type="hidden" id="rejectVoucherId">
+                <div class="form-group full-width">
+                    <label style="font-weight: 600; margin-bottom: 8px; display: block; font-size: 13px;">Rejection
+                        Reason</label>
+                    <textarea id="rejectReason" rows="4" placeholder="e.g. Incorrect account code selected..."
+                        style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 10px; background: var(--bg-body, #f9fafb); resize: vertical; font-family: inherit; color: var(--text-main);"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="btn btn-secondary" onclick="closeModal('rejectVoucherModal')">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmRejectVoucher()"
+                    style="background: var(--danger-color); color: white; border: none;">
+                    <i class="fas fa-paper-plane"></i> Send Rejection
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div id="logoutModal" class="modal">
+        <div class="modal-content" style="max-width: 400px; padding: 40px; text-align: center; border-radius: 24px;">
+            <div
+                style="width: 80px; height: 80px; background: #fee2e2; color: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 24px auto;">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+            <h2 style="font-size: 24px; font-weight: 800; color: var(--text-main); margin-bottom: 12px;">Log Out?</h2>
+            <p style="color: var(--text-muted); margin-bottom: 32px; font-size: 15px; line-height: 1.6;">Are you sure
+                you want to end your session? You will be redirected to the login page.</p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <button onclick="closeModal('logoutModal')" class="btn"
+                    style="padding: 12px; border-radius: 12px; font-weight: 600; background: var(--bg-body); color: var(--text-main); border: 1px solid transparent; cursor: pointer; transition: all 0.2s;">Cancel</button>
+                <button onclick="confirmLogout()" class="btn"
+                    style="padding: 12px; border-radius: 12px; font-weight: 600; background: #ef4444; color: white; border: 1px solid #ef4444; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);">Yes,
+                    Logout</button>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
