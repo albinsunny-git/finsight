@@ -1,89 +1,100 @@
-define('DATABASE_URL', getenv('DATABASE_URL') ?: 'mysql://root:JFdaAfOpwWsyXermUpsXMISgOyiqHDHO@turntable.proxy.rlwy.net:43079/railway');
-define('DB_HOST', getenv('DB_HOST') ?: 'turntable.proxy.rlwy.net');
-define('DB_USER', getenv('DB_USER') ?: 'root');
-define('DB_PASS', getenv('DB_PASSWORD') ?: 'JFdaAfOpwWsyXermUpsXMISgOyiqHDHO');
-define('DB_NAME', getenv('DB_NAME') ?: 'railway');
-define('DB_PORT', getenv('DB_PORT') ?: '43079');
+<?php
+/**
+ * FinSight Master Configuration
+ * This file detects the environment and sets up the correct database and application settings.
+ */
 
-// Application Configuration
+// 1. Environment Detection
+$isLocalhost = ($_SERVER['HTTP_HOST'] === 'localhost' || $_SERVER['SERVER_NAME'] === 'localhost' || $_SERVER['REMOTE_ADDR'] === '127.0.0.1');
+
+// 2. Database Configuration
+// Priorities: 1. Environment Variable (Production) 2. Localhost Default 3. Railway Backup
+if (getenv('DATABASE_URL')) {
+    define('DATABASE_URL', getenv('DATABASE_URL'));
+} elseif ($isLocalhost) {
+    // Localhost XAMPP Settings
+    define('DB_HOST', 'localhost');
+    define('DB_USER', 'root');
+    define('DB_PASS', '');
+    define('DB_NAME', 'finsight_db');
+    define('DB_PORT', '3306');
+} else {
+    // Production / Render / Railway Fallback
+    // Based on your latest update for Render/Postgres:
+    define('DB_HOST', getenv('DB_HOST') ?: 'dpg-d6qfreea2pns73a03q80-a.oregon-postgres.render.com'); // External host usually required if connecting from outside Render
+    define('DB_USER', getenv('DB_USER') ?: 'admin');
+    define('DB_PASS', getenv('DB_PASSWORD') ?: 'kln0b6ip4FqayZvh3x5Or6u9QuxsW3E2');
+    define('DB_NAME', getenv('DB_NAME') ?: 'finsight_db_2i8q');
+    define('DB_PORT', getenv('DB_PORT') ?: '5432');
+}
+
+// 3. Application Configuration
 define('APP_NAME', 'FinSight');
-define('APP_URL', getenv('APP_URL') ?: ''); // Relative empty or set based on deployment
+if ($isLocalhost) {
+    define('APP_URL', 'http://localhost/finsight');
+} else {
+    define('APP_URL', getenv('APP_URL') ?: 'https://finsight-1-a1ov.onrender.com');
+}
 define('APP_VERSION', '1.0.0');
 
-// Security Configuration
+// 4. Security Configuration
 define('JWT_SECRET', getenv('JWT_SECRET') ?: 'albinsunny3640');
-define('SESSION_TIMEOUT', 3600); // 1 hour in seconds
+define('SESSION_TIMEOUT', 3600); // 1 hour
 define('PASSWORD_RESET_TIMEOUT', 3600); // 1 hour
 
-// Email Configuration
+// 5. Email Configuration (Using your verified Gmail credentials)
 define('MAIL_HOST', getenv('MAIL_HOST') ?: 'smtp.gmail.com');
 define('MAIL_PORT', getenv('MAIL_PORT') ?: 587);
-define('MAIL_USER', getenv('MAIL_USER') ?: 'your_email@gmail.com');
-define('MAIL_PASS', getenv('MAIL_PASS') ?: 'your_app_password');
+define('MAIL_USER', getenv('MAIL_USER') ?: 'sunnyalbin3640@gmail.com');
+define('MAIL_PASS', getenv('MAIL_PASS') ?: 'mdig dpag dila gfey'); // Your App Password
 define('MAIL_FROM', getenv('MAIL_FROM') ?: 'noreply@finsight.com');
 
-// Google OAuth Configuration
+// 6. Google OAuth Configuration
 define('GOOGLE_CLIENT_ID', getenv('GOOGLE_CLIENT_ID') ?: '235402120316-oi9307meejpv5jlbtt7b4lfr4remn8js.apps.googleusercontent.com');
-define('GOOGLE_CLIENT_SECRET', getenv('GOOGLE_CLIENT_SECRET') ?: 'YOUR_GOOGLE_CLIENT_SECRET');
+define('GOOGLE_CLIENT_SECRET', getenv('GOOGLE_CLIENT_SECRET') ?: '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');
 define('GOOGLE_REDIRECT_URI', APP_URL . '/api/auth.php?action=google-callback');
 
-// Firebase Configuration
+// 7. Firebase Configuration (Keep existing)
 define('FIREBASE_API_KEY', getenv('FIREBASE_API_KEY') ?: 'AIzaSyBIchbChhsl1arZvzUGjAZc4K2q-UAxXDM');
-define('FIREBASE_AUTH_DOMAIN', getenv('FIREBASE_AUTH_DOMAIN') ?: 'finsight-159e0.firebaseapp.com');
-define('FIREBASE_DATABASE_URL', getenv('FIREBASE_DATABASE_URL') ?: 'https://your-project.firebaseio.com');
 define('FIREBASE_PROJECT_ID', getenv('FIREBASE_PROJECT_ID') ?: 'finsight-159e0');
-define('FIREBASE_STORAGE_BUCKET', getenv('FIREBASE_STORAGE_BUCKET') ?: 'finsight-159e0.firebasestorage.app');
-define('FIREBASE_MESSAGING_SENDER_ID', getenv('FIREBASE_MESSAGING_SENDER_ID') ?: '235402120316');
-define('FIREBASE_APP_ID', getenv('FIREBASE_APP_ID') ?: '1:235402120316:web:86248fc504288e10b54df9');
-define('FIREBASE_WEB_CLIENT_ID', getenv('FIREBASE_WEB_CLIENT_ID') ?: '235402120316-oi9307meejpv5jlbtt7b4lfr4remn8js.apps.googleusercontent.com');
 
-// File Upload Configuration
+// 8. File Upload Configuration
 define('MAX_FILE_SIZE', 5242880); // 5MB
 define('UPLOAD_PATH', __DIR__ . '/../uploads/');
 define('ALLOWED_EXTENSIONS', ['jpg', 'jpeg', 'png', 'pdf', 'csv', 'xlsx']);
 
-// Timezone
+// 9. Timezone
 date_default_timezone_set('UTC');
 
-// Error Reporting (Set to 0 in production)
-error_reporting(E_ALL);
-ini_set('display_errors', 0);
+// 10. Error Reporting
+if ($isLocalhost) {
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+} else {
+    error_reporting(0);
+    ini_set('display_errors', 0);
+}
 
-// Session Configuration
-if (session_status() === PHP_SESSION_NONE) {
+// 11. CORS & Headers
+if (isset($_SERVER['HTTP_ORIGIN'])) {
+    header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
+    header('Access-Control-Allow-Credentials: true');
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+    header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With");
+    exit(0);
+}
+
+// 12. Session Management
+if (session_status() === PHP_SESSION_NONE && php_sapi_name() !== 'cli') {
     session_set_cookie_params([
         'lifetime' => SESSION_TIMEOUT,
         'path' => '/',
-        'domain' => '',
         'secure' => (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on'),
         'httponly' => true,
         'samesite' => 'Lax'
     ]);
-}
-
-// CORS Headers
-// CORS Headers
-if (isset($_SERVER['HTTP_ORIGIN'])) {
-    header("Access-Control-Allow-Origin: {$_SERVER['HTTP_ORIGIN']}");
-    header('Access-Control-Allow-Credentials: true');
-    header('Access-Control-Max-Age: 86400');    // cache for 1 day
-}
-
-if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_METHOD']))
-        header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-    if (isset($_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']))
-        header("Access-Control-Allow-Headers: {$_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']}");
-    exit(0);
-}
-
-// Only send Content-Type for HTTP requests (not CLI)
-if (php_sapi_name() !== 'cli') {
-    header('Content-Type: application/json');
-}
-
-// Start Session with above parameters
-if (session_status() === PHP_SESSION_NONE && php_sapi_name() !== 'cli') {
     session_start();
 }
-?>

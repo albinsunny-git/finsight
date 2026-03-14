@@ -14,16 +14,18 @@ class Database {
         
         if (!$dbUrl) {
             // Fallback to individual constants if URL is missing
-            $host = DB_HOST;
-            $db   = DB_NAME;
-            $user = DB_USER;
-            $pass = DB_PASS;
-            $port = DB_PORT ?: 3306;
-            $scheme = "mysql";
+            $host = defined('DB_HOST') ? DB_HOST : 'localhost';
+            $db   = defined('DB_NAME') ? DB_NAME : '';
+            $user = defined('DB_USER') ? DB_USER : 'root';
+            $pass = defined('DB_PASS') ? DB_PASS : '';
+            $port = defined('DB_PORT') ? DB_PORT : 3306;
+            
+            // Auto-detect scheme based on port
+            $scheme = ($port == 5432) ? "pgsql" : "mysql";
         } else {
             $parts = parse_url($dbUrl);
             $scheme = $parts["scheme"] ?? "mysql";
-            if ($scheme === "postgresql") $scheme = "pgsql";
+            if ($scheme === "postgresql" || $scheme === "postgres") $scheme = "pgsql";
             $host = $parts["host"] ?? '';
             $port = $parts["port"] ?? ($scheme === "pgsql" ? 5432 : 3306);
             $user = $parts["user"] ?? '';
