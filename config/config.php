@@ -1,10 +1,20 @@
 <?php
 /**
  * FinSight Master Configuration
- * This file detects the environment and sets up the correct database and application settings.
  */
 
-// 1. Environment Detection
+// 1. Load .env file if it exists
+if (file_exists(__DIR__ . '/../.env')) {
+    $lines = file(__DIR__ . '/../.env', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) continue;
+        list($name, $value) = explode('=', $line, 2);
+        $_ENV[trim($name)] = trim($value);
+        putenv(trim($name) . "=" . trim($value));
+    }
+}
+
+// 2. Environment Detection
 $isLocalhost = ($_SERVER['HTTP_HOST'] === 'localhost' || $_SERVER['SERVER_NAME'] === 'localhost' || $_SERVER['REMOTE_ADDR'] === '127.0.0.1');
 
 // 2. Database Configuration
@@ -42,16 +52,16 @@ define('JWT_SECRET', getenv('JWT_SECRET') ?: 'albinsunny3640');
 define('SESSION_TIMEOUT', 3600); // 1 hour
 define('PASSWORD_RESET_TIMEOUT', 3600); // 1 hour
 
-// 5. Email Configuration (Using your verified Gmail credentials)
+// 5. Email Configuration
 define('MAIL_HOST', getenv('MAIL_HOST') ?: 'smtp.gmail.com');
 define('MAIL_PORT', getenv('MAIL_PORT') ?: 587);
-define('MAIL_USER', getenv('MAIL_USER') ?: 'sunnyalbin3640@gmail.com');
-define('MAIL_PASS', getenv('MAIL_PASS') ?: 'mdig dpag dila gfey'); // Your App Password
+define('MAIL_USER', getenv('MAIL_USER') ?: 'PLACEHOLDER_EMAIL');
+define('MAIL_PASS', getenv('MAIL_PASS') ?: 'PLACEHOLDER_APP_PASSWORD');
 define('MAIL_FROM', getenv('MAIL_FROM') ?: 'noreply@finsight.com');
 
 // 6. Google OAuth Configuration
-define('GOOGLE_CLIENT_ID', getenv('GOOGLE_CLIENT_ID') ?: '235402120316-oi9307meejpv5jlbtt7b4lfr4remn8js.apps.googleusercontent.com');
-define('GOOGLE_CLIENT_SECRET', getenv('GOOGLE_CLIENT_SECRET') ?: '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');
+define('GOOGLE_CLIENT_ID', getenv('GOOGLE_CLIENT_ID') ?: 'PLACEHOLDER_CLIENT_ID');
+define('GOOGLE_CLIENT_SECRET', getenv('GOOGLE_CLIENT_SECRET') ?: 'PLACEHOLDER_CLIENT_SECRET');
 define('GOOGLE_REDIRECT_URI', APP_URL . '/api/auth.php?action=google-callback');
 
 // 7. Firebase Configuration (Keep existing)
