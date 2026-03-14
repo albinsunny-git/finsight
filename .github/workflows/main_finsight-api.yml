@@ -66,5 +66,5 @@ jobs:
         with:
           app-name: 'finsight-api'
           slot-name: 'Production'
-          package: htdocs/
+          package: .
           
