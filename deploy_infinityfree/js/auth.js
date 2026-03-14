@@ -1,5 +1,5 @@
 // Authentication JavaScript
-const API_URL = 'http://localhost/finsight/backend/api/auth.php';
+const API_URL = window.location.pathname.includes('/pages/') ? '../backend/api/auth.php' : 'backend/api/auth.php';
 
 // Helper to determine redirect URL based on role
 function resolveRedirectUrl(role) {
