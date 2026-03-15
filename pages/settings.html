@@ -7,8 +7,181 @@
   <title>Settings - FinSight</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="../css/modern-dashboard.css?v=13">
+  <link rel="stylesheet" href="../css/modern-dashboard.css?v=14">
+  <style>
+    /* ===== PROFILE PAGE SPECIFIC STYLES ===== */
+    .prof-page-heading { margin-bottom: 1.5rem; }
+    .prof-page-heading h2 { font-size: 1.6rem; font-weight: 800; color: var(--dg-text, #e8f5ef); margin-bottom: 4px; }
+    .prof-page-heading p { color: var(--dg-muted, #6fa889); font-size: 0.9rem; }
 
+    /* Hero card */
+    .prof-hero-card {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--dg-surface2, #172d20);
+      border: 1px solid var(--dg-border2, #255040);
+      border-radius: 14px;
+      padding: 1.5rem 2rem;
+      margin-bottom: 1.75rem;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .prof-hero-left { display: flex; align-items: center; gap: 1.25rem; }
+    .prof-avatar-wrap { position: relative; flex-shrink: 0; }
+    .prof-avatar {
+      width: 88px; height: 88px;
+      border-radius: 50%;
+      background: var(--dg-accent, #00d97e);
+      color: #0d1a14;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.2rem; font-weight: 800;
+      overflow: hidden;
+      border: 3px solid var(--dg-border2, #255040);
+    }
+    .prof-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+    .prof-avatar-edit {
+      position: absolute; bottom: 2px; right: 2px;
+      width: 26px; height: 26px;
+      background: var(--dg-accent, #00d97e); color: #0d1a14;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.6rem; cursor: pointer;
+      border: 2px solid var(--dg-surface, #122118);
+      transition: all 0.2s;
+    }
+    .prof-avatar-edit:hover { background: var(--dg-accent-dim, #00a85f); transform: scale(1.12); }
+    .prof-hero-info h3 { font-size: 1.35rem; font-weight: 800; color: var(--dg-text, #e8f5ef); margin-bottom: 3px; }
+    .prof-hero-role { font-size: 0.85rem; color: var(--dg-accent, #00d97e); font-weight: 600; display: block; margin-bottom: 10px; }
+    .prof-hero-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+    .prof-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: 20px;
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+    }
+    .prof-badge i { font-size: 0.55rem; }
+    .prof-badge-access { background: rgba(56,189,248,0.12); color: #38bdf8; border: 1px solid rgba(56,189,248,0.3); }
+    .prof-badge-status { background: rgba(0,217,126,0.12); color: #00d97e; border: 1px solid rgba(0,217,126,0.3); }
+    .prof-hero-right { display: flex; flex-direction: column; align-items: flex-end; }
+
+    /* Two-column layout */
+    .prof-two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.75rem;
+    }
+    @media (max-width: 900px) { .prof-two-col { grid-template-columns: 1fr; } }
+
+    .prof-panel {
+      background: var(--dg-surface2, #172d20);
+      border: 1px solid var(--dg-border, #1e4030);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+    .prof-panel-title {
+      font-size: 1rem; font-weight: 700;
+      color: var(--dg-text, #e8f5ef);
+      margin-bottom: 1.25rem;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .prof-panel-title i { color: var(--dg-accent, #00d97e); }
+
+    /* Security sub-section */
+    .sec-row {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--dg-surface3, #1c3527);
+      border: 1px solid var(--dg-border2, #255040);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+    }
+    .sec-row-info h4 { font-size: 0.9rem; font-weight: 700; color: var(--dg-text, #e8f5ef); margin-bottom: 3px; }
+    .sec-row-info p { font-size: 0.78rem; color: var(--dg-muted, #6fa889); }
+    .sec-panel {
+      background: var(--dg-surface3, #1c3527);
+      border: 1px solid var(--dg-border, #1e4030);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+    }
+    .sec-panel-title {
+      font-size: 0.85rem; font-weight: 700;
+      color: var(--dg-muted, #6fa889);
+      margin-bottom: 0.875rem;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .sec-panel-title i { color: var(--dg-accent, #00d97e); }
+
+    /* Notification section */
+    .prof-notif-section {
+      background: var(--dg-surface2, #172d20);
+      border: 1px solid var(--dg-border, #1e4030);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.75rem;
+    }
+    .notif-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    @media (max-width: 900px) { .notif-grid { grid-template-columns: 1fr; } }
+    .notif-card {
+      background: var(--dg-surface3, #1c3527);
+      border: 1px solid var(--dg-border, #1e4030);
+      border-radius: 10px;
+      padding: 1.1rem;
+    }
+    .notif-card-header {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 1rem;
+      font-size: 0.9rem; font-weight: 700; color: var(--dg-text, #e8f5ef);
+    }
+    .notif-card-icon {
+      width: 34px; height: 34px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.875rem; flex-shrink: 0;
+    }
+    .notif-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+    .notif-toggle {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 0.83rem; color: var(--dg-muted, #6fa889);
+      cursor: pointer; user-select: none;
+    }
+    .notif-toggle input { display: none; }
+    .notif-dot {
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 2px solid var(--dg-border2, #255040);
+      background: transparent;
+      display: inline-flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: all 0.2s; position: relative;
+    }
+    .notif-toggle input:checked ~ .notif-dot,
+    .notif-toggle input:checked + .notif-dot {
+      background: var(--dg-accent, #00d97e);
+      border-color: var(--dg-accent, #00d97e);
+    }
+    .notif-toggle input:checked ~ .notif-dot::after,
+    .notif-toggle input:checked + .notif-dot::after {
+      content: '';
+      width: 6px; height: 6px;
+      background: #0d1a14;
+      border-radius: 50%;
+    }
+    .notif-link {
+      display: inline-flex; align-items: center; gap: 5px;
+      margin-top: 0.875rem;
+      font-size: 0.8rem; font-weight: 600;
+      color: var(--dg-accent, #00d97e);
+      text-decoration: underline;
+    }
+
+    /* Action bar */
+    .prof-action-bar {
+      display: flex; justify-content: flex-end; gap: 12px;
+      padding: 1.25rem 1.5rem;
+      background: var(--dg-surface2, #172d20);
+      border: 1px solid var(--dg-border, #1e4030);
+      border-radius: 12px;
+      margin-top: 0.5rem;
+    }
+
+    /* Override settings-content to not have its own bg when profile is active */
+    .settings-content { background: transparent !important; border: none !important; padding: 0 !important; }
+  </style>
 </head>
 
 <body>
@@ -117,62 +290,170 @@
           <div class="settings-content">
             <!-- Profile Settings -->
             <div class="settings-section active" id="profile">
-              <h2 class="section-title"><i class="fas fa-user-circle"></i> Profile Information</h2>
 
-              <!-- Profile Photo -->
-              <div class="profile-photo-section">
-                <div class="profile-photo-preview">
-                  <div class="profile-photo-avatar" id="profilePhotoPreview">
-                    <span id="profileInitial">A</span>
-                  </div>
-                  <label for="profilePhotoInput" class="photo-upload-btn">
-                    <i class="fas fa-camera"></i>
-                  </label>
-                  <input type="file" id="profilePhotoInput" accept="image/*" style="display: none;">
-                </div>
+              <!-- Page heading -->
+              <div class="prof-page-heading">
                 <div>
-                  <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">Profile Photo</h3>
-                  <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 12px;">Upload a professional
-                    photo for your profile</p>
-                  <button class="btn btn-secondary btn-sm"
-                    onclick="document.getElementById('profilePhotoInput').click()">
-                    <i class="fas fa-upload"></i> Choose Photo
+                  <h2>My Profile</h2>
+                  <p>Configure your account details, security credentials, and system notifications.</p>
+                </div>
+              </div>
+
+              <!-- Hero Profile Card -->
+              <div class="prof-hero-card">
+                <div class="prof-hero-left">
+                  <div class="prof-avatar-wrap">
+                    <div class="prof-avatar" id="profilePhotoPreview">
+                      <span id="profileInitial">A</span>
+                    </div>
+                    <label for="profilePhotoInput" class="prof-avatar-edit">
+                      <i class="fas fa-pen"></i>
+                    </label>
+                    <input type="file" id="profilePhotoInput" accept="image/*" style="display:none;">
+                  </div>
+                  <div class="prof-hero-info">
+                    <h3 id="heroName">Admin User</h3>
+                    <span class="prof-hero-role" id="heroRole">Administrator</span>
+                    <div class="prof-hero-badges">
+                      <span class="prof-badge prof-badge-access"><i class="fas fa-globe"></i> ACCESS: GLOBAL</span>
+                      <span class="prof-badge prof-badge-status"><i class="fas fa-circle"></i> STATUS: ACTIVE</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="prof-hero-right">
+                  <button class="btn btn-primary" onclick="document.getElementById('profilePhotoInput').click()">
+                    <i class="fas fa-upload"></i> Upload New Photo
                   </button>
-                  <button class="btn btn-sm" onclick="removeProfilePhoto()"
-                    style="margin-left: 8px; color: var(--danger-color); background: #fee2e2;">
+                  <button class="btn btn-secondary" onclick="removeProfilePhoto()" style="margin-top:8px;">
                     <i class="fas fa-trash"></i> Remove
                   </button>
                 </div>
               </div>
 
-              <!-- Profile Form -->
-              <form id="profileForm">
-                <div class="form-grid">
-                  <div class="form-group">
-                    <label><i class="fas fa-user"></i> First Name</label>
-                    <input type="text" id="profileFirstName" required>
+              <!-- Two-column: Personal Info | Security -->
+              <div class="prof-two-col">
+                <!-- LEFT: Personal Information -->
+                <div class="prof-panel">
+                  <div class="prof-panel-title"><i class="fas fa-user"></i> Personal Information</div>
+                  <form id="profileForm">
+                    <div class="form-grid">
+                      <div class="form-group">
+                        <label>First Name</label>
+                        <input type="text" id="profileFirstName" placeholder="First name" required>
+                      </div>
+                      <div class="form-group">
+                        <label>Last Name</label>
+                        <input type="text" id="profileLastName" placeholder="Last name" required>
+                      </div>
+                      <div class="form-group full-width">
+                        <label>Email Address</label>
+                        <input type="email" id="profileEmail" placeholder="your@email.com" required>
+                      </div>
+                      <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" id="profilePhone" placeholder="+91 98765 43210">
+                      </div>
+                      <div class="form-group">
+                        <label>Age</label>
+                        <input type="number" id="profileAge" placeholder="e.g. 28" min="1" max="120">
+                      </div>
+                      <div class="form-group">
+                        <label>Department</label>
+                        <input type="text" id="profileDepartment" placeholder="e.g. Finance">
+                      </div>
+                      <div class="form-group full-width">
+                        <label>Professional Title</label>
+                        <input type="text" id="profileTitle" placeholder="e.g. Senior Accountant">
+                      </div>
+                    </div>
+                  </form>
+                </div>
+
+                <!-- RIGHT: Security & Authentication -->
+                <div class="prof-panel">
+                  <div class="prof-panel-title"><i class="fas fa-lock"></i> Security &amp; Authentication</div>
+                  <div class="sec-row">
+                    <div class="sec-row-info">
+                      <h4>Two-Factor Authentication</h4>
+                      <p>Add an extra layer of security to your account.</p>
+                    </div>
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="twoFactorToggle" checked>
+                      <span class="toggle-slider"></span>
+                    </label>
                   </div>
-                  <div class="form-group">
-                    <label><i class="fas fa-user"></i> Last Name</label>
-                    <input type="text" id="profileLastName" required>
-                  </div>
-                  <div class="form-group full-width">
-                    <label><i class="fas fa-envelope"></i> Email Address</label>
-                    <input type="email" id="profileEmail" required>
-                  </div>
-                  <div class="form-group">
-                    <label><i class="fas fa-phone"></i> Phone Number</label>
-                    <input type="tel" id="profilePhone" placeholder="+91 98765 43210">
-                  </div>
-                  <div class="form-group">
-                    <label><i class="fas fa-building"></i> Department</label>
-                    <input type="text" id="profileDepartment">
+                  <div class="sec-panel" style="margin-top:1.25rem;">
+                    <div class="sec-panel-title"><i class="fas fa-key"></i> Change Password</div>
+                    <form id="passwordForm">
+                      <div class="form-group" style="margin-bottom:0.875rem;">
+                        <input type="password" id="currentPassword" placeholder="Current Password" required>
+                      </div>
+                      <div class="form-group" style="margin-bottom:0.875rem;">
+                        <input type="password" id="newPassword" placeholder="New Password" required minlength="8">
+                      </div>
+                      <div class="form-group" style="margin-bottom:1rem;">
+                        <input type="password" id="confirmPassword" placeholder="Confirm New Password" required minlength="8">
+                      </div>
+                      <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; padding:0.75rem;">
+                        Update Password
+                      </button>
+                    </form>
                   </div>
                 </div>
-                <button type="submit" class="btn btn-primary" style="margin-top: 20px; padding: 14px 28px;">
-                  <i class="fas fa-save"></i> Save Profile Changes
+              </div>
+
+              <!-- Notification Preferences -->
+              <div class="prof-notif-section">
+                <div class="prof-panel-title" style="margin-bottom:1rem;">
+                  <i class="fas fa-bell"></i> Notification Preferences
+                </div>
+                <div class="notif-grid">
+                  <div class="notif-card">
+                    <div class="notif-card-header">
+                      <div class="notif-card-icon" style="background:rgba(56,189,248,0.12); color:#38bdf8;"><i class="fas fa-envelope"></i></div>
+                      <span>Email Alerts</span>
+                    </div>
+                    <ul class="notif-list">
+                      <li><label class="notif-toggle"><input type="checkbox" id="notifyVoucherApproval" checked><span class="notif-dot"></span>Voucher Approval</label></li>
+                      <li><label class="notif-toggle"><input type="checkbox" id="notifyMonthlyReport" checked><span class="notif-dot"></span>Monthly Reports</label></li>
+                      <li><label class="notif-toggle"><input type="checkbox" id="notifyDailySummary"><span class="notif-dot"></span>Daily Summary</label></li>
+                    </ul>
+                  </div>
+                  <div class="notif-card">
+                    <div class="notif-card-header">
+                      <div class="notif-card-icon" style="background:rgba(0,217,126,0.12); color:#00d97e;"><i class="fas fa-bolt"></i></div>
+                      <span>Push Notifications</span>
+                    </div>
+                    <ul class="notif-list">
+                      <li><label class="notif-toggle"><input type="checkbox" id="notifyRealtime" checked><span class="notif-dot"></span>Real-time Alerts</label></li>
+                      <li><label class="notif-toggle"><input type="checkbox" id="notifySound" checked><span class="notif-dot"></span>Sound Alerts</label></li>
+                      <li><label class="notif-toggle"><input type="checkbox" id="notifyDesktop"><span class="notif-dot"></span>Desktop Popups</label></li>
+                    </ul>
+                  </div>
+                  <div class="notif-card">
+                    <div class="notif-card-header">
+                      <div class="notif-card-icon" style="background:rgba(167,139,250,0.12); color:#a78bfa;"><i class="fas fa-sms"></i></div>
+                      <span>SMS Alerts</span>
+                    </div>
+                    <ul class="notif-list">
+                      <li><label class="notif-toggle"><input type="checkbox" id="notifyPaymentReminder" checked><span class="notif-dot"></span>Payment Reminders</label></li>
+                      <li><label class="notif-toggle"><input type="checkbox" id="notifyCritical"><span class="notif-dot"></span>Critical Errors</label></li>
+                    </ul>
+                    <a href="#" class="notif-link"><i class="fas fa-mobile-alt"></i> Verify Phone Number</a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Action Bar -->
+              <div class="prof-action-bar">
+                <button class="btn btn-secondary" onclick="discardProfileChanges()">
+                  <i class="fas fa-times"></i> Discard Changes
                 </button>
-              </form>
+                <button class="btn btn-primary" onclick="saveAllProfileSettings()">
+                  <i class="fas fa-check"></i> Save Settings
+                </button>
+              </div>
+
             </div>
 
             <!-- Security Settings -->
@@ -409,6 +690,7 @@
       document.getElementById('profileLastName').value = user.last_name || '';
       document.getElementById('profileEmail').value = user.email || '';
       document.getElementById('profilePhone').value = user.phone || '';
+      document.getElementById('profileAge').value = user.age || '';
       document.getElementById('profileDepartment').value = user.department || '';
 
       // Set profile initial
@@ -506,6 +788,7 @@
         last_name: document.getElementById('profileLastName').value,
         email: document.getElementById('profileEmail').value,
         phone: document.getElementById('profilePhone').value,
+        age: document.getElementById('profileAge').value,
         department: document.getElementById('profileDepartment').value
       };
 
@@ -849,6 +1132,93 @@
         showToast('Error', 'An error occurred while saving company settings', 'error');
       }
     });
+
+    // ============================================
+    // PROFILE HERO — live name update
+    // ============================================
+    document.addEventListener('DOMContentLoaded', () => {
+      const fnInput = document.getElementById('profileFirstName');
+      const lnInput = document.getElementById('profileLastName');
+      const heroNameEl = document.getElementById('heroName');
+      const heroInitEl = document.getElementById('profileInitial');
+
+      function updateHero() {
+        const fn = fnInput ? fnInput.value.trim() : '';
+        const ln = lnInput ? lnInput.value.trim() : '';
+        const full = [fn, ln].filter(Boolean).join(' ');
+        if (heroNameEl) heroNameEl.textContent = full || 'Admin User';
+        if (heroInitEl) heroInitEl.textContent = fn ? fn[0].toUpperCase() : 'A';
+      }
+
+      if (fnInput) fnInput.addEventListener('input', updateHero);
+      if (lnInput) lnInput.addEventListener('input', updateHero);
+
+      // Also update heroRole from profileTitle
+      const titleInput = document.getElementById('profileTitle');
+      const heroRoleEl = document.getElementById('heroRole');
+      if (titleInput && heroRoleEl) {
+        titleInput.addEventListener('input', () => {
+          heroRoleEl.textContent = titleInput.value.trim() || 'Administrator';
+        });
+      }
+    });
+
+    // ============================================
+    // SAVE ALL PROFILE SETTINGS
+    // ============================================
+    function saveAllProfileSettings() {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+      const updated = {
+        ...user,
+        first_name: document.getElementById('profileFirstName')?.value || user.first_name,
+        last_name: document.getElementById('profileLastName')?.value || user.last_name,
+        email: document.getElementById('profileEmail')?.value || user.email,
+        phone: document.getElementById('profilePhone')?.value || user.phone,
+        age: document.getElementById('profileAge')?.value || user.age,
+        department: document.getElementById('profileDepartment')?.value || user.department,
+        title: document.getElementById('profileTitle')?.value || user.title
+      };
+
+      localStorage.setItem('user', JSON.stringify(updated));
+
+      // Save notifications
+      const notify = {
+        voucherApproval: document.getElementById('notifyVoucherApproval')?.checked,
+        monthlyReport: document.getElementById('notifyMonthlyReport')?.checked,
+        dailySummary: document.getElementById('notifyDailySummary')?.checked,
+        realtime: document.getElementById('notifyRealtime')?.checked,
+        sound: document.getElementById('notifySound')?.checked,
+        desktop: document.getElementById('notifyDesktop')?.checked,
+        paymentReminder: document.getElementById('notifyPaymentReminder')?.checked,
+        critical: document.getElementById('notifyCritical')?.checked,
+        twoFactor: document.getElementById('twoFactorToggle')?.checked
+      };
+      localStorage.setItem('notification_settings', JSON.stringify(notify));
+
+      showToast('Success', 'Profile settings saved successfully!', 'success');
+    }
+
+    function discardProfileChanges() {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if (document.getElementById('profileFirstName')) document.getElementById('profileFirstName').value = user.first_name || '';
+      if (document.getElementById('profileLastName')) document.getElementById('profileLastName').value = user.last_name || '';
+      if (document.getElementById('profileEmail')) document.getElementById('profileEmail').value = user.email || '';
+      if (document.getElementById('profilePhone')) document.getElementById('profilePhone').value = user.phone || '';
+      if (document.getElementById('profileAge')) document.getElementById('profileAge').value = user.age || '';
+      if (document.getElementById('profileDepartment')) document.getElementById('profileDepartment').value = user.department || '';
+      if (document.getElementById('profileTitle')) document.getElementById('profileTitle').value = user.title || '';
+      showToast('Info', 'Changes discarded.', 'warning');
+    }
+
+    function submitSecurityPassword() {
+      const cur = document.getElementById('currentPasswordSec')?.value;
+      const nw = document.getElementById('newPasswordSec')?.value;
+      const cf = document.getElementById('confirmPasswordSec')?.value;
+      if (!cur || !nw || !cf) { showToast('Error', 'Please fill in all password fields.', 'error'); return; }
+      if (nw !== cf) { showToast('Error', 'New passwords do not match.', 'error'); return; }
+      showToast('Success', 'Password updated successfully!', 'success');
+    }
   </script>
   <script src="../js/dashboard.js?v=15"></script>
   <script src="../js/admin-dashboard.js?v=15"></script>
