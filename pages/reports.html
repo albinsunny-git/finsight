@@ -361,24 +361,57 @@
         return;
       }
       const user = JSON.parse(userStr);
-      document.getElementById('userName').textContent = `${user.first_name} ${user.last_name}`;
-      document.getElementById('userRole').textContent = user.role;
-      document.getElementById('userAvatar').textContent = user.first_name.charAt(0).toUpperCase();
-
-      // Load Balance Sheet by default if wanted
-      // loadReportWithTracking('balance-sheet');
+      
+      // Update Sidebar Info
+      if (document.getElementById('sidebarUserName')) {
+          document.getElementById('sidebarUserName').textContent = `${user.first_name} ${user.last_name}`;
+      }
+      if (document.getElementById('sidebarUserRole')) {
+          document.getElementById('sidebarUserRole').textContent = user.role;
+      }
+      if (document.getElementById('sidebarUserAvatar')) {
+          document.getElementById('sidebarUserAvatar').textContent = user.first_name.charAt(0).toUpperCase();
+      }
 
       // Load Analytics Charts
       loadAnalyticsCharts();
     });
 
     async function loadAnalyticsCharts() {
-      // Colors
-      const C_PRIMARY = '#3b82f6';
+      // Premium Colors matching Gold Theme
+      const C_ACCENT = '#eab308'; // Golden
       const C_SUCCESS = '#10b981';
       const C_DANGER = '#ef4444';
-      const C_WARNING = '#f59e0b';
-      const C_INFO = '#06b6d4';
+      const C_PRIMARY = '#3b82f6';
+      
+      const chartOptions = {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+              legend: { 
+                  position: 'bottom',
+                  labels: { color: 'rgba(255,255,255,0.7)', font: { family: 'Inter', size: 11 } }
+              },
+              tooltip: {
+                  backgroundColor: '#1e293b',
+                  titleColor: '#fff',
+                  bodyColor: '#fff',
+                  borderColor: 'rgba(255,255,255,0.1)',
+                  borderWidth: 1
+              }
+          },
+          scales: {
+              y: { 
+                  beginAtZero: true, 
+                  grid: { color: 'rgba(255,255,255,0.05)' },
+                  ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } }
+              },
+              x: { 
+                  grid: { display: false },
+                  ticks: { color: 'rgba(255,255,255,0.5)', font: { size: 10 } }
+              }
+          }
+      };
 
       try {
         const res = await fetchWithTimeout(`${API_URL}/reports.php?type=analytics`, { credentials: 'include' });
@@ -401,39 +434,30 @@
                 label: 'Income',
                 data: data.cash_flow.income,
                 backgroundColor: C_SUCCESS,
-                borderRadius: 4,
+                borderRadius: 6,
                 order: 2
               },
               {
                 label: 'Expense',
                 data: data.cash_flow.expense,
                 backgroundColor: C_DANGER,
-                borderRadius: 4,
+                borderRadius: 6,
                 order: 3
               },
               {
                 label: 'Net Flow',
                 data: data.cash_flow.income.map((inc, i) => inc - data.cash_flow.expense[i]),
                 type: 'line',
-                borderColor: C_PRIMARY,
-                borderWidth: 2,
-                tension: 0.3,
+                borderColor: C_ACCENT,
+                borderWidth: 3,
+                pointBackgroundColor: C_ACCENT,
+                tension: 0.4,
                 fill: false,
                 order: 1
               }
             ]
           },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { position: 'bottom' }
-            },
-            scales: {
-              y: { beginAtZero: true, grid: { color: '#f3f4f6' } },
-              x: { grid: { display: false } }
-            }
-          }
+          options: chartOptions
         });
 
         // 2. Income vs Expense Ratio (Doughnut)
@@ -447,28 +471,17 @@
             datasets: [{
               data: [totalInc, totalExp],
               backgroundColor: [C_SUCCESS, C_DANGER],
-              hoverOffset: 4
+              borderColor: '#111',
+              borderWidth: 2,
+              hoverOffset: 8
             }]
           },
           options: {
-            responsive: true,
-            maintainAspectRatio: false,
+            ...chartOptions,
+            cutout: '70%',
             plugins: {
-              legend: { position: 'bottom' },
-              tooltip: {
-                callbacks: {
-                  label: function (context) {
-                    let label = context.label || '';
-                    if (label) {
-                      label += ': ';
-                    }
-                    if (context.parsed !== null) {
-                      label += formatCurrency(context.parsed);
-                    }
-                    return label;
-                  }
-                }
-              }
+              ...chartOptions.plugins,
+              legend: { position: 'right', labels: { color: 'rgba(255,255,255,0.7)' } }
             }
           }
         });
@@ -481,22 +494,22 @@
             datasets: [{
               data: data.account_types.data,
               backgroundColor: [
-                'rgba(59, 130, 246, 0.7)', // Primary
-                'rgba(16, 185, 129, 0.7)', // Success
-                'rgba(239, 68, 68, 0.7)',  // Danger
-                'rgba(245, 158, 11, 0.7)', // Warning
-                'rgba(6, 182, 212, 0.7)'   // Info
-              ]
+                'rgba(59, 130, 246, 0.6)', 
+                'rgba(16, 185, 129, 0.6)', 
+                'rgba(239, 68, 68, 0.6)',  
+                'rgba(234, 179, 8, 0.6)', 
+                'rgba(6, 182, 212, 0.6)'
+              ],
+              borderColor: 'rgba(255,255,255,0.1)'
             }]
           },
           options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { position: 'right' }
-            },
+            ...chartOptions,
             scales: {
-              r: { ticks: { backdropColor: 'transparent' } }
+              r: { 
+                  grid: { color: 'rgba(255,255,255,0.05)' },
+                  ticks: { backdropColor: 'transparent', color: 'rgba(255,255,255,0.5)' }
+              }
             }
           }
         });
@@ -504,32 +517,21 @@
         // 4. Top Expenses (Horizontal Bar)
         new Chart(document.getElementById('topExpChart'), {
           type: 'bar',
-          indexAxis: 'y',
           data: {
             labels: data.top_expenses.labels,
             datasets: [{
               label: 'Expense Amount',
               data: data.top_expenses.data,
-              backgroundColor: C_DANGER,
-              borderRadius: 4
+              backgroundColor: 'rgba(239, 68, 68, 0.8)',
+              borderRadius: 6
             }]
           },
           options: {
-            responsive: true,
-            maintainAspectRatio: false,
+            ...chartOptions,
+            indexAxis: 'y',
             plugins: {
-              legend: { display: false },
-              tooltip: {
-                callbacks: {
-                  label: function (context) {
-                    return formatCurrency(context.parsed.x);
-                  }
-                }
-              }
-            },
-            scales: {
-              x: { beginAtZero: true, grid: { color: '#f3f4f6' } },
-              y: { grid: { display: false } }
+                ...chartOptions.plugins,
+                legend: { display: false }
             }
           }
         });

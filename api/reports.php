@@ -114,18 +114,20 @@ class ReportController {
             $year = $parts[0];
             $month = $parts[1];
             
-            // Income (Type = Income)
-            $sqlInc = "SELECT COALESCE(ABS(SUM(gl.credit - gl.debit)), 0) as total FROM general_ledger gl
-                       JOIN account_chart ac ON gl.account_id = ac.id
-                       WHERE ac.type = 'Income' 
-                       AND YEAR(gl.voucher_date) = $year AND MONTH(gl.voucher_date) = $month";
+            // Income (Type = Income) - Include all non-rejected vouchers
+            $sqlInc = "SELECT COALESCE(ABS(SUM(vd.credit - vd.debit)), 0) as total FROM voucher_details vd
+                       JOIN vouchers v ON vd.voucher_id = v.id
+                       JOIN account_chart ac ON vd.account_id = ac.id
+                       WHERE ac.type = 'Income' AND v.status != 'Rejected'
+                       AND YEAR(v.voucher_date) = $year AND MONTH(v.voucher_date) = $month";
             $incRes = $this->db->query($sqlInc)->fetch_assoc();
             
-            // Expense (Type = Expense)
-            $sqlExp = "SELECT COALESCE(SUM(gl.debit - gl.credit), 0) as total FROM general_ledger gl
-                       JOIN account_chart ac ON gl.account_id = ac.id
-                       WHERE ac.type = 'Expense' 
-                       AND YEAR(gl.voucher_date) = $year AND MONTH(gl.voucher_date) = $month";
+            // Expense (Type = Expense) - Include all non-rejected vouchers
+            $sqlExp = "SELECT COALESCE(SUM(vd.debit - vd.credit), 0) as total FROM voucher_details vd
+                       JOIN vouchers v ON vd.voucher_id = v.id
+                       JOIN account_chart ac ON vd.account_id = ac.id
+                       WHERE ac.type = 'Expense' AND v.status != 'Rejected'
+                       AND YEAR(v.voucher_date) = $year AND MONTH(v.voucher_date) = $month";
             $expRes = $this->db->query($sqlExp)->fetch_assoc();
             
             $cashFlow['labels'][] = date('M Y', strtotime("$year-$month-01"));
@@ -141,13 +143,14 @@ class ReportController {
             $accountTypes['labels'][] = $row['type'];
             $accountTypes['data'][] = (int)$row['count'];
         }
-
+ 
         // 3. Top 5 Expenses (Year to Date)
         $currentYear = date('Y');
-        $sqlTopExp = "SELECT ac.name, SUM(gl.debit - gl.credit) as total
-                      FROM general_ledger gl
-                      JOIN account_chart ac ON gl.account_id = ac.id
-                      WHERE ac.type = 'Expense' AND YEAR(gl.voucher_date) = $currentYear
+        $sqlTopExp = "SELECT ac.name, SUM(vd.debit - vd.credit) as total
+                      FROM voucher_details vd
+                      JOIN vouchers v ON vd.voucher_id = v.id
+                      JOIN account_chart ac ON vd.account_id = ac.id
+                      WHERE ac.type = 'Expense' AND v.status != 'Rejected' AND YEAR(v.voucher_date) = $currentYear
                       GROUP BY ac.id
                       HAVING total > 0
                       ORDER BY total DESC LIMIT 5";
@@ -157,12 +160,12 @@ class ReportController {
             $topExpenses['labels'][] = $row['name'];
             $topExpenses['data'][] = (float)$row['total'];
         }
-
+ 
         sendResponse(true, [
             'cash_flow' => $cashFlow,
             'account_types' => $accountTypes,
             'top_expenses' => $topExpenses
-        ], 'Analytics data retrieved');
+        ], 'Analytics data retrieved (Provisional)');
     }
 
     public function getTrialBalance() {
