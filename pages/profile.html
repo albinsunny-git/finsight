@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - FinSight</title>
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Theme CSS -->
+    <link rel="stylesheet" href="../css/modern-dashboard.css?v=20">
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <a href="../index.html" class="brand-logo" style="display: flex; align-items: center; gap: 10px;">
+                    <div style="background: var(--gs-accent); padding: 8px; border-radius: 8px; color: #000;">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-weight: 800; font-size: 1rem; color: #fff; line-height: 1;">GOLDEN SLATE</span>
+                        <span style="font-size: 0.65rem; color: var(--gs-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">Accounting Portal</span>
+                    </div>
+                </a>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-link">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="accounts.html" class="nav-link">
+                    <i class="fas fa-university"></i>
+                    <span>Accounts</span>
+                </a>
+                <a href="vouchers.html" class="nav-link">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Transactions</span>
+                </a>
+                <a href="reports.html" class="nav-link">
+                    <i class="fas fa-file-contract"></i>
+                    <span>Reports</span>
+                </a>
+                <a href="profile.html" class="nav-link active">
+                    <i class="fas fa-user"></i>
+                    <span>Profile</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="settings.html" class="nav-link" style="margin-bottom: 20px;">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+                
+                <button class="sidebar-new-entry">
+                    <i class="fas fa-plus"></i>
+                    <span>New Entry</span>
+                </button>
+
+                <div class="sidebar-user-profile" style="background: transparent; border-top: 1px solid var(--gs-border); padding-top: 15px; display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: #25241e; border: 1px solid var(--gs-border); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                       <i class="fas fa-user-circle" style="color: var(--gs-accent); font-size: 1.5rem;"></i>
+                    </div>
+                    <div style="display: flex; flex-direction: column; overflow: hidden;">
+                        <span style="font-weight: 700; font-size: 0.85rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Alex Thompson</span>
+                        <span style="font-size: 0.75rem; color: var(--gs-muted);">Senior Admin</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="page-content" style="padding: 2rem 3rem;">
+                
+                <!-- Profile Hero -->
+                <div class="profile-hero">
+                    <div class="profile-avatar-large">
+                        <img src="https://ui-avatars.com/api/?name=Alex+Thompson&background=eab308&color=000&size=200" alt="Profile" id="mainProfilePic">
+                        <div class="avatar-edit-icon">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                    </div>
+                    <div class="profile-hero-info">
+                        <h1 id="heroProfileName">Alex Thompson</h1>
+                        <div class="title" id="heroProfileTitle">Senior Administrator</div>
+                        <div class="member-since">
+                            <i class="far fa-calendar-alt"></i>
+                            <span>Member since January 2022</span>
+                        </div>
+                    </div>
+                    <div style="margin-left: auto;">
+                        <button class="btn btn-secondary" style="padding: 10px 20px; font-weight: 700;">
+                            <i class="fas fa-pen" style="font-size: 0.8rem; margin-right: 8px;"></i>
+                            Edit Profile
+                        </button>
+                    </div>
+                </div>
+
+                <div class="profile-grid">
+                    <!-- Left Column -->
+                    <div class="profile-left">
+                        <!-- Personal Information -->
+                        <div class="info-box">
+                            <div class="info-box-title">
+                                <i class="fas fa-user-tag"></i>
+                                Personal Information
+                            </div>
+                            <div class="details-grid">
+                                <div class="detail-item">
+                                    <label>Email Address</label>
+                                    <span id="profEmail">alex.thompson@goldenslate.com</span>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Phone Number</label>
+                                    <span id="profPhone">+1 (555) 012-3456</span>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Work Location</label>
+                                    <span id="profLocation">Chicago HQ</span>
+                                </div>
+                                <div class="detail-item">
+                                    <label>Timezone</label>
+                                    <span id="profTimezone">Central Standard Time (GMT-6)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security & Privacy -->
+                        <div class="info-box">
+                            <div class="info-box-title">
+                                <i class="fas fa-shield-alt"></i>
+                                Security & Privacy
+                            </div>
+                            
+                            <div class="security-item">
+                                <div class="security-info">
+                                    <div class="security-icon"><i class="fas fa-key"></i></div>
+                                    <div class="security-text">
+                                        <h4>Password</h4>
+                                        <p>Last changed 3 months ago</p>
+                                    </div>
+                                </div>
+                                <div class="security-action">Change</div>
+                            </div>
+
+                            <div class="security-item">
+                                <div class="security-info">
+                                    <div class="security-icon"><i class="fas fa-fingerprint"></i></div>
+                                    <div class="security-text">
+                                        <h4>Two-Factor Authentication</h4>
+                                        <p>Enhanced security for your account</p>
+                                    </div>
+                                </div>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" id="2faToggle" checked>
+                                    <span class="toggle-slider"></span>
+                                </div>
+                            </div>
+
+                            <div class="security-item" style="border-bottom: none;">
+                                <div class="security-info">
+                                    <div class="security-icon"><i class="fas fa-history"></i></div>
+                                    <div class="security-text">
+                                        <h4>Login History</h4>
+                                        <p>Manage your active sessions</p>
+                                    </div>
+                                </div>
+                                <div class="security-action">View All</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="profile-right">
+                        <!-- System Preferences -->
+                        <div class="info-box">
+                            <div class="info-box-title">
+                                <i class="fas fa-cog"></i>
+                                System Preferences
+                            </div>
+                            
+                            <div class="pref-item">
+                                <div class="pref-label">
+                                    <h4>Email Notifications</h4>
+                                    <p>Daily transaction summaries</p>
+                                </div>
+                                <div class="toggle-switch">
+                                    <input type="checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </div>
+                            </div>
+
+                            <div class="pref-item">
+                                <div class="pref-label">
+                                    <h4>Browser Push</h4>
+                                    <p>Real-time alert notifications</p>
+                                </div>
+                                <div class="toggle-switch">
+                                    <input type="checkbox">
+                                    <span class="toggle-slider"></span>
+                                </div>
+                            </div>
+
+                            <div style="margin-top: 30px;">
+                                <label style="display: block; color: var(--gs-muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px;">Display Mode</label>
+                                <div class="mode-toggle">
+                                    <div class="mode-btn active">Dark</div>
+                                    <div class="mode-btn">Light</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Admin Status Box -->
+                        <div class="admin-status-box">
+                            <h4><i class="fas fa-check-circle" style="color: var(--gs-accent);"></i> Admin Status</h4>
+                            <p>You have full administrative access. You can manage users, modify billing settings, and view high-level financial reports.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="../js/dashboard.js"></script>
+</body>
+
+</html>

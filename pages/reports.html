@@ -77,67 +77,93 @@
     <!-- Main Content -->
     <div class="main-content">
       <!-- Header -->
-      <header class="header">
-        <div class="header-left" style="display: flex; align-items: center;">
-          <button class="mobile-toggle" id="mobileToggle">
-            <i class="fas fa-bars"></i>
-          </button>
-          <div class="header-title">
-            <h1>Financial Reports</h1>
-          </div>
-        </div>
+        <main class="main-content">
+            <header class="header">
+                <div class="header-left">
+                    <button class="mobile-toggle" id="mobileToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="header-title">
+                        <h1 style="font-weight: 800; font-size: 1.5rem; margin-bottom: 2px;">Statement Hub</h1>
+                        <p style="color: var(--gs-muted); font-size: 0.85rem; font-weight: 500;">Advanced financial reporting and analytics engine.</p>
+                    </div>
+                </div>
 
-        <div class="header-actions">
-          <a href="../downloads/finsight.apk" download class="btn" 
-             style="display: flex; align-items: center; gap: 8px; background: #000; color: #fff; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; margin-right: 15px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.2s;">
-              <i class="fab fa-android" style="color: #3DDC84;"></i>
-              <span>GET APP</span>
-          </a>
+                <div class="header-actions">
+                    <button class="btn btn-primary" style="padding: 10px 20px; border-radius: 10px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-file-export"></i>
+                        Generate Report
+                    </button>
+                </div>
+            </header>
 
-          <div class="user-menu">
-            <div class="user-avatar" id="userAvatar">A</div>
-            <div class="user-info">
-              <div class="user-name" id="userName">Admin User</div>
-              <div class="user-role" id="userRole">Administrator</div>
-            </div>
-          </div>
-        </div>
-      </header>
+            <div class="page-content" style="padding: 2rem 3rem;">
+                
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px; margin-bottom: 40px;">
+                    <!-- Report Card: Balance Sheet -->
+                    <div class="stat-card" style="padding: 30px; border: 1px solid var(--gs-border); position: relative; transition: all 0.3s ease; cursor: pointer;">
+                        <div style="display: flex; gap: 20px; align-items: flex-start;">
+                            <div style="width: 50px; height: 50px; background: rgba(234, 179, 8, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--gs-accent); font-size: 1.25rem;">
+                                <i class="fas fa-balance-scale"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <h3 style="font-size: 1.25rem; font-weight: 800; color: #fff; margin-bottom: 8px;">Balance Sheet</h3>
+                                <p style="color: var(--gs-muted); font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5;">Snapshot of your company's financial position at a specific point in time.</p>
+                                <a href="#" style="color: var(--gs-accent); font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; text-decoration: none;">
+                                    View Report <i class="fas fa-arrow-right" style="font-size: 0.75rem;"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
 
-      <!-- Page Content -->
-      <div class="page-content">
-        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
-          <h2>Overview</h2>
-          <div style="display: flex; gap: 12px;">
-            <button class="btn btn-secondary" onclick="exportReport()">
-              <i class="fas fa-print"></i> Print
-            </button>
-            <button class="btn btn-primary" onclick="exportPDF()"
-              style="background-color: #e11d48; border-color: #e11d48;">
-              <i class="fas fa-file-pdf"></i> Download PDF
-            </button>
-            <button class="btn btn-primary" onclick="exportCSV()">
-              <i class="fas fa-download"></i> Export CSV
-            </button>
-          </div>
-        </div>
+                    <!-- Report Card: Income Statement -->
+                    <div class="stat-card" style="padding: 30px; border: 1px solid var(--gs-border); position: relative; transition: all 0.3s ease; cursor: pointer;">
+                        <div style="display: flex; gap: 20px; align-items: flex-start;">
+                            <div style="width: 50px; height: 50px; background: rgba(16, 185, 129, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--gs-success); font-size: 1.25rem;">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <h3 style="font-size: 1.25rem; font-weight: 800; color: #fff; margin-bottom: 8px;">Income Statement</h3>
+                                <p style="color: var(--gs-muted); font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5;">Summary of revenues, costs, and expenses incurred during a period.</p>
+                                <a href="#" style="color: var(--gs-accent); font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; text-decoration: none;">
+                                    View Report <i class="fas fa-arrow-right" style="font-size: 0.75rem;"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
 
-        <!-- Analytics Section -->
-        <div id="analytics-section" style="margin-bottom: 40px;">
-          <h3
-            style="margin-bottom: 20px; font-size: 18px; color: var(--text-main); border-left: 4px solid var(--primary-color); padding-left: 10px;">
-            Financial Analytics</h3>
+                    <!-- Report Card: Cash Flow -->
+                    <div class="stat-card" style="padding: 30px; border: 1px solid var(--gs-border); position: relative; transition: all 0.3s ease; cursor: pointer;">
+                        <div style="display: flex; gap: 20px; align-items: flex-start;">
+                            <div style="width: 50px; height: 50px; background: rgba(59, 130, 246, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: var(--gs-info); font-size: 1.25rem;">
+                                <i class="fas fa-exchange-alt"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <h3 style="font-size: 1.25rem; font-weight: 800; color: #fff; margin-bottom: 8px;">Cash Flow Statement</h3>
+                                <p style="color: var(--gs-muted); font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5;">Details how changes in balance sheet accounts affect cash and equivalents.</p>
+                                <a href="#" style="color: var(--gs-accent); font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; text-decoration: none;">
+                                    View Report <i class="fas fa-arrow-right" style="font-size: 0.75rem;"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px;">
-            <!-- Cash Flow Chart -->
-            <div
-              style="background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); box-shadow: 0 2px 4px rgba(0,0,0,0.05); position: relative;">
-              <h4 style="margin-bottom: 15px; font-size: 14px; color: var(--text-muted); text-transform: uppercase;">
-                Monthly Cash Flow (Income vs Expense)</h4>
-              <div style="height: 300px;">
-                <canvas id="cashFlowChart"></canvas>
-              </div>
-              <button onclick="downloadChart('cashFlowChart', 'Monthly_Cash_Flow.png')" title="Download Chart"
+                    <!-- Report Card: General Ledger -->
+                    <div class="stat-card" style="padding: 30px; border: 1px solid var(--gs-border); position: relative; transition: all 0.3s ease; cursor: pointer;">
+                        <div style="display: flex; gap: 20px; align-items: flex-start;">
+                            <div style="width: 50px; height: 50px; background: rgba(167, 139, 250, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #a78bfa; font-size: 1.25rem;">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <h3 style="font-size: 1.25rem; font-weight: 800; color: #fff; margin-bottom: 8px;">General Ledger</h3>
+                                <p style="color: var(--gs-muted); font-size: 0.9rem; margin-bottom: 20px; line-height: 1.5;">Complete record of all financial transactions of the business.</p>
+                                <a href="#" style="color: var(--gs-accent); font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 8px; text-decoration: none;">
+                                    View Report <i class="fas fa-arrow-right" style="font-size: 0.75rem;"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 style="position: absolute; bottom: 15px; right: 15px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid #e5e7eb; background: white; cursor: pointer; color: #6b7280; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.2s;">
                 <i class="fas fa-download" style="font-size: 13px;"></i>
               </button>

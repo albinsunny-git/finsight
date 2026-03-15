@@ -1,0 +1,458 @@
+/* =========================================
+   FinSight — Golden Slate Premium Theme
+   Inspired by Golden Slate / GoldLedger reference designs
+   ========================================= */
+
+/* ---- Google Fonts ---- */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+/* ---- Color Tokens ---- */
+:root {
+    --gs-bg:          #0f110c;   /* Deepest background */
+    --gs-surface:     #161812;   /* Sidebar / Cards */
+    --gs-surface2:    #1d1f18;   /* Elevated cards / Inputs */
+    --gs-surface3:    #252720;   /* Hover states */
+    --gs-border:      #2d2f27;   /* Subtle borders */
+    --gs-border2:     #3a3c32;   /* Stronger borders */
+    --gs-accent:      #eab308;   /* Primary Gold/Yellow */
+    --gs-accent-dim:  #ca8a04;   /* Hover / darker gold */
+    --gs-accent-glow: rgba(234, 179, 8, 0.1);
+    --gs-text:        #f3f4f1;   /* Main text */
+    --gs-muted:       #94968c;   /* Muted text */
+    --gs-muted2:      #5d5f56;   /* Very muted */
+    --gs-danger:      #ef4444;
+    --gs-success:     #10b981;
+    --gs-warning:     #f59e0b;
+    --gs-info:        #3b82f6;
+    --gs-shadow:      0 10px 30px rgba(0,0,0,0.5);
+    --gs-radius:      16px;
+    --gs-radius-sm:   10px;
+}
+
+/* ---- Base Reset ---- */
+body {
+    font-family: 'Plus+Jakarta+Sans', 'Inter', system-ui, sans-serif;
+    background: var(--gs-bg);
+    color: var(--gs-text);
+}
+
+/* =========================================
+   SIDEBAR
+   ========================================= */
+.sidebar {
+    background: var(--gs-bg);
+    border-right: 1px solid var(--gs-border);
+}
+
+.brand-logo-name {
+    color: var(--gs-text) !important;
+    font-weight: 800;
+}
+
+.nav-link {
+    color: var(--gs-muted);
+    border-radius: var(--gs-radius-sm);
+    margin: 2px 0;
+}
+
+.nav-link:hover {
+    background: var(--gs-surface);
+    color: var(--gs-text);
+}
+
+.nav-link.active {
+    background: #25241e; /* Dark gold-tinted surface */
+    color: var(--gs-accent);
+    box-shadow: none;
+}
+
+.nav-link.active i {
+    color: var(--gs-accent);
+}
+
+/* =========================================
+   HEADER
+   ========================================= */
+.header {
+    background: rgba(15, 17, 12, 0.8);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--gs-border);
+}
+
+.user-menu {
+    background: transparent;
+    border: none;
+}
+
+.user-avatar {
+    background: var(--gs-accent);
+    color: #000;
+}
+
+/* =========================================
+   CARDS & STATS
+   ========================================= */
+.card, .stat-card, .chart-card, .table-container, .insights-section {
+    background: var(--gs-surface);
+    border: 1px solid var(--gs-border);
+    border-radius: var(--gs-radius);
+    box-shadow: var(--gs-shadow);
+}
+
+.stat-info h3 {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--gs-text);
+}
+
+.stat-icon {
+    background: var(--gs-surface2) !important;
+    color: var(--gs-text) !important;
+    border: 1px solid var(--gs-border);
+}
+
+/* =========================================
+   BUTTONS
+   ========================================= */
+.btn-primary {
+    background: var(--gs-accent);
+    color: #000;
+    font-weight: 700;
+    border-radius: var(--gs-radius-sm);
+}
+
+.btn-primary:hover {
+    background: var(--gs-accent-dim);
+    box-shadow: 0 0 15px var(--gs-accent-glow);
+}
+
+.btn-secondary {
+    background: var(--gs-surface2);
+    border: 1px solid var(--gs-border);
+    color: var(--gs-text);
+}
+
+/* =========================================
+   TABLES
+   ========================================= */
+.data-table th {
+    background: transparent;
+    color: var(--gs-muted);
+    font-weight: 600;
+    border-bottom: 1px solid var(--gs-border);
+}
+
+.data-table td {
+    border-bottom: 1px solid var(--gs-border);
+    padding: 1.25rem;
+}
+
+.data-table tr:hover td {
+    background: var(--gs-surface2);
+}
+
+/* =========================================
+   BADGES
+   ========================================= */
+.badge {
+    background: var(--gs-surface2);
+    border: 1px solid var(--gs-border);
+    color: var(--gs-text);
+    font-weight: 600;
+}
+
+.badge-active, .badge-success { color: #10b981; }
+.badge-pending { color: #f59e0b; }
+.badge-inactive, .badge-danger { color: #ef4444; }
+
+/* =========================================
+   INPUTS
+   ========================================= */
+input, select, textarea {
+    background: var(--gs-surface2) !important;
+    border: 1px solid var(--gs-border) !important;
+    color: var(--gs-text) !important;
+    border-radius: var(--gs-radius-sm) !important;
+}
+
+input:focus {
+    border-color: var(--gs-accent) !important;
+    box-shadow: 0 0 0 2px var(--gs-accent-glow) !important;
+}
+
+/* =========================================
+   PROFILE SPECIFIC
+   ========================================= */
+.prof-hero-card {
+    background: var(--gs-surface);
+    border: 1px solid var(--gs-border);
+}
+
+.prof-panel {
+    background: var(--gs-surface);
+    border: 1px solid var(--gs-border);
+}
+
+.prof-avatar {
+    background: var(--gs-accent);
+}
+
+.prof-badge-access { background: #25241e; color: var(--gs-accent); }
+
+/* Sticky Action Bar */
+.prof-action-bar {
+    background: var(--gs-surface);
+    border: 1px solid var(--gs-border);
+}
+
+/* =========================================
+   PROFILE PAGE (ALEX THOMPSON DESIGN)
+   ========================================= */
+
+.profile-hero {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    padding: 20px 0;
+    margin-bottom: 40px;
+}
+
+.profile-avatar-large {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    border: 4px solid var(--gs-accent);
+    padding: 5px;
+}
+
+.profile-avatar-large img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.avatar-edit-icon {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: var(--gs-accent);
+    color: #000;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    border: 3px solid var(--gs-bg);
+}
+
+.profile-hero-info h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 5px;
+}
+
+.profile-hero-info .title {
+    color: var(--gs-accent);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.profile-hero-info .member-since {
+    color: var(--gs-muted);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.profile-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 30px;
+}
+
+.info-box {
+    background: var(--gs-surface);
+    border: 1px solid var(--gs-border);
+    border-radius: var(--gs-radius);
+    padding: 25px;
+    margin-bottom: 30px;
+}
+
+.info-box-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.info-box-title i {
+    color: var(--gs-accent);
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+}
+
+.detail-item label {
+    display: block;
+    color: var(--gs-muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.detail-item span {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* Security Items */
+.security-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--gs-border);
+}
+
+.security-item:last-child {
+    border-bottom: none;
+}
+
+.security-info {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.security-icon {
+    width: 44px;
+    height: 44px;
+    background: var(--gs-surface2);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gs-accent);
+    font-size: 1.2rem;
+}
+
+.security-text h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 2px;
+}
+
+.security-text p {
+    font-size: 0.85rem;
+    color: var(--gs-muted);
+}
+
+.security-action {
+    color: var(--gs-accent);
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+/* Switches & Preferences */
+.pref-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 25px;
+}
+
+.pref-label h4 {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.pref-label p {
+    font-size: 0.8rem;
+    color: var(--gs-muted);
+}
+
+/* Mode Toggle */
+.mode-toggle {
+    display: flex;
+    background: var(--gs-surface2);
+    padding: 4px;
+    border-radius: 10px;
+    margin-top: 15px;
+}
+
+.mode-btn {
+    flex: 1;
+    padding: 8px;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.mode-btn.active {
+    background: var(--gs-accent);
+    color: #000;
+}
+
+/* Admin Status Box */
+.admin-status-box {
+    background: #1c1a10; /* Darker gold-tinted box */
+    border: 1px solid #3c3410;
+    border-radius: var(--gs-radius);
+    padding: 25px;
+}
+
+.admin-status-box h4 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    margin-bottom: 15px;
+}
+
+.admin-status-box p {
+    font-size: 0.9rem;
+    color: #948c64;
+    line-height: 1.6;
+}
+
+/* Unified Sidebar for Golden Slate */
+.sidebar-footer {
+    padding: 20px;
+    margin-top: auto;
+}
+
+.sidebar-new-entry {
+    background: var(--gs-accent);
+    color: #000;
+    padding: 12px;
+    border-radius: 10px;
+    width: 100%;
+    font-weight: 800;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+.sidebar-new-entry:hover {
+    background: var(--gs-accent-dim);
+}
