@@ -19,7 +19,7 @@
             <div class="sidebar-header">
                 <a href="../index.html" class="brand-logo" style="display: flex; align-items: center; gap: 12px;">
                     <img src="../assets/images/logo.png" alt="FinSight Logo" style="height: 35px; width: 35px; border-radius: 8px;">
-                    <span class="brand-logo-name" style="font-weight: 800; font-size: 1.25rem; color: #fff; letter-spacing: -0.5px;">FINSIGHT</span>
+                    <span class="brand-logo-name" style="font-weight: 800; font-size: 1.25rem; color: var(--text-main); letter-spacing: -0.5px;">FINSIGHT</span>
                 </a>
             </div>
 
@@ -85,17 +85,190 @@
                 </div>
 
                 <div class="header-actions">
-                    <div style="display: flex; gap: 10px;">
-                        <button class="btn btn-secondary" onclick="exportPDF()" title="Export PDF"><i class="fas fa-file-pdf"></i></button>
-                        <button class="btn btn-secondary" onclick="exportCSV()" title="Export CSV"><i class="fas fa-file-csv"></i></button>
-                        <button class="btn btn-primary" onclick="loadReportWithTracking('balance-sheet')" style="padding: 10px 15px; border-radius: 10px; font-weight: 700;">Balance Sheet</button>
-                        <button class="btn btn-primary" onclick="loadReportWithTracking('profit-loss')" style="padding: 10px 15px; border-radius: 10px; font-weight: 700;">Profit & Loss</button>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button class="btn btn-secondary" onclick="exportPDF()" title="Export PDF"><i class="fas fa-file-pdf"></i> PDF</button>
+                        <button class="btn btn-secondary" onclick="exportCSV()" title="Export CSV"><i class="fas fa-file-csv"></i> CSV</button>
+                        
+                        <div style="width: 1px; height: 30px; background: var(--gs-border); margin: 0 10px;"></div>
+
+                        <button class="btn-icon" style="background: var(--gs-surface2); border: 1px solid var(--gs-border); width: 40px; height: 40px; border-radius: 10px; color: var(--gs-accent); position: relative; cursor: pointer;">
+                            <i class="fas fa-bell"></i>
+                        </button>
+                        
+                        <div class="user-menu" style="background: var(--gs-surface2); padding: 5px 15px 5px 5px; border-radius: 30px; border: 1px solid var(--gs-border); display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                            <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--gs-accent); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px solid var(--gs-bg);">
+                                <img id="headerUserAvatarImg" src="https://ui-avatars.com/api/?name=User&background=eab308&color=000" style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
+                            <div style="display: flex; flex-direction: column; text-align: left;">
+                                <span id="headerUserName" style="font-size: 0.8rem; font-weight: 700; color: #fff; line-height: 1;">User Name</span>
+                                <span id="headerUserRole" style="font-size: 0.65rem; color: var(--gs-accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Role</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </header>
 
             <div class="page-content" style="padding: 2rem 3rem;">
                 
+                <!-- Report Selection Bar -->
+                <div class="report-selection-bar">
+                    <button class="report-tile active" onclick="loadReportWithTracking('balance-sheet', this)">
+                        <i class="fas fa-balance-scale"></i>
+                        <span>Balance Sheet</span>
+                    </button>
+                    
+                    <button class="report-tile" onclick="loadReportWithTracking('profit-loss', this)">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Profit & Loss</span>
+                    </button>
+
+                    <button class="report-tile" onclick="loadReportWithTracking('trial-balance', this)">
+                        <i class="fas fa-list-check"></i>
+                        <span>Trial Balance</span>
+                    </button>
+
+                    <button class="report-tile" onclick="loadReportWithTracking('cash-flow', this)">
+                        <i class="fas fa-money-bill-transfer"></i>
+                        <span>Cash Flow</span>
+                    </button>
+
+                    <button class="report-tile" onclick="loadReportWithTracking('ledger', this)">
+                        <i class="fas fa-book"></i>
+                        <span>Account Ledger</span>
+                    </button>
+                </div>
+
+                <!-- Report Filters Bar (Dynamic) -->
+                <div id="report-filters" class="stat-card" style="padding: 20px; margin-bottom: 25px; display: none; align-items: flex-end; gap: 20px; flex-wrap: wrap; background: var(--gs-surface); border: 1px solid var(--gs-border); border-radius: 15px;">
+                    <div id="account-selector-wrapper" style="flex: 3; min-width: 250px; display: none; display: flex; gap: 15px;">
+                        <div style="flex: 1;">
+                            <label style="display: block; color: var(--gs-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 700; margin-bottom: 8px;">Category</label>
+                            <select id="reportCategoryFilter" onchange="updateAccountDropdown()" style="width: 100%; padding: 12px; background: var(--gs-surface2); border: 1px solid var(--gs-border); border-radius: 10px; color: #fff;">
+                                <option value="">ALL CATEGORIES</option>
+                                <option value="Asset">ASSETS</option>
+                                <option value="Liability">LIABILITIES</option>
+                                <option value="Equity">EQUITY</option>
+                                <option value="Income">INCOME</option>
+                                <option value="Expense">EXPENSE</option>
+                            </select>
+                        </div>
+                        <div style="flex: 2;">
+                            <label style="display: block; color: var(--gs-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 700; margin-bottom: 8px;">Select Account</label>
+                            <select id="reportAccountSelect" style="width: 100%; padding: 12px; background: var(--gs-surface2); border: 1px solid var(--gs-border); border-radius: 10px; color: var(--text-main);">
+                                <option value="">Choose an account...</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div style="flex: 1; min-width: 150px;">
+                        <label style="display: block; color: var(--gs-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 700; margin-bottom: 8px;">From Date</label>
+                        <input type="date" id="reportFromDate" style="width: 100%; padding: 10px; background: var(--gs-surface2); border: 1px solid var(--gs-border); border-radius: 10px; color: var(--text-main);">
+                    </div>
+
+                    <div style="flex: 1; min-width: 150px;">
+                        <label style="display: block; color: var(--gs-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 700; margin-bottom: 8px;">To Date</label>
+                        <input type="date" id="reportToDate" style="width: 100%; padding: 10px; background: var(--gs-surface2); border: 1px solid var(--gs-border); border-radius: 10px; color: var(--text-main);">
+                    </div>
+
+                    <button class="btn btn-primary" onclick="generateDynamicReport(currentReportType)" style="padding: 12px 25px; border-radius: 10px;">
+                        <i class="fas fa-sync-alt"></i> Update Report
+                    </button>
+                </div>
+
+                <style>
+                    .report-selection-bar {
+                        display: flex; 
+                        gap: 15px; 
+                        margin-bottom: 30px; 
+                        overflow-x: auto; 
+                        padding: 5px 5px 15px 5px; 
+                        -webkit-overflow-scrolling: touch;
+                    }
+                    .report-tile {
+                        min-width: 160px;
+                        background: rgba(255, 255, 255, 0.03);
+                        color: rgba(255, 255, 255, 0.7);
+                        border: 1px solid var(--gs-border);
+                        padding: 18px 22px;
+                        border-radius: 18px;
+                        display: flex;
+                        flex-direction: column;
+                        gap: 10px;
+                        cursor: pointer;
+                        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+                        text-align: left;
+                        backdrop-filter: blur(10px);
+                    }
+                    .report-tile i {
+                        font-size: 1.4rem;
+                        color: var(--gs-accent);
+                        transition: all 0.3s ease;
+                    }
+                    .report-tile span {
+                        font-weight: 700;
+                        font-size: 0.95rem;
+                        letter-spacing: -0.2px;
+                    }
+                    .report-tile:hover {
+                        transform: translateY(-5px);
+                        border-color: var(--gs-accent);
+                        background: rgba(234, 179, 8, 0.08);
+                        color: #fff;
+                    }
+                    .report-tile.active {
+                        background: var(--gs-accent) !important;
+                        color: #000 !important;
+                        border-color: var(--gs-accent) !important;
+                        box-shadow: 0 12px 24px -8px rgba(234, 179, 8, 0.5);
+                        transform: translateY(-2px);
+                    }
+                    .report-tile.active i {
+                        color: #000 !important;
+                    }
+                    
+                    /* Premium Light Mode Support */
+                    [data-theme="light"] {
+                        --bg-card: #ffffff;
+                        --border-color: #e2e8f0;
+                    }
+                    [data-theme="light"] .report-tile {
+                        background: #ffffff;
+                        color: #0f172a;
+                        border-color: #cbd5e1;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+                    }
+                    [data-theme="light"] .report-tile:hover {
+                        background: #f1f5f9;
+                        border-color: var(--gs-accent);
+                    }
+                    [data-theme="light"] #report-filters, 
+                    [data-theme="light"] #report-container {
+                        background: #ffffff !important;
+                        border: 1.5px solid #e2e8f0 !important;
+                        box-shadow: 0 10px 25px rgba(0,0,0,0.05) !important;
+                    }
+                    [data-theme="light"] #report-filters input, 
+                    [data-theme="light"] #report-filters select {
+                        background: #f8fafc !important;
+                        color: #0f172a !important;
+                        border: 1.5px solid #e2e8f0 !important;
+                    }
+                    [data-theme="light"] .report-tile.active {
+                        background: var(--gs-accent) !important;
+                        color: #000 !important;
+                        box-shadow: 0 8px 20px rgba(234, 179, 8, 0.4) !important;
+                    }
+                </style>
+
+                <!-- Report Viewer -->
+                <div id="report-container" class="table-container" style="min-height: 400px; padding: 40px; background: var(--gs-surface); border: 1px solid var(--gs-border); display: flex; align-items: center; justify-content: center; border-radius: 15px; margin-bottom: 40px;">
+                    <div style="text-align: center; color: var(--gs-muted);">
+                        <i class="fas fa-file-invoice" style="font-size: 3rem; opacity: 0.1; margin-bottom: 20px;"></i>
+                        <h3 style="font-weight: 800; color: var(--text-main);">Financial Report Viewer</h3>
+                        <p>Click on a statement button above to generate a real-time report.</p>
+                    </div>
+                </div>
+
                 <!-- Analytics Section -->
                 <div id="analytics-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; margin-bottom: 40px;">
                     <!-- Cash Flow -->
@@ -127,15 +300,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Report Viewer -->
-                <div id="report-container" class="table-container" style="min-height: 400px; padding: 40px; background: var(--gs-surface); border: 1px solid var(--gs-border); display: flex; align-items: center; justify-content: center; border-radius: 15px;">
-                    <div style="text-align: center; color: var(--gs-muted);">
-                        <i class="fas fa-file-invoice" style="font-size: 3rem; opacity: 0.1; margin-bottom: 20px;"></i>
-                        <h3 style="font-weight: 800; color: #fff;">Financial Report Viewer</h3>
-                        <p>Click on a statement button above to generate a real-time report.</p>
-                    </div>
-                </div>
             </div>
 
         <!-- Hidden PDF Template -->
@@ -146,6 +310,15 @@
               background: white;
               color: #0f172a;
               font-family: 'Inter', sans-serif;
+              /* PDF Variable Overrides (Force Light Theme for Printing) */
+              --text-main: #0f172a;
+              --text-muted: #64748b;
+              --border-color: #e2e8f0;
+              --bg-card: #ffffff;
+              --bg-body: #f8fafc;
+              --gs-accent: #854d0e; /* Slightly darker gold for printing */
+              --success-color: #15803d;
+              --danger-color: #b91c1c;
             }
 
             .pdf-header {
@@ -283,8 +456,15 @@
   <script>
     let currentReportType = '';
 
-    function loadReportWithTracking(type) {
+    function loadReportWithTracking(type, element) {
       currentReportType = type;
+      
+      // Update active state in UI
+      document.querySelectorAll('.report-tile').forEach(btn => btn.classList.remove('active'));
+      if (element) {
+          element.classList.add('active');
+      }
+
       generateDynamicReport(type);
     }
 

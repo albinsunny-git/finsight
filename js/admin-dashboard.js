@@ -38,22 +38,93 @@ async function initAdminDashboard() {
         return;
     }
 
-    const currentUser = JSON.parse(user);
+    let currentUser = JSON.parse(user);
+    
+    // Support nested user object (Common in some API responses/Google payloads)
+    if (currentUser.user && typeof currentUser.user === 'object') {
+        currentUser = currentUser.user;
+    }
 
-    if (currentUser.role !== 'admin' && currentUser.role !== 'manager' && currentUser.role !== 'accountant') {
-        alert('Access denied. Generalized dashboard access required.');
+    const userRole = (currentUser.role || '').toLowerCase();
+
+    if (userRole !== 'admin' && userRole !== 'manager' && userRole !== 'accountant') {
+        alert('Access denied. Administrator dashboard access required.');
         window.location.href = '../index.html';
         return;
     }
 
-    const nameEl = document.getElementById('userName') || document.getElementById('user-name') || document.getElementById('sidebarUserName');
-    if (nameEl) nameEl.textContent = `${currentUser.first_name} ${currentUser.last_name}`;
+    // Extract name and provide robust fallbacks
+    const fName = currentUser.first_name || currentUser.firstName || '';
+    const lName = currentUser.last_name || currentUser.lastName || '';
+    const displayName = (fName + ' ' + lName).trim() || currentUser.name || currentUser.display_name || currentUser.username || 'User';
+    const initials = (fName ? fName.charAt(0) : (displayName.charAt(0) || 'U')).toUpperCase();
 
-    const roleEl = document.getElementById('userRole') || document.getElementById('user-role') || document.getElementById('sidebarUserRole');
-    if (roleEl) roleEl.textContent = currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1);
+    // Update all user name instances (Case-insensitive selection for common IDs)
+    document.querySelectorAll('#userName, #user-name, #sidebarUserName, #headerUserName, #heroProfileName, #headerUserName_fallback').forEach(el => {
+        el.textContent = displayName;
+    });
 
-    const avatarEl = document.getElementById('userAvatar') || document.getElementById('user-avatar') || document.getElementById('sidebarUserAvatar');
-    if (avatarEl) avatarEl.textContent = (currentUser.first_name || 'U').charAt(0).toUpperCase();
+    // Update all user role instances
+    const displayRole = (currentUser.role || 'Member').charAt(0).toUpperCase() + (currentUser.role || 'Member').slice(1).toLowerCase();
+    document.querySelectorAll('#userRole, #user-role, #sidebarUserRole, #headerUserRole, #heroProfileTitle').forEach(el => {
+        el.textContent = displayRole;
+    });
+
+    // Update all user avatar text instances
+    document.querySelectorAll('#userAvatar, #user-avatar, #sidebarUserAvatar, #headerUserAvatar').forEach(el => {
+        el.textContent = initials;
+    });
+
+    // Update all user avatar image instances
+    document.querySelectorAll('#mainProfilePic, #headerUserAvatarImg, #sidebarAvatarImg').forEach(img => {
+        const imagePath = currentUser.profile_image || currentUser.profile_pic;
+        if (imagePath) {
+            img.src = imagePath;
+        } else {
+            const nameParam = encodeURIComponent(displayName);
+            img.src = `https://ui-avatars.com/api/?name=${nameParam}&background=eab308&color=000&bold=true&size=128`;
+        }
+
+        // Global Error Handling for Images
+        img.onerror = () => {
+            const nameParam = encodeURIComponent(displayName);
+            img.src = `https://ui-avatars.com/api/?name=${nameParam}&background=eab308&color=000&bold=true&size=128`;
+        };
+    });
+
+    // Mobile Sidebar Toggle
+    const mobileToggle = document.getElementById('mobileToggle');
+    const sidebar = document.querySelector('.sidebar');
+    if (mobileToggle && sidebar) {
+        mobileToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            sidebar.classList.toggle('active');
+        });
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 1024 && 
+                sidebar.classList.contains('active') && 
+                !sidebar.contains(e.target) && 
+                e.target !== mobileToggle) {
+                sidebar.classList.remove('active');
+            }
+        });
+    }
+
+    // Special case for dashboard welcome message
+    const welcomeMsg = document.getElementById('headerWelcomeMsg');
+    if (welcomeMsg) {
+        welcomeMsg.textContent = `Welcome back, ${displayName}`;
+    }
+
+    // Update email and phone if they exist on the page (Profile Page)
+    if (currentUser.email) {
+        document.querySelectorAll('#profEmail').forEach(el => el.textContent = currentUser.email);
+    }
+    if (currentUser.phone) {
+        document.querySelectorAll('#profPhone').forEach(el => el.textContent = currentUser.phone);
+    }
 
     // Render Role-Based Sidebar
     renderSidebar(currentUser.role);
@@ -2080,43 +2151,145 @@ async function viewVoucher(id) {
 // --- Dynamic Reporting Logic (New Format) ---
 async function generateDynamicReport(type) {
     const container = document.getElementById('report-container');
+    const filterBar = document.getElementById('report-filters');
+    const accountWrapper = document.getElementById('account-selector-wrapper');
     if (!container) return;
+
+    // --- Filter Visibility Logic ---
+    if (filterBar) {
+        filterBar.style.display = 'flex';
+        // Only show account selector for ledger
+        if (accountWrapper) {
+            accountWrapper.style.display = (type === 'ledger') ? 'block' : 'none';
+        }
+    }
+
+    // Set default dates if empty
+    const fromInput = document.getElementById('reportFromDate');
+    const toInput = document.getElementById('reportToDate');
+    if (fromInput && !fromInput.value) fromInput.value = new Date(new Date().getFullYear(), 0, 1).toISOString().split('T')[0];
+    if (toInput && !toInput.value) toInput.value = new Date().toISOString().split('T')[0];
+
+    // Get filter values
+    const from = fromInput ? fromInput.value : '';
+    const to = toInput ? toInput.value : '';
+    const accountId = document.getElementById('reportAccountSelect')?.value;
+
+    // Populate account list immediately if needed
+    if (type === 'ledger' && document.getElementById('reportAccountSelect')?.options.length <= 1) {
+        loadAccountsForReport();
+    }
+
+    // Validation: If ledger is requested without an account selection
+    if (type === 'ledger' && !accountId) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 60px; color: var(--gs-muted);">
+                <i class="fas fa-book-open" style="font-size: 3.5rem; color: var(--gs-accent); opacity: 0.2; margin-bottom: 20px;"></i>
+                <h3 style="color: var(--text-main); font-weight: 700;">Account Ledger</h3>
+                <p>Please select an account from the dropdown above to view its detailed transaction history.</p>
+            </div>`;
+        return;
+    }
 
     container.innerHTML = `
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 300px;">
-            <i class="fas fa-spinner fa-spin" style="font-size: 40px; color: var(--primary-color); margin-bottom: 20px;"></i>
-            <p style="color: var(--text-muted); font-weight: 500;">Generating financial statement...</p>
+            <i class="fas fa-spinner fa-spin" style="font-size: 40px; color: var(--gs-accent); margin-bottom: 20px;"></i>
+            <p style="color: var(--gs-muted); font-weight: 500;">Generating report data...</p>
         </div>
     `;
 
     try {
-        const res = await fetchWithTimeout(`${API_URL}/reports.php?type=${type}`, { timeout: 8000, credentials: 'include' });
+        let url = `${API_URL}/reports.php?type=${type}&from=${from}&to=${to}`;
+        if (type === 'ledger') url += `&account_id=${accountId}`;
+        // Adjust for Balance Sheet/Trial Balance as_on_date param
+        if (type === 'balance-sheet' || type === 'trial-balance') url += `&as_on_date=${to}`;
+
+        const res = await fetchWithTimeout(url, { timeout: 8000, credentials: 'include' });
         const json = await res.json();
 
         if (!json.success) {
             container.innerHTML = `
-                <div class="alert alert-danger" style="margin-top: 50px; text-align: center;">
-                    <i class="fas fa-exclamation-circle"></i> ${json.message || 'Failed to load report data.'}
+                <div style="text-align: center; padding: 50px; color: var(--gs-muted);">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ef4444; margin-bottom: 20px;"></i>
+                    <h3 style="color: var(--text-main);">Report Unavailable</h3>
+                    <p>${json.message || 'We could not generate this report with the selected parameters.'}</p>
                 </div>`;
             return;
         }
 
         const data = json.data;
-        const today = new Date().toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
+        const displayDate = new Date(to).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
         let content = '';
 
         if (type === 'balance-sheet') {
-            content = renderNewBalanceSheet(data, today);
+            content = renderNewBalanceSheet(data, displayDate);
         } else if (type === 'profit-loss') {
-            content = renderNewProfitLoss(data, today);
+            content = renderNewProfitLoss(data, displayDate);
         } else if (type === 'trial-balance') {
-            content = renderNewTrialBalance(data, today);
+            content = renderNewTrialBalance(data, displayDate);
+        } else if (type === 'cash-flow') {
+            content = renderNewCashFlow(data, from, to);
+        } else if (type === 'ledger') {
+            content = renderNewAccountLedger(data);
         }
 
         container.innerHTML = content;
+
     } catch (err) {
         console.error('Report Error:', err);
-        container.innerHTML = '<div class="alert alert-danger text-center">Error connecting to report server. Using local cache...</div>';
+        container.innerHTML = `<div style="text-align: center; padding: 50px; color: var(--danger-color);">
+            <i class="fas fa-exclamation-circle" style="font-size: 3rem; margin-bottom: 15px;"></i>
+            <h3>Connection Error</h3>
+            <p>We couldn't connect to the server to generate this report. Please check your network and try again.</p>
+        </div>`;
+    }
+}
+
+async function loadAccountsForReport() {
+    const sel = document.getElementById('reportAccountSelect');
+    if (!sel) return;
+
+    try {
+        const url = `${API_URL}/accounts.php?action=list`;
+        const res = await fetchWithTimeout(url, { credentials: 'include' });
+        const json = await res.json();
+        
+        if (json.success) {
+            window.allAccountData = json.data;
+            updateAccountDropdown();
+        }
+    } catch (e) {
+        console.error("Failed to load accounts:", e);
+    }
+}
+
+function updateAccountDropdown() {
+    const sel = document.getElementById('reportAccountSelect');
+    const cat = document.getElementById('reportCategoryFilter')?.value;
+    if (!sel || !window.allAccountData) return;
+
+    const currentVal = sel.value;
+    sel.innerHTML = '<option value="">Choose an account...</option>';
+    
+    // Grouping logic
+    const groups = {};
+    window.allAccountData.forEach(acc => {
+        if (cat && acc.type !== cat) return;
+        if (!groups[acc.type]) groups[acc.type] = [];
+        groups[acc.type].push(acc);
+    });
+
+    for (const [type, accounts] of Object.entries(groups)) {
+        const group = document.createElement('optgroup');
+        group.label = type.toUpperCase();
+        accounts.forEach(acc => {
+            const opt = document.createElement('option');
+            opt.value = acc.id;
+            opt.textContent = `${acc.code} - ${acc.name}`;
+            if (acc.id == currentVal) opt.selected = true;
+            group.appendChild(opt);
+        });
+        sel.appendChild(group);
     }
 }
 
@@ -2148,42 +2321,41 @@ function renderNewBalanceSheet(accounts, date) {
     const renderRows = (groups) => {
         let html = '';
         for (const [name, group] of Object.entries(groups)) {
-            html += `<tr style="background: rgba(0,0,0,0.02);"><td colspan="2"><strong style="font-size: 13px; text-transform: uppercase; color: var(--text-muted);">${name}</strong></td></tr>`;
+            html += `<tr style="background: rgba(var(--gs-accent-rgb), 0.05);"><td colspan="2"><strong style="font-size: 11px; text-transform: uppercase; color: var(--gs-accent); letter-spacing: 0.5px;">${name}</strong></td></tr>`;
             group.accounts.forEach(a => {
-                html += `<tr><td style="padding-left: 24px;">${a.name}</td><td class="text-right">${formatCurrency(a.balance)}</td></tr>`;
+                html += `<tr><td style="padding-left: 20px; color: var(--text-main);">${a.name}</td><td class="text-right" style="color: var(--text-main); font-weight: 500;">${formatCurrency(a.balance)}</td></tr>`;
             });
-            html += `<tr style="border-bottom: 1px solid var(--border-color);"><td class="text-right"><em>Total ${name}</em></td><td class="text-right" style="font-weight: 600;">${formatCurrency(group.total)}</td></tr>`;
+            html += `<tr style="border-bottom: 1px solid var(--border-color);"><td class="text-right"><em style="font-size: 12px; color: var(--text-muted);">Total ${name}</em></td><td class="text-right" style="font-weight: 700; color: var(--text-main);">${formatCurrency(group.total)}</td></tr>`;
         }
         return html;
     };
 
     return `
-        <div class="report-view animate-fadeIn" style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-            <div class="report-header text-center" style="margin-bottom: 40px; border-bottom: 2px solid var(--primary-color); padding-bottom: 20px;">
-                <div style="font-size: 12px; font-weight: 700; color: var(--primary-color); letter-spacing: 2px; margin-bottom: 10px;">FINANCIAL STATEMENT</div>
-                <h1 style="font-size: 28px; color: #1e293b; font-weight: 800; margin: 0;">FINSIGHT PRIVATE LIMITED</h1>
-                <h2 style="font-size: 18px; color: #64748b; font-weight: 600; margin: 10px 0;">Balance Sheet (Statement of Financial Position)</h2>
+        <div class="report-view animate-fadeIn" style="background: var(--bg-card); padding: 40px; border-radius: 20px; border: 1px solid var(--border-color); width: 100%;">
+            <div class="report-header text-center" style="margin-bottom: 40px; border-bottom: 1.5px solid var(--gs-accent); padding-bottom: 25px;">
+                <div style="font-size: 11px; font-weight: 800; color: var(--gs-accent); letter-spacing: 3px; margin-bottom: 10px; text-transform: uppercase;">Financial Statement</div>
+                <h1 style="font-size: 24px; color: var(--text-main); font-weight: 800; margin: 0; letter-spacing: -0.5px;">FINSIGHT PRIVATE LIMITED</h1>
+                <h2 style="font-size: 16px; color: var(--text-muted); font-weight: 600; margin: 5px 0;">Balance Sheet (Statement of Financial Position)</h2>
                 <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 15px;">
-                    <span style="padding: 4px 12px; background: #f1f5f9; border-radius: 20px; font-size: 13px; color: #475569;">Run Date: ${date}</span>
-                    <span style="padding: 4px 12px; background: #f1f5f9; border-radius: 20px; font-size: 13px; color: #475569;">Currency: INR</span>
+                    <span style="padding: 5px 15px; background: var(--bg-body); border: 1px solid var(--border-color); border-radius: 20px; font-size: 12px; color: var(--text-muted); font-weight: 600;">As of ${date}</span>
                 </div>
             </div>
 
-            <div class="report-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start;">
+            <div class="report-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start;">
                 <!-- Left Side: Assets -->
                 <div class="report-card">
-                    <div style="padding: 12px 20px; background: #1e293b; color: white; border-radius: 8px 8px 0 0; font-weight: 700; display: flex; justify-content: space-between;">
+                    <div style="padding: 10px 15px; background: var(--gs-accent); color: #000; border-radius: 10px; font-weight: 800; display: flex; justify-content: space-between; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px;">
                         <span>ASSETS</span>
-                        <span>(Dr)</span>
+                        <span>(DR)</span>
                     </div>
                     <table class="data-table" style="width: 100%; border-collapse: collapse;">
-                        <tbody style="font-size: 14px;">
+                        <tbody style="font-size: 13px;">
                             ${renderRows(assetGroups)}
                         </tbody>
                         <tfoot>
-                            <tr style="background: #f8fafc; border-top: 2px solid #1e293b; font-weight: 800; font-size: 15px;">
-                                <td style="padding: 15px 20px;">TOTAL ASSETS</td>
-                                <td class="text-right" style="padding: 15px 20px; color: var(--primary-color);">${formatCurrency(totalAssets)}</td>
+                            <tr style="background: rgba(var(--gs-accent-rgb), 0.1); border-top: 2px solid var(--gs-accent); font-weight: 800; font-size: 14px;">
+                                <td style="padding: 15px;">TOTAL ASSETS</td>
+                                <td class="text-right" style="padding: 15px; color: var(--gs-accent);">${formatCurrency(totalAssets)}</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -2191,41 +2363,41 @@ function renderNewBalanceSheet(accounts, date) {
 
                 <!-- Right Side: Liabilities & Equity -->
                 <div class="report-card">
-                    <div style="padding: 12px 20px; background: #1e293b; color: white; border-radius: 8px 8px 0 0; font-weight: 700; display: flex; justify-content: space-between;">
+                    <div style="padding: 10px 15px; background: var(--gs-accent); color: #000; border-radius: 10px; font-weight: 800; display: flex; justify-content: space-between; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px;">
                         <span>LIABILITIES & EQUITY</span>
-                        <span>(Cr)</span>
+                        <span>(CR)</span>
                     </div>
                     <table class="data-table" style="width: 100%; border-collapse: collapse;">
-                        <tbody style="font-size: 14px;">
-                            <tr style="background: rgba(0,0,0,0.05);"><td colspan="2"><strong>LIABILITIES</strong></td></tr>
+                        <tbody style="font-size: 13px;">
+                            <tr style="background: rgba(var(--gs-accent-rgb), 0.08);"><td colspan="2"><strong style="color: var(--gs-accent); font-size: 11px;">LIABILITIES</strong></td></tr>
                             ${renderRows(liabGroups)}
-                            <tr><td colspan="2" style="height: 10px;"></td></tr>
-                            <tr style="background: rgba(0,0,0,0.05);"><td colspan="2"><strong>OWNER'S EQUITY</strong></td></tr>
+                            <tr><td colspan="2" style="height: 15px;"></td></tr>
+                            <tr style="background: rgba(var(--gs-accent-rgb), 0.08);"><td colspan="2"><strong style="color: var(--gs-accent); font-size: 11px;">OWNER'S EQUITY</strong></td></tr>
                             ${renderRows(equiGroups)}
                         </tbody>
                         <tfoot>
-                            <tr style="background: #f8fafc; border-top: 2px solid #1e293b; font-weight: 800; font-size: 15px;">
-                                <td style="padding: 15px 20px;">TOTAL LIABILITIES & EQUITY</td>
-                                <td class="text-right" style="padding: 15px 20px; color: var(--primary-color);">${formatCurrency(totalLiabilities + totalEquity)}</td>
+                            <tr style="background: rgba(var(--gs-accent-rgb), 0.1); border-top: 2px solid var(--gs-accent); font-weight: 800; font-size: 14px;">
+                                <td style="padding: 15px;">TOTAL LIAB. & EQUITY</td>
+                                <td class="text-right" style="padding: 15px; color: var(--gs-accent);">${formatCurrency(totalLiabilities + totalEquity)}</td>
                             </tr>
                         </tfoot>
                     </table>
                 </div>
             </div>
 
-            ${Math.abs(totalAssets - (totalLiabilities + totalEquity)) > 0.01 ? `
-                <div style="margin-top: 30px; padding: 15px; background: #fee2e2; border-radius: 8px; border-left: 5px solid #ef4444; color: #b91c1c; display: flex; align-items: center; gap: 15px;">
-                    <i class="fas fa-exclamation-triangle" style="font-size: 20px;"></i>
-                    <div>
-                        <strong style="display: block;">Out of Balance!</strong>
-                        The statement is out of balance by ${formatCurrency(Math.abs(totalAssets - (totalLiabilities + totalEquity)))}. Please review unposted vouchers.
+            <div style="margin-top: 40px; padding: 20px; background: var(--bg-body); border-radius: 15px; border: 1px solid var(--border-color);">
+                ${Math.abs(totalAssets - (totalLiabilities + totalEquity)) > 0.01 ? `
+                    <div style="color: var(--danger-color); display: flex; align-items: center; gap: 12px; font-weight: 600;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 18px;"></i>
+                        <span>System notice: This statement is out of balance by ${formatCurrency(Math.abs(totalAssets - (totalLiabilities + totalEquity)))}.</span>
                     </div>
-                </div>
-            ` : `
-                <div style="margin-top: 30px; text-align: center; color: #10b981; font-size: 13px; font-weight: 600;">
-                    <i class="fas fa-check-circle"></i> This statement is in balance and finalized.
-                </div>
-            `}
+                ` : `
+                    <div style="color: var(--success-color); display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 13px;">
+                        <i class="fas fa-check-circle" style="font-size: 18px;"></i>
+                        <span>Certified statement is in balance. Verified by FinSight System.</span>
+                    </div>
+                `}
+            </div>
         </div>
     `;
 }
@@ -2251,57 +2423,57 @@ function renderNewProfitLoss(accounts, date) {
     const incomeGroups = groupBySub(income);
     const expenseGroups = groupBySub(expense);
 
-    const renderSection = (title, groups, colorClass) => {
-        let html = `<tr style="background: #f1f5f9;"><td colspan="2"><strong style="color: #475569;">${title}</strong></td></tr>`;
+    const renderSection = (title, groups, color) => {
+        let html = `<tr style="background: rgba(var(--gs-accent-rgb), 0.05);"><td colspan="2"><strong style="color: var(--gs-accent); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; padding: 5px 10px; display: block;">${title}</strong></td></tr>`;
         for (const [name, group] of Object.entries(groups)) {
-            html += `<tr><td style="padding-left: 20px; font-weight: 600; font-size: 13px; color: #64748b;">${name}</td><td class="text-right"></td></tr>`;
+            html += `<tr><td style="padding-left: 15px; font-weight: 700; font-size: 13px; color: var(--text-main);">${name}</td><td class="text-right"></td></tr>`;
             group.accounts.forEach(a => {
-                html += `<tr><td style="padding-left: 40px;">${a.name}</td><td class="text-right" style="color: ${colorClass}">${formatCurrency(Math.abs(a.amount))}</td></tr>`;
+                html += `<tr><td style="padding-left: 35px; color: var(--text-muted); font-size: 13px;">${a.name}</td><td class="text-right" style="color: ${color}; font-weight: 600;">${formatCurrency(Math.abs(a.amount))}</td></tr>`;
             });
-            html += `<tr style="border-bottom: 1px dotted #e2e8f0;"><td class="text-right" style="font-size: 12px; color: #94a3b8;">Total ${name}</td><td class="text-right" style="font-weight: 600;">${formatCurrency(Math.abs(group.total))}</td></tr>`;
+            html += `<tr style="border-bottom: 1px dotted var(--border-color);"><td class="text-right" style="font-size: 12px; color: var(--text-muted); padding: 8px;">Total ${name}</td><td class="text-right" style="font-weight: 700; color: var(--text-main); padding: 8px;">${formatCurrency(Math.abs(group.total))}</td></tr>`;
         }
         return html;
     };
 
     return `
-        <div class="report-view animate-fadeIn" style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); max-width: 900px; margin: 0 auto;">
+        <div class="report-view animate-fadeIn" style="background: var(--bg-card); padding: 45px; border-radius: 20px; border: 1px solid var(--border-color); max-width: 900px; margin: 0 auto; width: 100%;">
             <div class="report-header text-center" style="margin-bottom: 40px;">
-                <h1 style="font-size: 28px; color: #1e293b; font-weight: 800; margin: 0;">FINSIGHT PRIVATE LIMITED</h1>
-                <h2 style="font-size: 20px; color: #64748b; font-weight: 600;">Statement of Profit and Loss</h2>
-                <p style="color: #94a3b8; font-size: 14px; margin-top: 5px;">For the Period: Year to Date (Ending ${date})</p>
+                <h1 style="font-size: 24px; color: var(--text-main); font-weight: 800; margin: 0; letter-spacing: -0.5px;">FINSIGHT PRIVATE LIMITED</h1>
+                <h2 style="font-size: 18px; color: var(--gs-accent); font-weight: 700; margin: 5px 0;">Statement of Profit and Loss</h2>
+                <p style="color: var(--text-muted); font-size: 13px; margin-top: 5px; font-weight: 500;">For the Period: Year to Date (Ending ${date})</p>
             </div>
 
             <table class="report-table" style="width: 100%; border-collapse: collapse;">
                 <thead>
-                    <tr style="border-bottom: 2px solid #1e293b;">
-                        <th style="text-align: left; padding: 12px;">Particulars</th>
-                        <th style="text-align: right; padding: 12px;">Amount (INR)</th>
+                    <tr style="border-bottom: 2px solid var(--gs-accent);">
+                        <th style="text-align: left; padding: 12px; color: var(--text-main); font-size: 12px; text-transform: uppercase;">Particulars</th>
+                        <th style="text-align: right; padding: 12px; color: var(--text-main); font-size: 12px; text-transform: uppercase;">Amount (INR)</th>
                     </tr>
                 </thead>
                 <tbody style="font-size: 14px;">
-                    ${renderSection('REVENUE FROM OPERATIONS', incomeGroups, '#10b981')}
-                    <tr style="background: #f8fafc; font-weight: 700; border-top: 1px solid #1e293b;">
-                        <td style="padding: 12px 20px;">(A) TOTAL REVENUE</td>
-                        <td class="text-right" style="padding: 12px 20px; color: #10b981;">${formatCurrency(totalIncome)}</td>
+                    ${renderSection('Revenue from Operations', incomeGroups, 'var(--success-color)')}
+                    <tr style="background: rgba(var(--gs-accent-rgb), 0.1); font-weight: 800; border-top: 1px solid var(--gs-accent);">
+                        <td style="padding: 15px;">(A) TOTAL REVENUE</td>
+                        <td class="text-right" style="padding: 15px; color: var(--success-color); font-size: 16px;">${formatCurrency(totalIncome)}</td>
                     </tr>
-                    <tr><td colspan="2" style="height: 20px;"></td></tr>
-                    ${renderSection('OPERATING EXPENSES', expenseGroups, '#ef4444')}
-                    <tr style="background: #f8fafc; font-weight: 700; border-top: 1px solid #1e293b;">
-                        <td style="padding: 12px 20px;">(B) TOTAL EXPENSES</td>
-                        <td class="text-right" style="padding: 12px 20px; color: #ef4444;">${formatCurrency(totalExpense)}</td>
+                    <tr><td colspan="2" style="height: 30px;"></td></tr>
+                    ${renderSection('Operating Expenses', expenseGroups, 'var(--danger-color)')}
+                    <tr style="background: rgba(var(--gs-accent-rgb), 0.1); font-weight: 800; border-top: 1px solid var(--gs-accent);">
+                        <td style="padding: 15px;">(B) TOTAL EXPENSES</td>
+                        <td class="text-right" style="padding: 15px; color: var(--danger-color); font-size: 16px;">${formatCurrency(totalExpense)}</td>
                     </tr>
                 </tbody>
                 <tfoot>
-                    <tr style="background: #1e293b; color: white; font-weight: 800; font-size: 18px;">
-                        <td style="padding: 20px;">NET ${netProfit >= 0 ? 'PROFIT' : 'LOSS'} FOR THE PERIOD (A - B)</td>
-                        <td class="text-right" style="padding: 20px; color: ${netProfit >= 0 ? '#4ade80' : '#f87171'};">${formatCurrency(netProfit)}</td>
+                    <tr style="background: var(--gs-accent); color: #000; font-weight: 800; font-size: 18px;">
+                        <td style="padding: 20px; border-radius: 12px 0 0 12px;">NET ${netProfit >= 0 ? 'PROFIT' : 'LOSS'} FOR THE PERIOD (A - B)</td>
+                        <td class="text-right" style="padding: 20px; border-radius: 0 12px 12px 0;">${formatCurrency(netProfit)}</td>
                     </tr>
                 </tfoot>
             </table>
             
-            <div style="margin-top: 40px; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 20px;">
-                <p>* This report is generated automatically based on posted and draft vouchers for the selected period.</p>
-                <p>* Net profit is before tax considerations unless specific tax provisions are adjusted via journal vouchers.</p>
+            <div style="margin-top: 40px; font-size: 12px; color: var(--text-muted); border-top: 1px solid var(--border-color); padding-top: 25px; line-height: 1.6;">
+                <p>• Generated automatically based on all recorded transactions including provisionals.</p>
+                <p>• Net profit calculated before tax deductions and statutory reserves.</p>
             </div>
         </div>
     `;
@@ -2312,6 +2484,7 @@ function renderNewTrialBalance(accounts, date) {
     let totalCredit = 0;
 
     const rows = accounts.map(acc => {
+        if (acc.name === 'TOTAL') return ''; // Skip total row if backend sends it, we recompute
         const debit = parseFloat(acc.total_debit || 0);
         const credit = parseFloat(acc.total_credit || 0);
         totalDebit += debit;
@@ -2319,46 +2492,181 @@ function renderNewTrialBalance(accounts, date) {
 
         return `
             <tr>
-                <td style="padding: 10px 15px;">${acc.code}</td>
-                <td style="padding: 10px 15px;">${acc.name}</td>
-                <td class="text-right" style="padding: 10px 15px; color: #1e293b;">${debit > 0 ? formatCurrency(debit) : '-'}</td>
-                <td class="text-right" style="padding: 10px 15px; color: #1e293b;">${credit > 0 ? formatCurrency(credit) : '-'}</td>
+                <td style="padding: 12px 15px; color: var(--gs-accent); font-weight: 700; font-family: monospace;">${acc.code}</td>
+                <td style="padding: 12px 15px; color: var(--text-main); font-weight: 500;">${acc.name}</td>
+                <td class="text-right" style="padding: 12px 15px; color: var(--text-main); font-family: 'JetBrains Mono', monospace;">${debit > 0 ? formatCurrency(debit) : '-'}</td>
+                <td class="text-right" style="padding: 12px 15px; color: var(--text-main); font-family: 'JetBrains Mono', monospace;">${credit > 0 ? formatCurrency(credit) : '-'}</td>
             </tr>
         `;
     }).join('');
 
     return `
-        <div class="report-view animate-fadeIn" style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); max-width: 1000px; margin: 0 auto;">
-            <div class="report-header text-center" style="margin-bottom: 30px;">
-                <h1 style="font-size: 26px; color: #1e293b; font-weight: 800; margin: 0;">FINSIGHT PRIVATE LIMITED</h1>
-                <h2 style="font-size: 20px; color: #64748b; font-weight: 600;">Trial Balance (Summary)</h2>
-                <p style="color: #94a3b8;">As of ${date}</p>
+        <div class="report-view animate-fadeIn" style="background: var(--bg-card); padding: 45px; border-radius: 20px; border: 1px solid var(--border-color); max-width: 1000px; margin: 0 auto; width: 100%;">
+            <div class="report-header text-center" style="margin-bottom: 35px; border-bottom: 2px solid var(--gs-accent); padding-bottom: 20px;">
+                <h1 style="font-size: 24px; color: var(--text-main); font-weight: 800; margin: 0; letter-spacing: -0.5px;">FINSIGHT PRIVATE LIMITED</h1>
+                <h2 style="font-size: 18px; color: var(--text-muted); font-weight: 600; margin: 5px 0;">Trial Balance (Summary)</h2>
+                <p style="color: var(--gs-accent); font-size: 14px; font-weight: 700;">Statement Date: ${date}</p>
             </div>
             <table class="data-table" style="width: 100%; border-collapse: collapse;">
                 <thead>
-                    <tr style="background: #1e293b; color: white;">
-                        <th style="padding: 12px 15px; text-align: left;">Code</th>
-                        <th style="padding: 12px 15px; text-align: left;">Account Name</th>
-                        <th class="text-right" style="padding: 12px 15px;">Total Debit</th>
-                        <th class="text-right" style="padding: 12px 15px;">Total Credit</th>
+                    <tr style="background: var(--bg-body); color: var(--text-main); border-bottom: 1px solid var(--border-color);">
+                        <th style="padding: 15px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">A/C Code</th>
+                        <th style="padding: 15px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">Account Ledger</th>
+                        <th class="text-right" style="padding: 15px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">Debit (Dr)</th>
+                        <th class="text-right" style="padding: 15px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">Credit (Cr)</th>
+                    </tr>
+                </thead>
+                <tbody style="font-size: 13px;">
+                    ${rows}
+                </tbody>
+                <tfoot>
+                    <tr style="background: rgba(var(--gs-accent-rgb), 0.1); font-weight: 800; border-top: 2px solid var(--gs-accent); font-size: 16px;">
+                        <td colspan="2" style="padding: 20px; color: var(--text-main);">GRAND TOTAL SUMMARY</td>
+                        <td class="text-right" style="padding: 20px; color: var(--gs-accent);">${formatCurrency(totalDebit)}</td>
+                        <td class="text-right" style="padding: 20px; color: var(--gs-accent);">${formatCurrency(totalCredit)}</td>
+                    </tr>
+                </tfoot>
+            </table>
+            ${Math.abs(totalDebit - totalCredit) > 0.01 ? `
+                <div style="margin-top: 30px; padding: 15px; background: rgba(239, 68, 68, 0.1); border-radius: 10px; color: var(--danger-color); font-weight: 700; text-align: center; border: 1px solid var(--danger-color);">
+                    <i class="fas fa-exclamation-triangle"></i> BALANCE MISMATCH DETECTED: DIFF OF ${formatCurrency(Math.abs(totalDebit - totalCredit))}
+                </div>
+            ` : `
+                <div style="margin-top: 20px; text-align: center; color: var(--success-color); font-weight: 700; font-size: 12px;">
+                    <i class="fas fa-check-double"></i> LEDGER BALANCED SUCCESSFULY
+                </div>
+            `}
+        </div>
+    `;
+}
+
+function renderNewCashFlow(data, from, to) {
+    let totalInflow = 0;
+    let totalOutflow = 0;
+
+    const rows = data.map(acc => {
+        const amount = parseFloat(acc.net_flow || 0);
+        if (amount >= 0) totalInflow += amount;
+        else totalOutflow += Math.abs(amount);
+
+        return `
+            <tr style="border-bottom: 1px solid var(--border-color);">
+                <td style="padding: 15px; color: var(--text-main); font-weight: 500;">${acc.name}</td>
+                <td class="text-right" style="padding: 15px; color: var(--success-color);">${amount >= 0 ? formatCurrency(amount) : '-'}</td>
+                <td class="text-right" style="padding: 15px; color: var(--danger-color);">${amount < 0 ? formatCurrency(Math.abs(amount)) : '-'}</td>
+            </tr>
+        `;
+    }).join('');
+
+    return `
+        <div class="report-view animate-fadeIn" style="background: var(--bg-card); padding: 45px; border-radius: 20px; border: 1px solid var(--border-color); max-width: 900px; margin: 0 auto; width: 100%;">
+            <div class="report-header text-center" style="margin-bottom: 35px;">
+                <h1 style="font-size: 24px; color: var(--text-main); font-weight: 800; margin: 0;">FINSIGHT PRIVATE LIMITED</h1>
+                <h2 style="font-size: 18px; color: var(--gs-accent); font-weight: 700; margin: 5px 0;">Statement of Cash Flows (Direct Method)</h2>
+                <p style="color: var(--text-muted); font-size: 13px;">Period: ${new Date(from).toLocaleDateString()} to ${new Date(to).toLocaleDateString()}</p>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px;">
+                <div style="padding: 15px; background: rgba(16, 185, 129, 0.1); border-radius: 15px; border: 1px solid rgba(16, 185, 129, 0.2); text-align: center;">
+                    <span style="display: block; font-size: 11px; color: var(--success-color); font-weight: 800; text-transform: uppercase;">Total Inflow</span>
+                    <strong style="font-size: 18px; color: var(--text-main);">${formatCurrency(totalInflow)}</strong>
+                </div>
+                <div style="padding: 15px; background: rgba(239, 68, 68, 0.1); border-radius: 15px; border: 1px solid rgba(239, 68, 68, 0.2); text-align: center;">
+                    <span style="display: block; font-size: 11px; color: var(--danger-color); font-weight: 800; text-transform: uppercase;">Total Outflow</span>
+                    <strong style="font-size: 18px; color: var(--text-main);">${formatCurrency(totalOutflow)}</strong>
+                </div>
+                <div style="padding: 15px; background: rgba(var(--gs-accent-rgb), 0.1); border-radius: 15px; border: 1px solid var(--gs-accent); text-align: center;">
+                    <span style="display: block; font-size: 11px; color: var(--gs-accent); font-weight: 800; text-transform: uppercase;">Net Change</span>
+                    <strong style="font-size: 20px; color: var(--text-main);">${formatCurrency(totalInflow - totalOutflow)}</strong>
+                </div>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: var(--bg-body); border-bottom: 2px solid var(--border-color);">
+                        <th style="padding: 15px; text-align: left; font-size: 11px; text-transform: uppercase; color: var(--text-muted);">Cash Account</th>
+                        <th class="text-right" style="padding: 15px; font-size: 11px; text-transform: uppercase; color: var(--text-muted);">Receipts (In)</th>
+                        <th class="text-right" style="padding: 15px; font-size: 11px; text-transform: uppercase; color: var(--text-muted);">Payments (Out)</th>
                     </tr>
                 </thead>
                 <tbody style="font-size: 14px;">
                     ${rows}
                 </tbody>
-                <tfoot>
-                    <tr style="background: #f8fafc; font-weight: 800; border-top: 2px solid #1e293b; font-size: 16px;">
-                        <td colspan="2" style="padding: 15px;">GRAND TOTAL</td>
-                        <td class="text-right" style="padding: 15px; color: var(--primary-color);">${formatCurrency(totalDebit)}</td>
-                        <td class="text-right" style="padding: 15px; color: var(--primary-color);">${formatCurrency(totalCredit)}</td>
-                    </tr>
-                </tfoot>
             </table>
-            ${Math.abs(totalDebit - totalCredit) > 0.01 ? `
-                <div style="margin-top: 20px; color: var(--danger-color); font-weight: 700; text-align: center;">
-                    <i class="fas fa-exclamation-circle"></i> LEDGER IS OUT OF BALANCE BY ${formatCurrency(Math.abs(totalDebit - totalCredit))}
+            
+            <div style="margin-top: 30px; padding: 20px; border-radius: 15px; border: 1px dashed var(--border-color); color: var(--text-muted); font-size: 12px;">
+                * This statement tracks movements strictly across accounts classified as Cash or Cash Equivalents within the current system ledger.
+            </div>
+        </div>
+    `;
+}
+
+function renderNewAccountLedger(data) {
+    const acc = data.account;
+    const trans = data.transactions;
+    
+    const rows = trans.map(t => `
+        <tr style="border-bottom: 1px solid var(--border-color); font-size: 13px;">
+            <td style="padding: 12px; color: var(--text-muted);">${new Date(t.voucher_date).toLocaleDateString()}</td>
+            <td style="padding: 12px; font-weight: 700; color: var(--gs-accent); font-family: monospace;">${t.voucher_number || 'N/A'}</td>
+            <td style="padding: 12px; color: var(--text-main);">
+                <div style="font-weight: 600;">${t.narration || t.description || 'System Entry'}</div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Status: ${t.status}</div>
+            </td>
+            <td class="text-right" style="padding: 12px; color: var(--text-main);">${t.debit > 0 ? formatCurrency(t.debit) : '-'}</td>
+            <td class="text-right" style="padding: 12px; color: var(--text-main);">${t.credit > 0 ? formatCurrency(t.credit) : '-'}</td>
+            <td class="text-right" style="padding: 12px; font-weight: 800; color: var(--text-main); background: rgba(255,255,255,0.02);">${formatCurrency(t.running_balance)}</td>
+        </tr>
+    `).join('');
+
+    return `
+        <div class="report-view animate-fadeIn" style="background: var(--bg-card); padding: 45px; border-radius: 20px; border: 1px solid var(--border-color); max-width: 1200px; margin: 0 auto; width: 100%;">
+            <div class="report-header" style="margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2.5px solid var(--gs-accent); padding-bottom: 25px;">
+                <div>
+                    <h1 style="font-size: 24px; color: var(--text-main); font-weight: 800; margin: 0; letter-spacing: -0.5px;">ACCOUNT LEDGER</h1>
+                    <div style="font-size: 18px; color: var(--gs-accent); font-weight: 700; margin: 10px 0;">${acc.name} (${acc.code})</div>
+                    <div style="font-size: 13px; color: var(--text-muted); font-weight: 500;">Type: ${acc.type} | Period: ${data.period.from} to ${data.period.to}</div>
                 </div>
-            ` : ''}
+                <div style="text-align: right;">
+                    <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 800; margin-bottom: 5px;">Closing Balance</div>
+                    <div style="font-size: 28px; color: var(--text-main); font-weight: 900; letter-spacing: -1px;">${formatCurrency(data.closing_balance)}</div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 35px;">
+                <div style="padding: 15px; background: var(--bg-body); border: 1px solid var(--border-color); border-radius: 12px; text-align: center;">
+                    <span style="display: block; font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Opening Balance</span>
+                    <strong style="font-size: 16px; color: var(--text-main);">${formatCurrency(data.opening_balance)}</strong>
+                </div>
+                <div style="padding: 15px; background: var(--bg-body); border: 1px solid var(--border-color); border-radius: 12px; text-align: center;">
+                    <span style="display: block; font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Period Debit</span>
+                    <strong style="font-size: 16px; color: var(--success-color);">${formatCurrency(data.period_debit)}</strong>
+                </div>
+                <div style="padding: 15px; background: var(--bg-body); border: 1px solid var(--border-color); border-radius: 12px; text-align: center;">
+                    <span style="display: block; font-size: 10px; color: var(--text-muted); text-transform: uppercase;">Period Credit</span>
+                    <strong style="font-size: 16px; color: var(--danger-color);">${formatCurrency(data.period_credit)}</strong>
+                </div>
+                <div style="padding: 15px; background: var(--gs-accent); border-radius: 12px; text-align: center; color: #000;">
+                    <span style="display: block; font-size: 10px; text-transform: uppercase; font-weight: 800; opacity: 0.7;">Net Movement</span>
+                    <strong style="font-size: 16px;">${formatCurrency(data.period_debit - data.period_credit)}</strong>
+                </div>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: var(--bg-body); border-bottom: 2px solid var(--border-color);">
+                        <th style="padding: 12px; text-align: left; font-size: 11px; text-transform: uppercase; color: var(--text-muted);">Date</th>
+                        <th style="padding: 12px; text-align: left; font-size: 11px; text-transform: uppercase; color: var(--text-muted);">Voucher #</th>
+                        <th style="padding: 12px; text-align: left; font-size: 11px; text-transform: uppercase; color: var(--text-muted);">Description</th>
+                        <th class="text-right" style="padding: 12px; font-size: 11px; text-transform: uppercase; color: var(--text-muted);">Debit (Dr)</th>
+                        <th class="text-right" style="padding: 12px; font-size: 11px; text-transform: uppercase; color: var(--text-muted);">Credit (Cr)</th>
+                        <th class="text-right" style="padding: 12px; font-size: 11px; text-transform: uppercase; color: var(--text-muted);">Balance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows || '<tr><td colspan="6" style="padding: 40px; text-align: center; color: var(--text-muted);">No transactions found for the selected period.</td></tr>'}
+                </tbody>
+            </table>
         </div>
     `;
 }

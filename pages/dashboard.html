@@ -23,7 +23,7 @@
             <div class="sidebar-header">
                 <a href="../index.html" class="brand-logo" style="display: flex; align-items: center; gap: 12px;">
                     <img src="../assets/images/logo.png" alt="FinSight Logo" style="height: 35px; width: 35px; border-radius: 8px;">
-                    <span class="brand-logo-name" style="font-weight: 800; font-size: 1.25rem; color: #fff; letter-spacing: -0.5px;">FINSIGHT</span>
+                    <span class="brand-logo-name" style="font-weight: 800; font-size: 1.25rem; color: var(--text-main); letter-spacing: -0.5px;">FINSIGHT</span>
                 </a>
             </div>
 
@@ -63,7 +63,7 @@
                 <div class="sidebar-user-profile" style="background: transparent; border-top: 1px solid var(--gs-border); padding-top: 15px; display: flex; align-items: center; gap: 12px;">
                     <div class="sidebar-user-avatar" id="sidebarUserAvatar" style="width: 40px; height: 40px; border-radius: 50%; background: #25241e; border: 1px solid var(--gs-border); display: flex; align-items: center; justify-content: center; overflow: hidden; color: var(--gs-accent); font-weight: 800;">A</div>
                     <div style="display: flex; flex-direction: column; overflow: hidden;">
-                        <span class="sidebar-user-name" id="sidebarUserName" style="font-weight: 700; font-size: 0.85rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Admin User</span>
+                        <span class="sidebar-user-name" id="sidebarUserName" style="font-weight: 700; font-size: 0.85rem; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Admin User</span>
                         <span class="sidebar-user-role" id="sidebarUserRole" style="font-size: 0.75rem; color: var(--gs-muted);">Administrator</span>
                     </div>
                 </div>
@@ -85,13 +85,13 @@
                     </button>
                     <div class="header-title">
                         <h1 style="font-weight: 800; font-size: 1.5rem; margin-bottom: 2px;">Financial Overview</h1>
-                        <p style="color: var(--gs-muted); font-size: 0.85rem; font-weight: 500;">Welcome back, Alex Thompson</p>
+                        <p id="headerWelcomeMsg" style="color: var(--gs-muted); font-size: 0.85rem; font-weight: 500;">Welcome back, User</p>
                     </div>
                 </div>
 
                 <div style="flex: 1; max-width: 400px; margin: 0 40px; position: relative;" class="search-container">
                     <i class="fas fa-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gs-muted); font-size: 0.9rem;"></i>
-                    <input type="text" placeholder="Search transactions..." style="width: 100%; padding: 10px 15px 10px 45px; background: var(--gs-surface2); border: 1px solid var(--gs-border); border-radius: 10px; color: #fff; font-size: 0.85rem;">
+                    <input type="text" placeholder="Search transactions..." style="width: 100%; padding: 10px 15px 10px 45px; background: var(--gs-surface2); border: 1px solid var(--gs-border); border-radius: 10px; color: var(--text-main); font-size: 0.85rem;">
                 </div>
 
                 <div class="header-actions">
@@ -99,13 +99,13 @@
                         <i class="fas fa-bell"></i>
                     </button>
 
-                    <div class="user-menu" style="background: var(--gs-surface2); padding: 5px 15px 5px 5px; border-radius: 30px; border: 1px solid var(--gs-border); display: flex; align-items: center; gap: 12px; cursor: pointer;">
-                        <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--gs-accent); display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px solid var(--gs-bg);">
-                            <img src="https://ui-avatars.com/api/?name=Alex+Thompson&background=eab308&color=000" style="width: 100%; height: 100%; object-fit: cover;">
+                    <div class="user-menu" id="userMenuDropdown" onclick="toggleUserDropdown()">
+                        <div class="user-avatar">
+                            <img id="headerUserAvatarImg" alt="Profile avatar">
                         </div>
-                        <div style="display: flex; flex-direction: column; text-align: left;">
-                            <span style="font-size: 0.8rem; font-weight: 700; color: #fff; line-height: 1;">Alex Thompson</span>
-                            <span style="font-size: 0.65rem; color: var(--gs-accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Administrator</span>
+                        <div class="user-info">
+                            <span class="user-name" id="headerUserName">...</span>
+                            <span class="user-role" id="headerUserRole">...</span>
                         </div>
                     </div>
                 </div>
@@ -118,28 +118,28 @@
                     <div class="stat-card" style="padding: 20px;">
                         <div class="stat-icon" style="color: var(--gs-info); font-size: 1.5rem; margin-bottom: 15px;"><i class="fas fa-users"></i></div>
                         <div class="stat-info">
-                            <h3 id="stat-users" style="font-size: 1.8rem; font-weight: 800; color: #fff;">0</h3>
+                            <h3 id="stat-users" style="font-size: 1.8rem; font-weight: 800; color: var(--text-main);">0</h3>
                             <p style="color: var(--gs-muted); font-size: 0.85rem; font-weight: 600;">Active Users</p>
                         </div>
                     </div>
                     <div class="stat-card" style="padding: 20px;">
                         <div class="stat-icon" style="color: var(--gs-success); font-size: 1.5rem; margin-bottom: 15px;"><i class="fas fa-money-bill-wave"></i></div>
                         <div class="stat-info">
-                            <h3 id="stat-revenue" style="font-size: 1.8rem; font-weight: 800; color: #fff;">₹0</h3>
+                            <h3 id="stat-revenue" style="font-size: 1.8rem; font-weight: 800; color: var(--text-main);">₹0</h3>
                             <p style="color: var(--gs-muted); font-size: 0.85rem; font-weight: 600;">Total Revenue</p>
                         </div>
                     </div>
                     <div class="stat-card" style="padding: 20px;">
                         <div class="stat-icon" style="color: var(--gs-danger); font-size: 1.5rem; margin-bottom: 15px;"><i class="fas fa-arrow-down"></i></div>
                         <div class="stat-info">
-                            <h3 id="stat-expenses" style="font-size: 1.8rem; font-weight: 800; color: #fff;">₹0</h3>
+                            <h3 id="stat-expenses" style="font-size: 1.8rem; font-weight: 800; color: var(--text-main);">₹0</h3>
                             <p style="color: var(--gs-muted); font-size: 0.85rem; font-weight: 600;">Total Expenses</p>
                         </div>
                     </div>
                     <div class="stat-card" style="padding: 20px;">
                         <div class="stat-icon" style="color: var(--gs-accent); font-size: 1.5rem; margin-bottom: 15px;"><i class="fas fa-chart-line"></i></div>
                         <div class="stat-info">
-                            <h3 id="stat-profit" style="font-size: 1.8rem; font-weight: 800; color: #fff;">₹0</h3>
+                            <h3 id="stat-profit" style="font-size: 1.8rem; font-weight: 800; color: var(--text-main);">₹0</h3>
                             <p style="color: var(--gs-muted); font-size: 0.85rem; font-weight: 600;">Net Profit</p>
                         </div>
                     </div>
@@ -190,21 +190,34 @@
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="../js/dashboard.js?v=15"></script>
-    <script src="../js/admin-dashboard.js?v=15"></script>
+    <script src="../js/dashboard.js?v=20"></script>
+    <script src="../js/admin-dashboard.js?v=20"></script>
     <script>
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            const userStr = localStorage.getItem('user');
-            if (!userStr) {
-                window.location.href = '../index.html';
-                return;
+        // Initialize dashboard when the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Immediate direct update as an extra safety measure to prevent "User Name" fallback
+            const u = localStorage.getItem('user');
+            if (u) {
+                try {
+                    const ud = JSON.parse(u);
+                    const user = ud.user || ud;
+                    const name = (user.first_name + ' ' + (user.last_name || '')).trim() || user.username || 'User';
+                    const role = (user.role || 'Member').toUpperCase();
+                    
+                    document.getElementById('headerUserName').textContent = name;
+                    document.getElementById('headerUserRole').textContent = role;
+                    document.getElementById('headerWelcomeMsg').textContent = `Welcome back, ${name}`;
+                    const avatar = document.getElementById('headerUserAvatarImg');
+                    if (avatar) avatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=eab308&color=000`;
+                } catch(e) {}
             }
-            const user = JSON.parse(userStr);
-            document.getElementById('userName').textContent = `${user.first_name} ${user.last_name}`;
-            document.getElementById('userRole').textContent = user.role;
-            document.getElementById('userAvatar').textContent = user.first_name.charAt(0).toUpperCase();
 
+            // Run shared admin logic
+            if (typeof initAdminDashboard === 'function') {
+                await initAdminDashboard();
+            }
+
+            // Load dashboard charts and data
             initCharts();
             loadDashboardData();
         });

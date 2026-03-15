@@ -66,27 +66,96 @@ body {
     box-shadow: none;
 }
 
+[data-theme="light"] .nav-link.active {
+    background: var(--gs-accent) !important;
+    color: #000 !important;
+    font-weight: 800;
+}
+
 .nav-link.active i {
     color: var(--gs-accent);
+}
+
+[data-theme="light"] .nav-link.active i {
+    color: #000 !important;
 }
 
 /* =========================================
    HEADER
    ========================================= */
 .header {
-    background: rgba(15, 17, 12, 0.8);
-    backdrop-filter: blur(10px);
+    background: var(--glass-bg, rgba(15, 17, 12, 0.8)) !important;
+    backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--gs-border);
 }
 
+[data-theme="light"] .header {
+    background: rgba(255, 255, 255, 0.85) !important;
+    border-bottom: 1.5px solid var(--border-color);
+}
+
 .user-menu {
-    background: transparent;
-    border: none;
+    background: var(--gs-surface2) !important;
+    padding: 6px 16px 6px 6px !important;
+    border: 1.5px solid var(--gs-border) !important;
+    border-radius: 40px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    cursor: pointer !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+}
+
+.user-menu:hover {
+    border-color: var(--gs-accent) !important;
+    background: var(--gs-surface3) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(234, 179, 8, 0.1) !important;
 }
 
 .user-avatar {
-    background: var(--gs-accent);
-    color: #000;
+    width: 32px;
+    height: 32px;
+    background: var(--gs-accent) !important;
+    color: #000 !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden !important;
+    border: 2.5px solid var(--gs-bg) !important;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3) !important;
+}
+
+.user-avatar img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    border-radius: 50% !important;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.user-name {
+    font-size: 0.825rem !important;
+    font-weight: 800 !important;
+    color: var(--gs-text) !important;
+    line-height: 1.1 !important;
+    letter-spacing: -0.2px !important;
+}
+
+.user-role {
+    font-size: 0.625rem !important;
+    color: var(--gs-accent) !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.8px !important;
+    margin-top: 1px !important;
 }
 
 /* =========================================
@@ -455,4 +524,94 @@ input:focus {
 
 .sidebar-new-entry:hover {
     background: var(--gs-accent-dim);
+}
+
+/* =========================================
+   RESPONSIVE LUXURY SYSTEM
+   ========================================= */
+
+@media (max-width: 1024px) {
+    .profile-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .profile-hero {
+        flex-direction: column;
+        text-align: center;
+        gap: 20px;
+    }
+
+    .profile-hero > div:last-child {
+        margin-left: 0 !important;
+        width: 100%;
+    }
+
+    .profile-hero .btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .profile-avatar-large {
+        width: 120px;
+        height: 120px;
+    }
+
+    .profile-hero-info h1 {
+        font-size: 1.8rem;
+    }
+
+    .details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .prof-hero-card {
+        flex-direction: column;
+        gap: 20px;
+        padding: 20px !important;
+    }
+
+    .prof-hero-left {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .prof-hero-right {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .prof-hero-right .btn {
+        width: 100%;
+    }
+
+    .prof-two-col {
+        flex-direction: column !important;
+    }
+
+    .security-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .security-action {
+        width: 100%;
+        text-align: left;
+        padding: 5px 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .prof-hero-badges {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .prof-page-heading h2 {
+        font-size: 1.5rem;
+    }
 }

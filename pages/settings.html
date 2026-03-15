@@ -194,7 +194,7 @@
             <div class="sidebar-header">
                 <a href="../index.html" class="brand-logo" style="display: flex; align-items: center; gap: 12px;">
                     <img src="../assets/images/logo.png" alt="FinSight Logo" style="height: 35px; width: 35px; border-radius: 8px;">
-                    <span class="brand-logo-name" style="font-weight: 800; font-size: 1.25rem; color: #fff; letter-spacing: -0.5px;">FINSIGHT</span>
+                    <span class="brand-logo-name" style="font-weight: 800; font-size: 1.25rem; color: var(--text-main); letter-spacing: -0.5px;">FINSIGHT</span>
                 </a>
             </div>
 
@@ -259,14 +259,21 @@
         </div>
 
         <div class="header-actions">
-
-          <div class="user-menu">
-            <div class="user-avatar" id="userAvatar">A</div>
-            <div class="user-info">
-              <div class="user-name" id="userName">Admin User</div>
-              <div class="user-role" id="userRole">Administrator</div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button class="btn-icon" style="background: var(--gs-surface2); border: 1px solid var(--gs-border); width: 40px; height: 40px; border-radius: 10px; color: var(--gs-accent); position: relative; cursor: pointer;">
+                    <i class="fas fa-bell"></i>
+                </button>
+                
+                <div class="user-menu" id="userMenuDropdown" onclick="toggleUserDropdown()">
+                    <div class="user-avatar">
+                        <img id="headerUserAvatarImg" alt="Profile avatar">
+                    </div>
+                    <div class="user-info">
+                        <span class="user-name" id="headerUserName">...</span>
+                        <span class="user-role" id="headerUserRole">...</span>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
       </header>
 
@@ -279,9 +286,9 @@
                 <i class="fas fa-user-circle"></i>
                 <span>Profile Settings</span>
               </div>
-              <div class="settings-nav-item" data-section="security">
-                <i class="fas fa-shield-alt"></i>
-                <span>Security & Password</span>
+              <div class="settings-nav-item" data-section="company">
+                <i class="fas fa-building"></i>
+                <span>Company Details</span>
               </div>
               <div class="settings-nav-item" data-section="appearance">
                 <i class="fas fa-palette"></i>
@@ -460,33 +467,49 @@
 
             </div>
 
-            <!-- Security Settings -->
-            <div class="settings-section" id="security">
-              <h2 class="section-title"><i class="fas fa-shield-alt"></i> Security & Password</h2>
+            <!-- Company Details Settings -->
+            <div class="settings-section" id="company">
+              <h2 class="section-title"><i class="fas fa-building"></i> Company Details</h2>
 
               <div class="info-card">
                 <i class="fas fa-info-circle"></i>
-                <strong>Password Requirements:</strong> Minimum 8 characters, including uppercase, lowercase, number,
-                and special character.
+                <strong>Report Branding:</strong> These details will be used on all generated financial reports, invoices, and vouchers.
               </div>
 
-              <form id="passwordForm">
-                <div class="form-group">
-                  <label><i class="fas fa-lock"></i> Current Password</label>
-                  <input type="password" id="currentPassword" required>
-                </div>
+              <form id="companyDetailsForm">
                 <div class="form-grid">
-                  <div class="form-group">
-                    <label><i class="fas fa-key"></i> New Password</label>
-                    <input type="password" id="newPassword" required minlength="8">
+                  <div class="form-group full-width">
+                    <label><i class="fas fa-landmark"></i> Company Name</label>
+                    <input type="text" id="companyName" value="FINSIGHT PRIVATE LIMITED" required>
                   </div>
                   <div class="form-group">
-                    <label><i class="fas fa-check-circle"></i> Confirm New Password</label>
-                    <input type="password" id="confirmPassword" required minlength="8">
+                    <label><i class="fas fa-id-card"></i> Registration Number</label>
+                    <input type="text" id="companyRegNo" placeholder="e.g. CIN-U12345KA2024PTC123456">
+                  </div>
+                  <div class="form-group">
+                    <label><i class="fas fa-receipt"></i> GSTIN / Tax ID</label>
+                    <input type="text" id="companyTaxId" placeholder="e.g. 29ABCDE1234F1Z5">
                   </div>
                 </div>
-                <button type="submit" class="btn btn-primary" style="margin-top: 20px; padding: 14px 28px;">
-                  <i class="fas fa-shield-alt"></i> Update Password
+
+                <div class="form-group" style="margin-top: 20px;">
+                  <label><i class="fas fa-map-marker-alt"></i> Registered Address</label>
+                  <textarea id="companyAddress" rows="3" style="width: 100%; padding: 12px; background: var(--gs-surface2); border: 1px solid var(--gs-border); border-radius: 10px; color: #fff; resize: vertical;" placeholder="Enter complete company address..."></textarea>
+                </div>
+
+                <div class="form-grid" style="margin-top: 20px;">
+                  <div class="form-group">
+                    <label><i class="fas fa-phone"></i> Official Contact</label>
+                    <input type="tel" id="companyPhone" placeholder="+91 80 1234 5678">
+                  </div>
+                  <div class="form-group">
+                    <label><i class="fas fa-globe"></i> Website</label>
+                    <input type="url" id="companyWebsite" placeholder="https://www.finsight.com">
+                  </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="margin-top: 30px; padding: 14px 28px;">
+                  <i class="fas fa-save"></i> Save Company Details
                 </button>
               </form>
             </div>

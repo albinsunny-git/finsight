@@ -16,7 +16,7 @@
             <div class="sidebar-header">
                 <a href="../index.html" class="brand-logo" style="display: flex; align-items: center; gap: 12px;">
                     <img src="../assets/images/logo.png" alt="FinSight Logo" style="height: 35px; width: 35px; border-radius: 8px;">
-                    <span class="brand-logo-name" style="font-weight: 800; font-size: 1.25rem; color: #fff; letter-spacing: -0.5px;">FINSIGHT</span>
+                    <span class="brand-logo-name" style="font-weight: 800; font-size: 1.25rem; color: var(--text-main); letter-spacing: -0.5px;">FINSIGHT</span>
                 </a>
             </div>
 
@@ -86,14 +86,28 @@
                 </div>
 
                 <div class="header-actions">
-                    <button class="btn btn-primary" style="padding: 10px 20px; border-radius: 10px; display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-user-plus"></i>
-                        Add Member
-                    </button>
-                    
-                    <button class="btn-icon" style="background: transparent; border: none; color: var(--gs-muted); font-size: 1.1rem; margin-left: 20px;">
-                        <i class="fas fa-bell"></i>
-                    </button>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button class="btn btn-primary" style="padding: 10px 20px; border-radius: 10px; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-user-plus"></i>
+                            Add Member
+                        </button>
+                        
+                        <div style="width: 1px; height: 30px; background: var(--gs-border); margin: 0 10px;"></div>
+
+                        <button class="btn-icon" style="background: var(--gs-surface2); border: 1px solid var(--gs-border); width: 40px; height: 40px; border-radius: 10px; color: var(--gs-accent); position: relative; cursor: pointer;">
+                            <i class="fas fa-bell"></i>
+                        </button>
+                        
+                        <div class="user-menu" id="userMenuDropdown" onclick="toggleUserDropdown()">
+                            <div class="user-avatar">
+                                <img id="headerUserAvatarImg" alt="Profile avatar">
+                            </div>
+                            <div class="user-info">
+                                <span class="user-name" id="headerUserName">...</span>
+                                <span class="user-role" id="headerUserRole">...</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </header>
 
@@ -117,7 +131,7 @@
                         </div>
                         <div>
                             <p style="color: var(--gs-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; margin-bottom: 4px;">Active Now</p>
-                            <h3 id="stat-active-users" style="font-size: 1.8rem; font-weight: 800; color: #fff;">0</h3>
+                            <h3 id="stat-active-users" style="font-size: 1.8rem; font-weight: 800; color: var(--text-main);">0</h3>
                         </div>
                     </div>
 
@@ -127,7 +141,7 @@
                         </div>
                         <div>
                             <p style="color: var(--gs-muted); font-size: 0.75rem; text-transform: uppercase; font-weight: 700; letter-spacing: 1px; margin-bottom: 4px;">Pending Invites</p>
-                            <h3 id="stat-pending-users" style="font-size: 1.8rem; font-weight: 800; color: #fff;">0</h3>
+                            <h3 id="stat-pending-users" style="font-size: 1.8rem; font-weight: 800; color: var(--text-main);">0</h3>
                         </div>
                     </div>
                 </div>
