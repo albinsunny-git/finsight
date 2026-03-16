@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:finsight_mobile/screens/manager/manager_access_logs_screen.dart';
 
 class ManagerTeamView extends StatefulWidget {
   final List<dynamic> users;
@@ -20,6 +21,7 @@ class ManagerTeamView extends StatefulWidget {
 
 class _ManagerTeamViewState extends State<ManagerTeamView> {
   String _searchQuery = "";
+  String _selectedRole = "All";
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +32,9 @@ class _ManagerTeamViewState extends State<ManagerTeamView> {
 
     final filteredUsers = widget.users.where((user) {
       final name = "${user['first_name'] ?? ''} ${user['last_name'] ?? ''}".toLowerCase();
-      return name.contains(_searchQuery.toLowerCase());
+      final matchesSearch = name.contains(_searchQuery.toLowerCase());
+      final matchesRole = _selectedRole == "All" || (user['role']?.toString().toLowerCase() == _selectedRole.toLowerCase());
+      return matchesSearch && matchesRole;
     }).toList();
 
     final activeCount = widget.users.where((u) => u['is_active'] == 1 || u['is_active'] == true).length;
@@ -105,15 +109,18 @@ class _ManagerTeamViewState extends State<ManagerTeamView> {
             ),
           ),
           const SizedBox(width: 12),
-          Container(
-            height: 54,
-            width: 54,
-            decoration: BoxDecoration(
-              color: primaryPurple.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: primaryPurple.withOpacity(0.3)),
+          GestureDetector(
+            onTap: () => _showFilterOptions(context, primaryPurple, cardColor, borderColor),
+            child: Container(
+              height: 54,
+              width: 54,
+              decoration: BoxDecoration(
+                color: _selectedRole != "All" ? primaryPurple.withOpacity(0.2) : primaryPurple.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: _selectedRole != "All" ? primaryPurple : primaryPurple.withOpacity(0.3)),
+              ),
+              child: Icon(LucideIcons.slidersHorizontal, color: primaryPurple, size: 20),
             ),
-            child: Icon(LucideIcons.slidersHorizontal, color: primaryPurple, size: 20),
           ),
         ],
       ),
@@ -227,9 +234,21 @@ class _ManagerTeamViewState extends State<ManagerTeamView> {
           ),
           Row(
             children: [
-              _buildSimpleIconButton(LucideIcons.messageSquare, Colors.white.withOpacity(0.2)),
+              _buildSimpleIconButton(
+                LucideIcons.messageSquare, 
+                Colors.white.withOpacity(0.05),
+                onTap: () => _showContactOptions(context, user, primaryPurple, cardColor),
+              ),
               const SizedBox(width: 8),
-              _buildSimpleIconButton(LucideIcons.clipboardList, primaryPurple.withOpacity(0.15), iconColor: primaryPurple),
+              _buildSimpleIconButton(
+                LucideIcons.activity, 
+                primaryPurple.withOpacity(0.1), 
+                iconColor: primaryPurple,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ManagerAccessLogsScreen()),
+                ),
+              ),
             ],
           ),
         ],
@@ -237,14 +256,136 @@ class _ManagerTeamViewState extends State<ManagerTeamView> {
     );
   }
 
-  Widget _buildSimpleIconButton(IconData icon, Color bg, {Color iconColor = Colors.white54}) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(10),
+  Widget _buildSimpleIconButton(IconData icon, Color bg, {Color iconColor = Colors.white54, VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, color: iconColor, size: 18),
       ),
-      child: Icon(icon, color: iconColor, size: 18),
+    );
+  }
+
+  void _showFilterOptions(BuildContext context, Color primaryPurple, Color cardColor, Color borderColor) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: cardColor,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+      builder: (context) {
+        final roles = ["All", "Admin", "Manager", "Accountant"];
+        return Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Filter Members",
+                style: GoogleFonts.plusJakartaSans(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+              const SizedBox(height: 24),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: roles.map((role) {
+                  final isSelected = _selectedRole == role;
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() => _selectedRole = role);
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: isSelected ? primaryPurple : Colors.transparent,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: isSelected ? primaryPurple : borderColor),
+                      ),
+                      child: Text(
+                        role,
+                        style: GoogleFonts.plusJakartaSans(
+                          color: isSelected ? Colors.white : Colors.white60,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 32),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showContactOptions(BuildContext context, Map<String, dynamic> user, Color primaryPurple, Color cardColor) {
+    final name = "${user['first_name'] ?? ''} ${user['last_name'] ?? ''}";
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: cardColor,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: primaryPurple.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text(
+                    name.isNotEmpty ? name[0] : "?",
+                    style: GoogleFonts.plusJakartaSans(fontSize: 32, fontWeight: FontWeight.bold, color: primaryPurple),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                name,
+                style: GoogleFonts.plusJakartaSans(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+              Text(
+                user['role'] ?? 'Member',
+                style: GoogleFonts.plusJakartaSans(color: Colors.white38),
+              ),
+              const SizedBox(height: 32),
+              _buildContactButton(LucideIcons.phone, "Call Member", () {}),
+              const SizedBox(height: 12),
+              _buildContactButton(LucideIcons.mail, "Send Email", () {}),
+              const SizedBox(height: 12),
+              _buildContactButton(LucideIcons.messageCircle, "Live Chat", () {}),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildContactButton(IconData icon, String label, VoidCallback onTap) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.03),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
+      ),
+      child: ListTile(
+        onTap: onTap,
+        leading: Icon(icon, color: Colors.white60, size: 20),
+        title: Text(label, style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+        trailing: const Icon(LucideIcons.chevronRight, color: Colors.white24, size: 16),
+      ),
     );
   }
 }
