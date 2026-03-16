@@ -25,6 +25,8 @@ class ManagerAccountsView extends StatefulWidget {
 }
 
 class _ManagerAccountsViewState extends State<ManagerAccountsView> {
+  String? _expandedCategory;
+
   @override
   Widget build(BuildContext context) {
     // Amethyst theme colors
@@ -35,9 +37,11 @@ class _ManagerAccountsViewState extends State<ManagerAccountsView> {
     const Color borderColor = Color(0xFF1F1F35);
 
     // Group accounts by category
-    final assets = widget.accounts.where((a) => a['type'] == 'Asset' || a['type'] == 'Bank' || a['type'] == 'Cash').toList();
+    final assets = widget.accounts.where((a) => a['type'] == 'Asset').toList();
     final liabilities = widget.accounts.where((a) => a['type'] == 'Liability').toList();
     final equity = widget.accounts.where((a) => a['type'] == 'Equity').toList();
+    final income = widget.accounts.where((a) => a['type'] == 'Income').toList();
+    final expenses = widget.accounts.where((a) => a['type'] == 'Expense').toList();
 
     double totalAssets = 0;
     for (var a in assets) totalAssets += double.tryParse(a['balance']?.toString() ?? '0') ?? 0;
@@ -78,11 +82,11 @@ class _ManagerAccountsViewState extends State<ManagerAccountsView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildMetricTile("Total Assets", totalAssets, "+5.2%", const Color(0xFF10B981), primaryPurple, 0.7, cardColor, borderColor),
+              _buildMetricTile("Total Assets", totalAssets, "+2.4%", const Color(0xFF10B981), primaryPurple, 1.0, cardColor, borderColor),
               const SizedBox(height: 16),
-              _buildMetricTile("Total Liabilities", totalLiabilities, "-1.8%", const Color(0xFFF43F5E), accentPurple, 0.3, cardColor, borderColor),
+              _buildMetricTile("Total Liabilities", totalLiabilities, "-1.2%", const Color(0xFFF43F5E), accentPurple, totalAssets > 0 ? (totalLiabilities / totalAssets).clamp(0.0, 1.0) : 0.0, cardColor, borderColor),
               const SizedBox(height: 16),
-              _buildMetricTile("Total Equity", totalEquity, "+8.4%", const Color(0xFF10B981), primaryPurple, 0.6, cardColor, borderColor),
+              _buildMetricTile("Total Equity", totalEquity, "+5.1%", const Color(0xFF10B981), primaryPurple, totalAssets > 0 ? (totalEquity / totalAssets).clamp(0.0, 1.0) : 0.0, cardColor, borderColor),
               
               const SizedBox(height: 32),
               
@@ -114,10 +118,12 @@ class _ManagerAccountsViewState extends State<ManagerAccountsView> {
                 ],
               ),
               
-              const SizedBox(height: 16),
-              _buildCategoryTile("Assets", "${assets.length} Sub-accounts", totalAssets, LucideIcons.briefcase, true, cardColor, borderColor, primaryPurple),
-              _buildCategoryTile("Liabilities", "${liabilities.length} Sub-accounts", totalLiabilities, LucideIcons.creditCard, false, cardColor, borderColor, primaryPurple),
-              _buildCategoryTile("Equity", "${equity.length} Sub-accounts", totalEquity, LucideIcons.pieChart, false, cardColor, borderColor, primaryPurple),
+              const SizedBox(height: 20),
+              _buildCategoryTile("Assets", "${assets.length} accounts", totalAssets, LucideIcons.briefcase, assets, cardColor, borderColor, primaryPurple),
+              _buildCategoryTile("Liabilities", "${liabilities.length} accounts", totalLiabilities, LucideIcons.creditCard, liabilities, cardColor, borderColor, primaryPurple),
+              _buildCategoryTile("Equity", "${equity.length} accounts", totalEquity, LucideIcons.pieChart, equity, cardColor, borderColor, primaryPurple),
+              _buildCategoryTile("Income", "${income.length} accounts", widget.totalIncome, LucideIcons.trendingUp, income, cardColor, borderColor, primaryPurple),
+              _buildCategoryTile("Expenses", "${expenses.length} accounts", widget.totalExpense, LucideIcons.trendingDown, expenses, cardColor, borderColor, primaryPurple),
               
               const SizedBox(height: 32),
               _buildGenerateReportCard(primaryPurple),
@@ -125,13 +131,6 @@ class _ManagerAccountsViewState extends State<ManagerAccountsView> {
             ],
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: primaryPurple,
-        elevation: 8,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: const Icon(LucideIcons.plus, color: Colors.white, size: 28),
       ),
     );
   }
@@ -206,7 +205,9 @@ class _ManagerAccountsViewState extends State<ManagerAccountsView> {
     );
   }
 
-  Widget _buildCategoryTile(String title, String subtitle, double amount, IconData icon, bool isExpanded, Color cardColor, Color borderColor, Color primaryPurple) {
+  Widget _buildCategoryTile(String title, String subtitle, double amount, IconData icon, List<dynamic> subAccounts, Color cardColor, Color borderColor, Color primaryPurple) {
+    bool isExpanded = _expandedCategory == title;
+    
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(20),
@@ -217,63 +218,74 @@ class _ManagerAccountsViewState extends State<ManagerAccountsView> {
       ),
       child: Column(
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: primaryPurple.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(16),
+          InkWell(
+            onTap: () {
+              setState(() {
+                _expandedCategory = isExpanded ? null : title;
+              });
+            },
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: primaryPurple.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(icon, color: primaryPurple, size: 22),
                 ),
-                child: Icon(icon, color: primaryPurple, size: 22),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      Text(
+                        subtitle,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          color: Colors.white.withOpacity(0.4),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      title,
+                      "₹${(amount.abs() / 1000).toStringAsFixed(1)}k",
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        color: primaryPurple,
                       ),
                     ),
-                    Text(
-                      subtitle,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        color: Colors.white.withOpacity(0.4),
-                      ),
-                    ),
+                    const SizedBox(height: 4),
+                    Icon(isExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, color: Colors.white.withOpacity(0.2), size: 18),
                   ],
                 ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    "₹${(amount / 1000).toStringAsFixed(0)}k",
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: primaryPurple,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Icon(isExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, color: Colors.white.withOpacity(0.2), size: 18),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
           if (isExpanded) ...[
             const SizedBox(height: 20),
             const Divider(color: Color(0xFF1F1F35), height: 1),
-            const SizedBox(height: 20),
-            _buildSubCategoryItem("Current Assets", "₹200k"),
-            _buildSubCategoryItem("Fixed Assets", "₹250k"),
-            _buildSubCategoryItem("Inventory", "₹50k"),
+            const SizedBox(height: 12),
+            if (subAccounts.isEmpty)
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text("No accounts in this category", style: TextStyle(color: Colors.white.withOpacity(0.2))),
+              )
+            else
+              ...subAccounts.map((acc) => _buildSubCategoryItem(acc['name'], "₹${(double.tryParse(acc['balance']?.toString() ?? '0') ?? 0).abs().toStringAsFixed(0)}")),
           ]
         ],
       ),
@@ -282,7 +294,7 @@ class _ManagerAccountsViewState extends State<ManagerAccountsView> {
 
   Widget _buildSubCategoryItem(String title, String amount) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14.0),
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -297,12 +309,17 @@ class _ManagerAccountsViewState extends State<ManagerAccountsView> {
                 ),
               ),
               const SizedBox(width: 12),
-              Text(
-                title,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white.withOpacity(0.7),
+              SizedBox(
+                width: 150,
+                child: Text(
+                  title,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white.withOpacity(0.7),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],

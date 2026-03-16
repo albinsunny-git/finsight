@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:finsight_mobile/services/api_service.dart';
 
 class ManagerVouchersView extends StatefulWidget {
   final List<dynamic> vouchers;
@@ -28,6 +29,38 @@ class ManagerVouchersView extends StatefulWidget {
 
 class _ManagerVouchersViewState extends State<ManagerVouchersView> {
   int _selectedTab = 0;
+  final ApiService _apiService = ApiService();
+  bool _isProcessing = false;
+
+  Future<void> _handleVoucherAction(int id, bool approve) async {
+    setState(() => _isProcessing = true);
+    try {
+      final res = approve 
+        ? await _apiService.approveVoucher(id)
+        : await _apiService.rejectVoucher(id, "Rejected by manager");
+      
+      if (mounted) {
+        if (res['success']) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(approve ? "Voucher Approved" : "Voucher Rejected"), backgroundColor: approve ? Colors.green : Colors.red),
+          );
+          widget.onRefresh();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(res['message'] ?? "Action failed"), backgroundColor: Colors.red),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,61 +102,72 @@ class _ManagerVouchersViewState extends State<ManagerVouchersView> {
           const SizedBox(width: 8),
         ],
       ),
-      body: Column(
+      body: Stack(
         children: [
-          _buildTabs(primaryPurple, accentPurple),
-          const SizedBox(height: 8),
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: () async => widget.onRefresh(),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (_selectedTab == 0 && filteredVouchers.isNotEmpty) ...[
-                      _buildSectionHeader("Prioritized Queue", "URGENT", const Color(0xFFF43F5E)),
-                      const SizedBox(height: 16),
-                      ...filteredVouchers.take(1).map((v) => _buildVoucherCard(v, isPrioritized: true, cardColor: cardColor, borderColor: borderColor, primaryPurple: primaryPurple)),
-                      const SizedBox(height: 32),
-                      _buildSectionHeader("Standard Queue", null, null),
-                      const SizedBox(height: 16),
-                      ...filteredVouchers.skip(1).map((v) => _buildVoucherCard(v, isPrioritized: false, cardColor: cardColor, borderColor: borderColor, primaryPurple: primaryPurple)),
-                    ] else if (filteredVouchers.isEmpty) ...[
-                      const SizedBox(height: 100),
-                      Center(
-                        child: Column(
-                          children: [
-                            Icon(LucideIcons.checkCircle2, color: Colors.white.withOpacity(0.1), size: 80),
+          Column(
+            children: [
+              _buildTabs(primaryPurple, accentPurple),
+              const SizedBox(height: 8),
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: () async => widget.onRefresh(),
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (_selectedTab == 0 && filteredVouchers.isNotEmpty) ...[
+                            _buildSectionHeader("Prioritized Queue", "URGENT", const Color(0xFFF43F5E)),
                             const SizedBox(height: 16),
-                            Text(
-                              "All Caught Up!",
-                              style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                            ...filteredVouchers.take(1).map((v) => _buildVoucherCard(v, isPrioritized: true, cardColor: cardColor, borderColor: borderColor, primaryPurple: primaryPurple)),
+                            const SizedBox(height: 32),
+                            _buildSectionHeader("Standard Queue", null, null),
+                            const SizedBox(height: 16),
+                            ...filteredVouchers.skip(1).map((v) => _buildVoucherCard(v, isPrioritized: false, cardColor: cardColor, borderColor: borderColor, primaryPurple: primaryPurple)),
+                          ] else if (filteredVouchers.isEmpty) ...[
+                            const SizedBox(height: 100),
+                            Center(
+                              child: Column(
+                                children: [
+                                  Icon(LucideIcons.checkCircle2, color: Colors.white.withOpacity(0.1), size: 80),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    "All Caught Up!",
+                                    style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    "No vouchers awaiting your approval.",
+                                    style: GoogleFonts.plusJakartaSans(color: Colors.white.withOpacity(0.4)),
+                                  ),
+                                ],
+                              ),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              "No vouchers awaiting your approval.",
-                              style: GoogleFonts.plusJakartaSans(color: Colors.white.withOpacity(0.4)),
-                            ),
+                          ] else ...[
+                            ...filteredVouchers.map((v) => _buildVoucherCard(v, isPrioritized: false, cardColor: cardColor, borderColor: borderColor, primaryPurple: primaryPurple)),
                           ],
-                        ),
+                          const SizedBox(height: 100),
+                        ],
                       ),
-                    ] else ...[
-                      ...filteredVouchers.map((v) => _buildVoucherCard(v, isPrioritized: false, cardColor: cardColor, borderColor: borderColor, primaryPurple: primaryPurple)),
-                    ],
-                    const SizedBox(height: 100),
-                  ],
+                    ),
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
+          if (_isProcessing)
+            Container(
+              color: Colors.black45,
+              child: const Center(child: CircularProgressIndicator(color: primaryPurple)),
+            ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () => widget.onRefresh(),
         backgroundColor: primaryPurple,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: const Icon(LucideIcons.layers, color: Colors.white, size: 28),
+        child: const Icon(LucideIcons.refreshCcw, color: Colors.white, size: 28),
       ),
     );
   }
@@ -206,10 +250,11 @@ class _ManagerVouchersViewState extends State<ManagerVouchersView> {
 
   Widget _buildVoucherCard(Map<String, dynamic> voucher, {required bool isPrioritized, required Color cardColor, required Color borderColor, required Color primaryPurple}) {
     final String type = (voucher['voucher_type_name'] ?? "Expense").toString();
-    final String time = "2h ago";
+    final String date = voucher['voucher_date'] ?? "N/A";
     final double amount = double.tryParse(voucher['total_debit']?.toString() ?? '0') ?? 0;
-    final String narration = voucher['narration'] ?? "No description provided";
-    final String requester = "${voucher['first_name'] ?? 'User'}";
+    final String narration = voucher['narration'] ?? "No description";
+    final String requester = "${voucher['first_name'] ?? 'User'} ${voucher['last_name'] ?? ''}";
+    final int id = int.tryParse(voucher['id']?.toString() ?? '0') ?? 0;
     
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -245,7 +290,7 @@ class _ManagerVouchersViewState extends State<ManagerVouchersView> {
                 ),
               ),
               Text(
-                time,
+                date,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 12,
                   color: Colors.white.withOpacity(0.3),
@@ -308,22 +353,42 @@ class _ManagerVouchersViewState extends State<ManagerVouchersView> {
                 child: Text(requester[0], style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold)),
               ),
               const SizedBox(width: 8),
-              Text(
-                "By $requester",
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white.withOpacity(0.4),
+              Expanded(
+                child: Text(
+                  "By $requester",
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white.withOpacity(0.4),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const Spacer(),
-              Row(
-                children: [
-                  _buildActionButton(LucideIcons.x, Colors.redAccent, () {}),
-                  const SizedBox(width: 12),
-                  _buildActionButton(LucideIcons.check, const Color(0xFF10B981), () {}),
-                ],
-              ),
+              if (_selectedTab == 0) // Only show actions for Pending
+                Row(
+                  children: [
+                    _buildActionButton(LucideIcons.x, Colors.redAccent, () => _handleVoucherAction(id, false)),
+                    const SizedBox(width: 12),
+                    _buildActionButton(LucideIcons.check, const Color(0xFF10B981), () => _handleVoucherAction(id, true)),
+                  ],
+                )
+              else 
+                 Container(
+                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                   decoration: BoxDecoration(
+                     color: (_selectedTab == 1 ? Colors.green : Colors.red).withOpacity(0.1),
+                     borderRadius: BorderRadius.circular(8),
+                   ),
+                   child: Text(
+                     _selectedTab == 1 ? "APPROVED" : "REJECTED",
+                     style: GoogleFonts.plusJakartaSans(
+                       fontSize: 10,
+                       fontWeight: FontWeight.w800,
+                       color: _selectedTab == 1 ? Colors.green : Colors.red,
+                     ),
+                   ),
+                 ),
             ],
           ),
         ],

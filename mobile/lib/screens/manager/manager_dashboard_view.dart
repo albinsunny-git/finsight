@@ -36,6 +36,9 @@ class ManagerDashboardView extends StatelessWidget {
     const Color accentPurple = Color(0xFFA855F7);
     const Color borderColor = Color(0xFF1F1F35);
 
+    // Calculate Pending Approvals
+    final int pendingApprovals = vouchers.where((v) => v['status'].toString().toLowerCase() == 'pending').length;
+
     return Scaffold(
       backgroundColor: bgColor,
       body: SafeArea(
@@ -54,7 +57,7 @@ class ManagerDashboardView extends StatelessWidget {
                     child: _buildSummaryCard(
                       "Total Revenue",
                       "₹${_formatCurrency(totalIncome)}",
-                      "+12.5%",
+                      dashboardData['summary'] != null ? "+12.5%" : "0.0%", // Placeholder trend
                       LucideIcons.banknote,
                       primaryPurple,
                       false,
@@ -64,11 +67,11 @@ class ManagerDashboardView extends StatelessWidget {
                   Expanded(
                     child: _buildSummaryCard(
                       "Pending Approvals",
-                      "14",
+                      pendingApprovals.toString(),
                       "Requires Action",
                       LucideIcons.clock,
                       const Color(0xFFF59E0B),
-                      true,
+                      pendingApprovals > 0,
                     ),
                   ),
                 ],
@@ -164,32 +167,35 @@ class ManagerDashboardView extends StatelessWidget {
           ],
         ),
         const Spacer(),
-        Container(
-          height: 48,
-          width: 48,
-          decoration: BoxDecoration(
-            color: const Color(0xFF1E1E30),
-            shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFF2E2E45)),
-          ),
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              const Icon(LucideIcons.bell, color: Colors.white, size: 22),
-              if (unreadNotificationsCount > 0)
-                Positioned(
-                  right: 12,
-                  top: 12,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFA855F7),
-                      shape: BoxShape.circle,
+        GestureDetector(
+          onTap: () => onNavigate('notifications'),
+          child: Container(
+            height: 48,
+            width: 48,
+            decoration: BoxDecoration(
+              color: const Color(0xFF1E1E30),
+              shape: BoxShape.circle,
+              border: Border.all(color: const Color(0xFF2E2E45)),
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                const Icon(LucideIcons.bell, color: Colors.white, size: 22),
+                if (unreadNotificationsCount > 0)
+                  Positioned(
+                    right: 12,
+                    top: 12,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFA855F7),
+                        shape: BoxShape.circle,
+                      ),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ],
@@ -255,6 +261,24 @@ class ManagerDashboardView extends StatelessWidget {
   }
 
   Widget _buildOverviewCard(Color cardColor, Color borderColor, Color primaryPurple, Color accentPurple) {
+    // Extract real chart data
+    List<double> chartData = [10, 14, 18, 8, 13, 6, 4]; // Default
+    List<String> labels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+
+    if (dashboardData['analytics'] != null && dashboardData['analytics']['cash_flow'] != null) {
+      final cashFlow = dashboardData['analytics']['cash_flow'];
+      final income = List<double>.from(cashFlow['income'].map((i) => (i as num).toDouble()));
+      final labelsRaw = List<String>.from(cashFlow['labels']);
+      
+      if (income.isNotEmpty) {
+        chartData = income;
+        labels = labelsRaw.map((l) => l.split(' ')[0]).toList();
+      }
+    }
+
+    double maxVal = chartData.reduce((a, b) => a > b ? a : b);
+    if (maxVal == 0) maxVal = 10;
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -280,7 +304,7 @@ class ManagerDashboardView extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    "Weekly Performance Stats",
+                    "Cash Flow Trends",
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 13,
                       color: Colors.white.withOpacity(0.4),
@@ -306,7 +330,7 @@ class ManagerDashboardView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                "₹42,000",
+                "₹${_formatCurrency(totalIncome)}",
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 34,
                   fontWeight: FontWeight.w800,
@@ -318,7 +342,7 @@ class ManagerDashboardView extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: 6),
                 child: Text(
-                  "Target: ₹50k",
+                  "YTD Income",
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14,
                     color: Colors.white.withOpacity(0.3),
@@ -334,19 +358,30 @@ class ManagerDashboardView extends StatelessWidget {
             child: BarChart(
               BarChartData(
                 alignment: BarChartAlignment.spaceAround,
-                maxY: 20,
-                barTouchData: BarTouchData(enabled: false),
+                maxY: maxVal * 1.2,
+                barTouchData: BarTouchData(
+                  touchTooltipData: BarTouchTooltipData(
+                    getTooltipColor: (_) => const Color(0xFF1F1F35),
+                    getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                      return BarTooltipItem(
+                        "₹${_formatCurrency(rod.toY)}",
+                        const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      );
+                    },
+                  ),
+                ),
                 titlesData: FlTitlesData(
                   show: true,
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
                       getTitlesWidget: (value, meta) {
-                        const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+                        int index = value.toInt();
+                        if (index < 0 || index >= labels.length) return const SizedBox.shrink();
                         return Padding(
                           padding: const EdgeInsets.only(top: 10.0),
                           child: Text(
-                            days[value.toInt()],
+                            labels[index],
                             style: GoogleFonts.plusJakartaSans(
                               color: Colors.white.withOpacity(0.3),
                               fontSize: 12,
@@ -364,15 +399,9 @@ class ManagerDashboardView extends StatelessWidget {
                 ),
                 gridData: const FlGridData(show: false),
                 borderData: FlBorderData(show: false),
-                barGroups: [
-                  _buildBarGroup(0, 10, accentPurple),
-                  _buildBarGroup(1, 14, accentPurple),
-                  _buildBarGroup(2, 18, accentPurple, isHighlighted: true),
-                  _buildBarGroup(3, 8, accentPurple),
-                  _buildBarGroup(4, 13, accentPurple),
-                  _buildBarGroup(5, 6, accentPurple),
-                  _buildBarGroup(6, 4, accentPurple),
-                ],
+                barGroups: chartData.asMap().entries.map((e) {
+                  return _buildBarGroup(e.key, e.value, accentPurple, isHighlighted: e.key == chartData.length - 1);
+                }).toList(),
               ),
             ),
           ),
@@ -388,10 +417,10 @@ class ManagerDashboardView extends StatelessWidget {
         BarChartRodData(
           toY: y,
           color: isHighlighted ? accentPurple : const Color(0xFF1F1F35),
-          width: 28,
+          width: 22,
           borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(8),
-            topRight: Radius.circular(8),
+            topLeft: Radius.circular(6),
+            topRight: Radius.circular(6),
           ),
         ),
       ],
@@ -399,6 +428,9 @@ class ManagerDashboardView extends StatelessWidget {
   }
 
   Widget _buildRecentActivity(Color cardColor, Color borderColor, Color primaryPurple) {
+    // Get real activity from vouchers
+    final recentVouchers = vouchers.take(5).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -413,38 +445,49 @@ class ManagerDashboardView extends StatelessWidget {
                 color: Colors.white,
               ),
             ),
-            Text(
-              "See all",
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: primaryPurple,
+            InkWell(
+              onTap: () => onNavigate('vouchers'),
+              child: Text(
+                "See all",
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: primaryPurple,
+                ),
               ),
             ),
           ],
         ),
         const SizedBox(height: 20),
-        _buildActivityItem(
-          "Sarah completed 'Project Amethyst'",
-          "2 hours ago • Development Team",
-          LucideIcons.checkCircle2,
-          const Color(0xFF10B981).withOpacity(0.12),
-          const Color(0xFF10B981),
-        ),
-        _buildActivityItem(
-          "James requested leave",
-          "5 hours ago • Sales Team",
-          LucideIcons.alertTriangle,
-          const Color(0xFFF59E0B).withOpacity(0.12),
-          const Color(0xFFF59E0B),
-        ),
-        _buildActivityItem(
-          "New team member joined",
-          "Yesterday • Marketing Team",
-          LucideIcons.userPlus,
-          const Color(0xFF8B5CF6).withOpacity(0.12),
-          const Color(0xFF8B5CF6),
-        ),
+        if (recentVouchers.isEmpty)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(40.0),
+              child: Text("No recent activity", style: TextStyle(color: Colors.white.withOpacity(0.3))),
+            ),
+          )
+        else
+          ...recentVouchers.map((v) {
+            String status = v['status']?.toString().toLowerCase() ?? 'pending';
+            IconData icon = LucideIcons.clock;
+            Color iconColor = const Color(0xFFF59E0B);
+            
+            if (status == 'posted' || status == 'approved') {
+              icon = LucideIcons.checkCircle2;
+              iconColor = const Color(0xFF10B981);
+            } else if (status == 'rejected') {
+              icon = LucideIcons.xCircle;
+              iconColor = const Color(0xFFF43F5E);
+            }
+
+            return _buildActivityItem(
+              "${v['first_name'] ?? 'User'} added ${v['voucher_type_name'] ?? 'Voucher'}",
+              "₹${_formatCurrency(double.tryParse(v['total_debit']?.toString() ?? '0') ?? 0)} • ${v['voucher_date'] ?? 'Recent'}",
+              icon,
+              iconColor.withOpacity(0.12),
+              iconColor,
+            );
+          }),
       ],
     );
   }
@@ -480,6 +523,8 @@ class ManagerDashboardView extends StatelessWidget {
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(

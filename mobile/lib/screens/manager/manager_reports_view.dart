@@ -85,7 +85,8 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
                       "Generate Report",
                       primaryPurple,
                       cardColor,
-                      borderColor
+                      borderColor,
+                      onTap: () => widget.onNavigate('reports'), // Logic to open specific report
                     ),
                     _buildReportItem(
                       "Tax Compliance",
@@ -104,7 +105,7 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
                       const Color(0xFF1F1F35),
                       cardColor,
                       borderColor,
-                      trailingTag: "2 Actions",
+                      trailingTag: "Actions Req.",
                       tagColor: const Color(0xFFF59E0B),
                     ),
                     const SizedBox(height: 40),
@@ -162,6 +163,38 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
   }
 
   Widget _buildQuickInsight(Color cardColor, Color borderColor, Color primaryPurple, Color accentPurple) {
+    // Extract real chart data (Profit Trend)
+    List<double> profitData = [8, 12, 11, 14, 17, 19];
+    List<String> labels = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN'];
+    double totalProfit = 124500;
+    String trend = "+22.5%";
+
+    if (widget.dashboardData['analytics'] != null && widget.dashboardData['analytics']['cash_flow'] != null) {
+      final cashFlow = widget.dashboardData['analytics']['cash_flow'];
+      final income = List<double>.from(cashFlow['income'].map((i) => (i as num).toDouble()));
+      final expense = List<double>.from(cashFlow['expense'].map((i) => (i as num).toDouble()));
+      final labelsRaw = List<String>.from(cashFlow['labels']);
+      
+      if (income.length == expense.length && income.isNotEmpty) {
+        profitData = [];
+        for (int i = 0; i < income.length; i++) {
+          profitData.add(income[i] - expense[i]);
+        }
+        labels = labelsRaw.map((l) => l.split(' ')[0].toUpperCase()).toList();
+        totalProfit = profitData.reduce((a, b) => a + b);
+        
+        if (profitData.length >= 2) {
+          double last = profitData.last;
+          double prev = profitData[profitData.length - 2];
+          double change = prev == 0 ? 0 : ((last - prev) / prev.abs()) * 100;
+          trend = "${change >= 0 ? '+' : ''}${change.toStringAsFixed(1)}%";
+        }
+      }
+    }
+
+    double maxVal = profitData.map((e) => e.abs()).reduce((a, b) => a > b ? a : b);
+    if (maxVal == 0) maxVal = 10;
+
     return Container(
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
@@ -186,19 +219,19 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withOpacity(0.12),
+                  color: (trend.startsWith('+') ? const Color(0xFF10B981) : Colors.redAccent).withOpacity(0.12),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
                   children: [
-                    const Icon(LucideIcons.trendingUp, color: Color(0xFF10B981), size: 14),
+                    Icon(trend.startsWith('+') ? LucideIcons.trendingUp : LucideIcons.trendingDown, color: trend.startsWith('+') ? const Color(0xFF10B981) : Colors.redAccent, size: 14),
                     const SizedBox(width: 4),
                     Text(
-                      "22.5%",
+                      trend,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
-                        color: const Color(0xFF10B981),
+                        color: trend.startsWith('+') ? const Color(0xFF10B981) : Colors.redAccent,
                       ),
                     ),
                   ],
@@ -208,7 +241,7 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
           ),
           const SizedBox(height: 24),
           Text(
-            "₹1,24,500",
+            "₹${(totalProfit / 1000).toStringAsFixed(1)}k",
             style: GoogleFonts.plusJakartaSans(
               fontSize: 34,
               fontWeight: FontWeight.w800,
@@ -218,7 +251,7 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
           ),
           const SizedBox(height: 4),
           Text(
-            "Estimated Net Profit (QTD)",
+            "Net Profit (Current Period)",
             style: GoogleFonts.plusJakartaSans(
               fontSize: 12,
               color: Colors.white.withOpacity(0.35),
@@ -231,7 +264,7 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
             child: BarChart(
               BarChartData(
                 alignment: BarChartAlignment.spaceAround,
-                maxY: 20,
+                maxY: maxVal * 1.2,
                 barTouchData: BarTouchData(enabled: false),
                 titlesData: FlTitlesData(
                   show: true,
@@ -239,12 +272,12 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
                     sideTitles: SideTitles(
                       showTitles: true,
                       getTitlesWidget: (value, meta) {
-                        const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN'];
-                        if (value.toInt() >= months.length) return const SizedBox.shrink();
+                        int index = value.toInt();
+                        if (index < 0 || index >= labels.length) return const SizedBox.shrink();
                         return Padding(
                           padding: const EdgeInsets.only(top: 10.0),
                           child: Text(
-                            months[value.toInt()],
+                            labels[index],
                             style: GoogleFonts.plusJakartaSans(
                               color: Colors.white.withOpacity(0.25),
                               fontSize: 10,
@@ -262,14 +295,9 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
                 ),
                 gridData: const FlGridData(show: false),
                 borderData: FlBorderData(show: false),
-                barGroups: [
-                  _buildBarGroup(0, 8, primaryPurple),
-                  _buildBarGroup(1, 12, primaryPurple),
-                  _buildBarGroup(2, 11, primaryPurple),
-                  _buildBarGroup(3, 14, primaryPurple),
-                  _buildBarGroup(4, 17, primaryPurple),
-                  _buildBarGroup(5, 19, accentPurple, isHighlighted: true),
-                ],
+                barGroups: profitData.asMap().entries.map((e) {
+                  return _buildBarGroup(e.key, e.value, primaryPurple, isHighlighted: e.key == profitData.length - 1);
+                }).toList(),
               ),
             ),
           ),
@@ -292,7 +320,7 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
     );
   }
 
-  Widget _buildReportItem(String title, String subtitle, IconData icon, String btnText, Color btnColor, Color cardColor, Color borderColor, {String? trailingTag, Color? tagColor}) {
+  Widget _buildReportItem(String title, String subtitle, IconData icon, String btnText, Color btnColor, Color cardColor, Color borderColor, {String? trailingTag, Color? tagColor, VoidCallback? onTap}) {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(24),
@@ -346,7 +374,7 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
             children: [
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: onTap ?? () {},
                   style: ElevatedButton.styleFrom(
                     backgroundColor: btnColor,
                     foregroundColor: Colors.white,
