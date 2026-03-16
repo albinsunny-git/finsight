@@ -28,10 +28,13 @@ class _ManagerAccountsViewState extends State<ManagerAccountsView> {
   @override
   Widget build(BuildContext context) {
     // Amethyst theme colors
-    final Color bgColor = const Color(0xFF0D0D17);
-    final Color primaryPurple = const Color(0xFF8B5CF6);
+    const Color bgColor = Color(0xFF0D0D17);
+    const Color cardColor = Color(0xFF161625);
+    const Color primaryPurple = Color(0xFF8B5CF6);
+    const Color accentPurple = Color(0xFFA855F7);
+    const Color borderColor = Color(0xFF1F1F35);
 
-    // Group accounts by category (simplified for now)
+    // Group accounts by category
     final assets = widget.accounts.where((a) => a['type'] == 'Asset' || a['type'] == 'Bank' || a['type'] == 'Cash').toList();
     final liabilities = widget.accounts.where((a) => a['type'] == 'Liability').toList();
     final equity = widget.accounts.where((a) => a['type'] == 'Equity').toList();
@@ -50,6 +53,7 @@ class _ManagerAccountsViewState extends State<ManagerAccountsView> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
           onPressed: () => widget.onNavigate('dashboard'),
@@ -58,67 +62,87 @@ class _ManagerAccountsViewState extends State<ManagerAccountsView> {
           "Chart of Accounts",
           style: GoogleFonts.plusJakartaSans(
             fontSize: 20,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w800,
             color: Colors.white,
           ),
         ),
         actions: [
-          IconButton(icon: const Icon(LucideIcons.search, color: Colors.white), onPressed: () {}),
-          IconButton(icon: const Icon(LucideIcons.filter, color: Colors.white), onPressed: () {}),
+          IconButton(icon: const Icon(LucideIcons.search, color: Colors.white, size: 20), onPressed: () {}),
+          const SizedBox(width: 8),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildMetricTile("Total Assets", totalAssets, "+5.2%", const Color(0xFF10B981), primaryPurple, 0.7),
-            const SizedBox(height: 16),
-            _buildMetricTile("Total Liabilities", totalLiabilities, "-1.8%", const Color(0xFFF43F5E), primaryPurple, 0.3),
-            const SizedBox(height: 16),
-            _buildMetricTile("Total Equity", totalEquity, "+8.4%", const Color(0xFF10B981), primaryPurple, 0.6),
-            const SizedBox(height: 32),
-            Row(
-              children: [
-                const Icon(LucideIcons.wallet, color: Color(0xFF8B5CF6), size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  "Account Categories",
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+      body: RefreshIndicator(
+        onRefresh: () async => widget.onRefresh(),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildMetricTile("Total Assets", totalAssets, "+5.2%", const Color(0xFF10B981), primaryPurple, 0.7, cardColor, borderColor),
+              const SizedBox(height: 16),
+              _buildMetricTile("Total Liabilities", totalLiabilities, "-1.8%", const Color(0xFFF43F5E), accentPurple, 0.3, cardColor, borderColor),
+              const SizedBox(height: 16),
+              _buildMetricTile("Total Equity", totalEquity, "+8.4%", const Color(0xFF10B981), primaryPurple, 0.6, cardColor, borderColor),
+              
+              const SizedBox(height: 32),
+              
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(LucideIcons.layers, color: primaryPurple, size: 20),
+                      const SizedBox(width: 10),
+                      Text(
+                        "Account Categories",
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _buildCategoryTile("Assets", "${assets.length} Sub-accounts", totalAssets, LucideIcons.box, true),
-            _buildCategoryTile("Liabilities", "${liabilities.length} Sub-accounts", totalLiabilities, LucideIcons.creditCard, false),
-            _buildCategoryTile("Equity", "${equity.length} Sub-accounts", totalEquity, LucideIcons.pieChart, false),
-            const SizedBox(height: 32),
-            _buildGenerateReportCard(primaryPurple),
-            const SizedBox(height: 80), // Space for FAB
-          ],
+                  Text(
+                    "${widget.accounts.length} total",
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13,
+                      color: Colors.white.withOpacity(0.4),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              
+              const SizedBox(height: 16),
+              _buildCategoryTile("Assets", "${assets.length} Sub-accounts", totalAssets, LucideIcons.briefcase, true, cardColor, borderColor, primaryPurple),
+              _buildCategoryTile("Liabilities", "${liabilities.length} Sub-accounts", totalLiabilities, LucideIcons.creditCard, false, cardColor, borderColor, primaryPurple),
+              _buildCategoryTile("Equity", "${equity.length} Sub-accounts", totalEquity, LucideIcons.pieChart, false, cardColor, borderColor, primaryPurple),
+              
+              const SizedBox(height: 32),
+              _buildGenerateReportCard(primaryPurple),
+              const SizedBox(height: 100), 
+            ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {},
         backgroundColor: primaryPurple,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
-        child: const Icon(LucideIcons.plus, color: Colors.white, size: 32),
+        elevation: 8,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: const Icon(LucideIcons.plus, color: Colors.white, size: 28),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
-  Widget _buildMetricTile(String title, double value, String trend, Color trendColor, Color barColor, double progress) {
+  Widget _buildMetricTile(String title, double value, String trend, Color trendColor, Color barColor, double progress, Color cardColor, Color borderColor) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFF161625),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF1F1F35)),
+        color: cardColor,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,24 +154,25 @@ class _ManagerAccountsViewState extends State<ManagerAccountsView> {
                 title,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 14,
-                  color: Colors.grey[400],
+                  color: Colors.white.withOpacity(0.5),
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: trendColor.withOpacity(0.1),
+                  color: trendColor.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
                   children: [
-                    Icon(trend.startsWith('+') ? LucideIcons.trendingUp : LucideIcons.trendingDown, color: trendColor, size: 12),
+                    Icon(trend.startsWith('+') ? LucideIcons.trendingUp : LucideIcons.trendingDown, color: trendColor, size: 14),
                     const SizedBox(width: 4),
                     Text(
                       trend,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w800,
                         color: trendColor,
                       ),
                     ),
@@ -158,21 +183,22 @@ class _ManagerAccountsViewState extends State<ManagerAccountsView> {
           ),
           const SizedBox(height: 12),
           Text(
-            "\$${value.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}",
+            "₹${value.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}",
             style: GoogleFonts.plusJakartaSans(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
+              fontSize: 30,
+              fontWeight: FontWeight.w800,
               color: Colors.white,
+              letterSpacing: -0.5,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: LinearProgressIndicator(
               value: progress,
               backgroundColor: const Color(0xFF1F1F35),
               valueColor: AlwaysStoppedAnimation<Color>(barColor),
-              minHeight: 8,
+              minHeight: 10,
             ),
           ),
         ],
@@ -180,26 +206,26 @@ class _ManagerAccountsViewState extends State<ManagerAccountsView> {
     );
   }
 
-  Widget _buildCategoryTile(String title, String subtitle, double amount, IconData icon, bool isExpanded) {
+  Widget _buildCategoryTile(String title, String subtitle, double amount, IconData icon, bool isExpanded, Color cardColor, Color borderColor, Color primaryPurple) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF161625),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF1F1F35)),
+        color: cardColor,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         children: [
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1F1F35),
-                  borderRadius: BorderRadius.circular(12),
+                  color: primaryPurple.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(icon, color: const Color(0xFF8B5CF6), size: 20),
+                child: Icon(icon, color: primaryPurple, size: 22),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -218,31 +244,36 @@ class _ManagerAccountsViewState extends State<ManagerAccountsView> {
                       subtitle,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
-                        color: Colors.grey[500],
+                        color: Colors.white.withOpacity(0.4),
                       ),
                     ),
                   ],
                 ),
               ),
-              Text(
-                "\$${amount.toStringAsFixed(2)}",
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: const Color(0xFF8B5CF6),
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    "₹${(amount / 1000).toStringAsFixed(0)}k",
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: primaryPurple,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Icon(isExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, color: Colors.white.withOpacity(0.2), size: 18),
+                ],
               ),
-              const SizedBox(width: 8),
-              Icon(isExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, color: Colors.grey[600], size: 20),
             ],
           ),
           if (isExpanded) ...[
-            const SizedBox(height: 16),
-            const Divider(color: Color(0xFF1F1F35)),
-            const SizedBox(height: 16),
-            _buildSubCategoryItem("Current Assets", "\$200,000.00"),
-            _buildSubCategoryItem("Fixed Assets", "\$250,000.00"),
-            _buildSubCategoryItem("Inventory", "\$50,000.00"),
+            const SizedBox(height: 20),
+            const Divider(color: Color(0xFF1F1F35), height: 1),
+            const SizedBox(height: 20),
+            _buildSubCategoryItem("Current Assets", "₹200k"),
+            _buildSubCategoryItem("Fixed Assets", "₹250k"),
+            _buildSubCategoryItem("Inventory", "₹50k"),
           ]
         ],
       ),
@@ -251,7 +282,7 @@ class _ManagerAccountsViewState extends State<ManagerAccountsView> {
 
   Widget _buildSubCategoryItem(String title, String amount) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
+      padding: const EdgeInsets.only(bottom: 14.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -261,7 +292,7 @@ class _ManagerAccountsViewState extends State<ManagerAccountsView> {
                 width: 6,
                 height: 6,
                 decoration: const BoxDecoration(
-                  color: Color(0xFF10B981),
+                  color: Color(0xFF8B5CF6),
                   shape: BoxShape.circle,
                 ),
               ),
@@ -270,7 +301,8 @@ class _ManagerAccountsViewState extends State<ManagerAccountsView> {
                 title,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 14,
-                  color: Colors.grey[300],
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white.withOpacity(0.7),
                 ),
               ),
             ],
@@ -279,7 +311,7 @@ class _ManagerAccountsViewState extends State<ManagerAccountsView> {
             amount,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 14,
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w700,
               color: Colors.white,
             ),
           ),
@@ -290,42 +322,76 @@ class _ManagerAccountsViewState extends State<ManagerAccountsView> {
 
   Widget _buildGenerateReportCard(Color primaryPurple) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      width: double.infinity,
+      padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
-        color: primaryPurple,
-        borderRadius: BorderRadius.circular(24),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF8B5CF6), Color(0xFF6D28D9)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF8B5CF6).withOpacity(0.25),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Generate Report",
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(LucideIcons.fileText, color: Colors.white, size: 24),
+              ),
+              const SizedBox(width: 16),
+              Text(
+                "Account Audit",
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
           Text(
-            "Export your full Chart of Accounts for auditing purposes.",
+            "Generate a professional PDF report of your current financial structure.",
             style: GoogleFonts.plusJakartaSans(
               fontSize: 14,
               color: Colors.white.withOpacity(0.8),
+              height: 1.5,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () {},
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
               foregroundColor: primaryPurple,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             ),
-            child: Text(
-              "Export as PDF",
-              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "Export as PDF",
+                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800),
+                ),
+                const SizedBox(width: 8),
+                const Icon(LucideIcons.download, size: 16),
+              ],
             ),
           ),
         ],

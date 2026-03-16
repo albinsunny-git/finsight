@@ -452,7 +452,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         : 'dashboard';
 
     // For Manager, we use a more integrated design where some pages have custom headers
-    if (normalizedRole == 'manager') {
+    if (normalizedRole.contains('manager')) {
       return Column(
         children: [
           Expanded(

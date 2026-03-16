@@ -31,8 +31,11 @@ class _ManagerVouchersViewState extends State<ManagerVouchersView> {
 
   @override
   Widget build(BuildContext context) {
-    final Color bgColor = const Color(0xFF0D0D17);
-    final Color primaryPurple = const Color(0xFF8B5CF6);
+    const Color bgColor = Color(0xFF0D0D17);
+    const Color primaryPurple = Color(0xFF8B5CF6);
+    const Color accentPurple = Color(0xFFA855F7);
+    const Color cardColor = Color(0xFF161625);
+    const Color borderColor = Color(0xFF1F1F35);
 
     // Filter logic
     final statusMap = {0: 'pending', 1: 'posted', 2: 'rejected'};
@@ -48,6 +51,7 @@ class _ManagerVouchersViewState extends State<ManagerVouchersView> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
           onPressed: () => widget.onNavigate('dashboard'),
@@ -56,38 +60,60 @@ class _ManagerVouchersViewState extends State<ManagerVouchersView> {
           "Voucher Approvals",
           style: GoogleFonts.plusJakartaSans(
             fontSize: 20,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w800,
             color: Colors.white,
           ),
         ),
         actions: [
-          IconButton(icon: const Icon(LucideIcons.history, color: Colors.white), onPressed: () {}),
-          IconButton(icon: const Icon(LucideIcons.filter, color: Colors.white), onPressed: () {}),
+          IconButton(icon: const Icon(LucideIcons.search, color: Colors.white, size: 20), onPressed: () {}),
+          const SizedBox(width: 8),
         ],
       ),
       body: Column(
         children: [
-          _buildTabs(primaryPurple),
-          const Divider(color: Color(0xFF1F1F35), height: 1),
+          _buildTabs(primaryPurple, accentPurple),
+          const SizedBox(height: 8),
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (_selectedTab == 0) ...[
-                    _buildSectionHeader("Prioritized Queue", "URGENT", const Color(0xFFF43F5E)),
-                    const SizedBox(height: 16),
-                    ...filteredVouchers.take(2).map((v) => _buildVoucherCard(v, isPrioritized: true)),
-                    const SizedBox(height: 32),
-                    _buildSectionHeader("Standard Queue", null, null),
-                    const SizedBox(height: 16),
-                    ...filteredVouchers.skip(2).map((v) => _buildVoucherCard(v, isPrioritized: false)),
-                  ] else ...[
-                    ...filteredVouchers.map((v) => _buildVoucherCard(v, isPrioritized: false)),
+            child: RefreshIndicator(
+              onRefresh: () async => widget.onRefresh(),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (_selectedTab == 0 && filteredVouchers.isNotEmpty) ...[
+                      _buildSectionHeader("Prioritized Queue", "URGENT", const Color(0xFFF43F5E)),
+                      const SizedBox(height: 16),
+                      ...filteredVouchers.take(1).map((v) => _buildVoucherCard(v, isPrioritized: true, cardColor: cardColor, borderColor: borderColor, primaryPurple: primaryPurple)),
+                      const SizedBox(height: 32),
+                      _buildSectionHeader("Standard Queue", null, null),
+                      const SizedBox(height: 16),
+                      ...filteredVouchers.skip(1).map((v) => _buildVoucherCard(v, isPrioritized: false, cardColor: cardColor, borderColor: borderColor, primaryPurple: primaryPurple)),
+                    ] else if (filteredVouchers.isEmpty) ...[
+                      const SizedBox(height: 100),
+                      Center(
+                        child: Column(
+                          children: [
+                            Icon(LucideIcons.checkCircle2, color: Colors.white.withOpacity(0.1), size: 80),
+                            const SizedBox(height: 16),
+                            Text(
+                              "All Caught Up!",
+                              style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              "No vouchers awaiting your approval.",
+                              style: GoogleFonts.plusJakartaSans(color: Colors.white.withOpacity(0.4)),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ] else ...[
+                      ...filteredVouchers.map((v) => _buildVoucherCard(v, isPrioritized: false, cardColor: cardColor, borderColor: borderColor, primaryPurple: primaryPurple)),
+                    ],
+                    const SizedBox(height: 100),
                   ],
-                  const SizedBox(height: 80),
-                ],
+                ),
               ),
             ),
           ),
@@ -96,47 +122,49 @@ class _ManagerVouchersViewState extends State<ManagerVouchersView> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {},
         backgroundColor: primaryPurple,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
-        child: const Icon(LucideIcons.ticket, color: Colors.white, size: 28),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: const Icon(LucideIcons.layers, color: Colors.white, size: 28),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
-  Widget _buildTabs(Color primaryPurple) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+  Widget _buildTabs(Color primaryPurple, Color accentPurple) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: const Color(0xFF161625),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFF1F1F35)),
+      ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildTabItem("Pending (12)", 0, primaryPurple),
-          _buildTabItem("Approved", 1, primaryPurple),
-          _buildTabItem("Rejected", 2, primaryPurple),
+          Expanded(child: _buildTabItem("Pending", 0, primaryPurple, accentPurple)),
+          Expanded(child: _buildTabItem("Posted", 1, primaryPurple, accentPurple)),
+          Expanded(child: _buildTabItem("Rejected", 2, primaryPurple, accentPurple)),
         ],
       ),
     );
   }
 
-  Widget _buildTabItem(String label, int index, Color primaryPurple) {
+  Widget _buildTabItem(String label, int index, Color primaryPurple, Color accentPurple) {
     bool isSelected = _selectedTab == index;
     return GestureDetector(
       onTap: () => setState(() => _selectedTab = index),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: isSelected ? primaryPurple : Colors.transparent,
-              width: 3,
-            ),
-          ),
+          color: isSelected ? primaryPurple : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Text(
           label,
+          textAlign: TextAlign.center,
           style: GoogleFonts.plusJakartaSans(
-            fontSize: 14,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-            color: isSelected ? Colors.white : Colors.grey[500],
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+            color: isSelected ? Colors.white : Colors.white.withOpacity(0.4),
           ),
         ),
       ),
@@ -146,16 +174,11 @@ class _ManagerVouchersViewState extends State<ManagerVouchersView> {
   Widget _buildSectionHeader(String title, String? tag, Color? tagColor) {
     return Row(
       children: [
-        if (title == "Prioritized Queue") 
-          const Icon(LucideIcons.alertCircle, color: Color(0xFFF59E0B), size: 20),
-        if (title == "Standard Queue")
-          const Icon(LucideIcons.layoutList, color: Color(0xFF8B5CF6), size: 20),
-        const SizedBox(width: 8),
         Text(
           title,
           style: GoogleFonts.plusJakartaSans(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
             color: Colors.white,
           ),
         ),
@@ -164,14 +187,14 @@ class _ManagerVouchersViewState extends State<ManagerVouchersView> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: tagColor!.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(6),
+              color: tagColor!.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
               tag,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 10,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w800,
                 color: tagColor,
                 letterSpacing: 0.5,
               ),
@@ -181,251 +204,144 @@ class _ManagerVouchersViewState extends State<ManagerVouchersView> {
     );
   }
 
-  Widget _buildVoucherCard(Map<String, dynamic> voucher, {required bool isPrioritized}) {
-    final String type = voucher['voucher_type_name']?.toString() ?? "Marketing";
-    final String time = "2h ago"; // Placeholder
-    final double amount = double.tryParse(voucher['total_debit']?.toString() ?? '0') ?? 450.0;
-    final String narration = voucher['narration'] ?? "Q3 Campaign Social Assets";
-    final String requester = "${voucher['first_name'] ?? 'Sarah'} ${voucher['last_name'] ?? 'Jenkins'}";
+  Widget _buildVoucherCard(Map<String, dynamic> voucher, {required bool isPrioritized, required Color cardColor, required Color borderColor, required Color primaryPurple}) {
+    final String type = (voucher['voucher_type_name'] ?? "Expense").toString();
+    final String time = "2h ago";
+    final double amount = double.tryParse(voucher['total_debit']?.toString() ?? '0') ?? 0;
+    final String narration = voucher['narration'] ?? "No description provided";
+    final String requester = "${voucher['first_name'] ?? 'User'}";
     
-    // Receipt image placeholder
-    final receiptImg = "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=200&q=80";
-
-    if (isPrioritized) {
-      return Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: const Color(0xFF161625),
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: const Color(0xFF1F1F35)),
-        ),
-        child: Column(
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF8B5CF6).withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              type,
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFF8B5CF6),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            "• $time",
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12,
-                              color: Colors.grey[500],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        "\$${amount.toStringAsFixed(2)}",
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        narration,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14,
-                          color: Colors.grey[400],
-                        ),
-                      ),
-                    ],
-                  ),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: isPrioritized ? primaryPurple.withOpacity(0.5) : borderColor),
+        boxShadow: isPrioritized ? [
+          BoxShadow(color: primaryPurple.withOpacity(0.1), blurRadius: 15, offset: const Offset(0, 5))
+        ] : null,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: primaryPurple.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    image: DecorationImage(
-                      image: NetworkImage(receiptImg),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 12,
-                  backgroundImage: NetworkImage("https://i.pravatar.cc/150?u=$requester"),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  "Requested by: ",
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    color: Colors.grey[500],
-                  ),
-                ),
-                Text(
-                  requester,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(LucideIcons.checkCircle, size: 16),
-                    label: const Text("Approve"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF8B5CF6),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(LucideIcons.eye, size: 16),
-                    label: const Text("Review"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1F1F35),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
-    } else {
-      // Standard Queue Item
-      return Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF161625),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFF1F1F35)),
-        ),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
+                child: Text(
                   type.toUpperCase(),
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[500],
+                    fontWeight: FontWeight.w800,
+                    color: primaryPurple,
                     letterSpacing: 0.5,
                   ),
                 ),
-                Text(
-                  "\$${amount.toStringAsFixed(2)}",
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+              ),
+              Text(
+                time,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  color: Colors.white.withOpacity(0.3),
+                  fontWeight: FontWeight.w600,
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        narration,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "₹${amount.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}",
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        letterSpacing: -0.5,
                       ),
-                      Text(
-                        requester,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          color: Colors.grey[500],
-                        ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      narration,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 14,
+                        color: Colors.white.withOpacity(0.6),
+                        fontWeight: FontWeight.w500,
+                        height: 1.3,
                       ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2E2344),
-                      foregroundColor: const Color(0xFFA855F7),
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    child: const Text("Approve"),
-                  ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1F1F35),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
-                    child: const Text("Review"),
+              ),
+              if (isPrioritized)
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: primaryPurple.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: primaryPurple.withOpacity(0.2)),
                   ),
+                  child: const Icon(LucideIcons.fileText, color: Colors.white54, size: 24),
                 ),
-              ],
-            ),
-          ],
+            ],
+          ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 12,
+                backgroundColor: primaryPurple.withOpacity(0.2),
+                child: Text(requester[0], style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                "By $requester",
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white.withOpacity(0.4),
+                ),
+              ),
+              const Spacer(),
+              Row(
+                children: [
+                  _buildActionButton(LucideIcons.x, Colors.redAccent, () {}),
+                  const SizedBox(width: 12),
+                  _buildActionButton(LucideIcons.check, const Color(0xFF10B981), () {}),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton(IconData icon, Color color, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.12),
+          shape: BoxShape.circle,
         ),
-      );
-    }
+        child: Icon(icon, color: color, size: 18),
+      ),
+    );
   }
 }

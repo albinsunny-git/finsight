@@ -26,79 +26,90 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
 
   @override
   Widget build(BuildContext context) {
-    final Color bgColor = const Color(0xFF0D0D17);
-    final Color cardColor = const Color(0xFF161625);
-    final Color primaryPurple = const Color(0xFF8B5CF6);
+    const Color bgColor = Color(0xFF0D0D17);
+    const Color cardColor = Color(0xFF161625);
+    const Color primaryPurple = Color(0xFF8B5CF6);
+    const Color accentPurple = Color(0xFFA855F7);
+    const Color borderColor = Color(0xFF1F1F35);
 
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
+          onPressed: () => widget.onNavigate('dashboard'),
+        ),
         title: Text(
-          "Executive Summaries",
+          "Executive Reports",
           style: GoogleFonts.plusJakartaSans(
             fontSize: 20,
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w800,
             color: Colors.white,
           ),
         ),
         actions: [
-          IconButton(icon: const Icon(LucideIcons.bell, color: Colors.white), onPressed: () {}),
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: CircleAvatar(
-              radius: 16,
-              backgroundImage: NetworkImage("https://i.pravatar.cc/150?u=manager"),
-            ),
-          ),
+          IconButton(icon: const Icon(LucideIcons.share2, color: Colors.white, size: 20), onPressed: () {}),
+          const SizedBox(width: 8),
         ],
       ),
       body: Column(
         children: [
-          _buildTabs(primaryPurple),
-          const Divider(color: Color(0xFF1F1F35), height: 1),
+          _buildTabs(primaryPurple, accentPurple),
+          const SizedBox(height: 8),
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildQuickInsight(cardColor, primaryPurple),
-                  const SizedBox(height: 32),
-                  Text(
-                    "Key Reports",
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+            child: RefreshIndicator(
+              onRefresh: () async => widget.onRefresh(),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildQuickInsight(cardColor, borderColor, primaryPurple, accentPurple),
+                    const SizedBox(height: 32),
+                    Text(
+                      "Critical Business Reports",
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildReportItem(
-                    "Monthly Performance",
-                    "Detailed breakdown of revenue streams, operational expenses, and monthly target KPIs for all departments.",
-                    LucideIcons.calendar,
-                    "View Report",
-                    primaryPurple,
-                  ),
-                  _buildReportItem(
-                    "Quarterly Tax Estimates",
-                    "Projected tax liabilities based on current quarterly earnings. Includes deductions and localized tax compliance checks.",
-                    LucideIcons.wallet,
-                    "Review Estimates",
-                    const Color(0xFF1F1F35),
-                  ),
-                  _buildReportItem(
-                    "Audit Readiness",
-                    "Status update on financial documentation and compliance certificates required for the upcoming annual audit.",
-                    LucideIcons.clipboardCheck,
-                    "Audit Checklist",
-                    const Color(0xFF1F1F35),
-                    trailingTag: "2 Pending",
-                    tagColor: const Color(0xFFF59E0B),
-                  ),
-                ],
+                    const SizedBox(height: 20),
+                    _buildReportItem(
+                      "Monthly Performance",
+                      "Revenue streams, operational expenses, and monthly target KPIs for all departments.",
+                      LucideIcons.trendingUp,
+                      "Generate Report",
+                      primaryPurple,
+                      cardColor,
+                      borderColor
+                    ),
+                    _buildReportItem(
+                      "Tax Compliance",
+                      "Projected tax liabilities and compliance checks based on current quarterly earnings.",
+                      LucideIcons.shieldCheck,
+                      "Review Status",
+                      const Color(0xFF1F1F35),
+                      cardColor,
+                      borderColor
+                    ),
+                    _buildReportItem(
+                      "Audit Readiness",
+                      "Financial documentation and compliance certificates status for annual audit.",
+                      LucideIcons.fileCheck,
+                      "Check Readiness",
+                      const Color(0xFF1F1F35),
+                      cardColor,
+                      borderColor,
+                      trailingTag: "2 Actions",
+                      tagColor: const Color(0xFFF59E0B),
+                    ),
+                    const SizedBox(height: 40),
+                  ],
+                ),
               ),
             ),
           ),
@@ -107,53 +118,56 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
     );
   }
 
-  Widget _buildTabs(Color primaryPurple) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+  Widget _buildTabs(Color primaryPurple, Color accentPurple) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: const Color(0xFF161625),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFF1F1F35)),
+      ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildTabItem("Overview", 0, primaryPurple),
-          _buildTabItem("Tax Filing", 1, primaryPurple),
-          _buildTabItem("Audit Logs", 2, primaryPurple),
+          Expanded(child: _buildTabItem("Overview", 0, primaryPurple, accentPurple)),
+          Expanded(child: _buildTabItem("Tax Filing", 1, primaryPurple, accentPurple)),
+          Expanded(child: _buildTabItem("Audit Logs", 2, primaryPurple, accentPurple)),
         ],
       ),
     );
   }
 
-  Widget _buildTabItem(String label, int index, Color primaryPurple) {
+  Widget _buildTabItem(String label, int index, Color primaryPurple, Color accentPurple) {
     bool isSelected = _selectedTab == index;
     return GestureDetector(
       onTap: () => setState(() => _selectedTab = index),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(
-              color: isSelected ? primaryPurple : Colors.transparent,
-              width: 3,
-            ),
-          ),
+          color: isSelected ? primaryPurple : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
         ),
         child: Text(
           label,
+          textAlign: TextAlign.center,
           style: GoogleFonts.plusJakartaSans(
-            fontSize: 14,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-            color: isSelected ? Colors.white : Colors.grey[500],
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+            color: isSelected ? Colors.white : Colors.white.withOpacity(0.4),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildQuickInsight(Color cardColor, Color primaryPurple) {
+  Widget _buildQuickInsight(Color cardColor, Color borderColor, Color primaryPurple, Color accentPurple) {
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
         color: cardColor,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF1F1F35)),
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -161,52 +175,18 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Quick Insight",
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "NET PROFIT TREND",
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey[500],
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    "+\$124,500.00",
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFFA855F7),
-                    ),
-                  ),
-                ],
+              Text(
+                "Profit Analytics",
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withOpacity(0.1),
+                  color: const Color(0xFF10B981).withOpacity(0.12),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -214,10 +194,10 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
                     const Icon(LucideIcons.trendingUp, color: Color(0xFF10B981), size: 14),
                     const SizedBox(width: 4),
                     Text(
-                      "12%",
+                      "22.5%",
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w800,
                         color: const Color(0xFF10B981),
                       ),
                     ),
@@ -226,12 +206,23 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
               ),
             ],
           ),
+          const SizedBox(height: 24),
+          Text(
+            "₹1,24,500",
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 34,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: -1,
+            ),
+          ),
           const SizedBox(height: 4),
           Text(
-            "vs last quarter",
+            "Estimated Net Profit (QTD)",
             style: GoogleFonts.plusJakartaSans(
               fontSize: 12,
-              color: Colors.grey[500],
+              color: Colors.white.withOpacity(0.35),
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 32),
@@ -251,13 +242,13 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
                         const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN'];
                         if (value.toInt() >= months.length) return const SizedBox.shrink();
                         return Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
+                          padding: const EdgeInsets.only(top: 10.0),
                           child: Text(
                             months[value.toInt()],
                             style: GoogleFonts.plusJakartaSans(
-                              color: Colors.grey[500],
+                              color: Colors.white.withOpacity(0.25),
                               fontSize: 10,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         );
@@ -272,12 +263,12 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
                 gridData: const FlGridData(show: false),
                 borderData: FlBorderData(show: false),
                 barGroups: [
-                  _buildBarGroup(0, 8),
-                  _buildBarGroup(1, 12),
-                  _buildBarGroup(2, 11),
-                  _buildBarGroup(3, 14),
-                  _buildBarGroup(4, 17),
-                  _buildBarGroup(5, 19, isHighlighted: true),
+                  _buildBarGroup(0, 8, primaryPurple),
+                  _buildBarGroup(1, 12, primaryPurple),
+                  _buildBarGroup(2, 11, primaryPurple),
+                  _buildBarGroup(3, 14, primaryPurple),
+                  _buildBarGroup(4, 17, primaryPurple),
+                  _buildBarGroup(5, 19, accentPurple, isHighlighted: true),
                 ],
               ),
             ),
@@ -287,60 +278,68 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
     );
   }
 
-  BarChartGroupData _buildBarGroup(int x, double y, {bool isHighlighted = false}) {
+  BarChartGroupData _buildBarGroup(int x, double y, Color color, {bool isHighlighted = false}) {
     return BarChartGroupData(
       x: x,
       barRods: [
         BarChartRodData(
           toY: y,
-          color: isHighlighted ? const Color(0xFF8B5CF6) : const Color(0xFF581C87),
-          width: 35,
-          borderRadius: BorderRadius.circular(4),
+          color: isHighlighted ? color : color.withOpacity(0.2),
+          width: 32,
+          borderRadius: BorderRadius.circular(6),
         ),
       ],
     );
   }
 
-  Widget _buildReportItem(String title, String subtitle, IconData icon, String btnText, Color btnColor, {String? trailingTag, Color? tagColor}) {
+  Widget _buildReportItem(String title, String subtitle, IconData icon, String btnText, Color btnColor, Color cardColor, Color borderColor, {String? trailingTag, Color? tagColor}) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFF161625),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF1F1F35)),
+        color: cardColor,
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: double.infinity,
-            height: 120,
-            decoration: BoxDecoration(
-              color: const Color(0xFF1F1F35),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Center(
-              child: Icon(icon, color: const Color(0xFF8B5CF6).withOpacity(0.5), size: 48),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            title,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            subtitle,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 14,
-              color: Colors.grey[400],
-              height: 1.5,
-            ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1F1F35),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Icon(icon, color: const Color(0xFF8B5CF6), size: 24),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        color: Colors.white.withOpacity(0.4),
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 24),
           Row(
@@ -352,32 +351,32 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
                     backgroundColor: btnColor,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                     elevation: 0,
                   ),
                   child: Text(
                     btnText,
-                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
+                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 13),
                   ),
                 ),
               ),
               if (trailingTag != null) ...[
                 const SizedBox(width: 12),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
-                    color: tagColor!.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
+                    color: tagColor!.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
                     children: [
-                      Icon(LucideIcons.alertTriangle, color: tagColor, size: 14),
+                      Icon(LucideIcons.alertCircle, color: tagColor, size: 14),
                       const SizedBox(width: 6),
                       Text(
                         trailingTag,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w800,
                           color: tagColor,
                         ),
                       ),
