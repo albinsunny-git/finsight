@@ -112,6 +112,12 @@ async function initAdminDashboard() {
         });
     }
 
+    // Bind APK Download
+    document.querySelectorAll('.btn-get-app').forEach(btn => {
+        btn.href = `${window.BASE_PATH}/mobile/flutter-apk/app-release.apk`;
+        btn.setAttribute('download', 'finsight_mobile.apk');
+    });
+
     // Special case for dashboard welcome message
     const welcomeMsg = document.getElementById('headerWelcomeMsg');
     if (welcomeMsg) {

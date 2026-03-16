@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:finsight_mobile/services/api_service.dart';
+import 'dart:io';
 
 class ManagerDashboardView extends StatelessWidget {
   final Map<String, dynamic> dashboardData;
@@ -25,437 +27,425 @@ class ManagerDashboardView extends StatelessWidget {
     required this.onNavigate,
   });
 
-  Widget _buildMetricCard(
-      String title,
-      String value,
-      String trend,
-      bool isPositive,
-      IconData icon,
-      Color iconColor,
-      Color cardColor,
-      Color textColor,
-      Color subtextColor,
-      VoidCallback? onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.withOpacity(0.1)),
-          boxShadow: isDark
-              ? []
-              : [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.02),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  )
-                ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Icon(icon, color: iconColor, size: 20),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: isPositive
-                        ? Colors.green.withOpacity(0.1)
-                        : Colors.red.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    trend,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: isPositive ? Colors.green : Colors.red,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                color: subtextColor,
-                letterSpacing: 0.5,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-                color: textColor,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  @override
+  Widget build(BuildContext context) {
+    // Colors from Amethyst Theme logic
+    final Color bgColor = const Color(0xFF0D0D17);
+    final Color cardColor = const Color(0xFF161625);
+    final Color primaryPurple = const Color(0xFF8B5CF6);
+    final Color accentPurple = const Color(0xFFD8B4FE);
 
-  Widget _buildApprovalItem(
-      String title,
-      String subtitle,
-      String amount,
-      String time,
-      IconData icon,
-      Color cardColor,
-      Color textColor,
-      Color subtextColor,
-      VoidCallback? onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.withOpacity(0.1)),
-          boxShadow: isDark
-              ? []
-              : [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.02),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  )
-                ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isDark ? Colors.grey[800] : const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: Colors.blueGrey, size: 24),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    return Scaffold(
+      backgroundColor: bgColor,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeader(context, primaryPurple),
+              const SizedBox(height: 24),
+              Row(
                 children: [
-                  Text(
-                    title,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: textColor,
+                  Expanded(
+                    child: _buildSummaryCard(
+                      "Total Revenue",
+                      "\$${(totalIncome / 1).toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}",
+                      "+12.5%",
+                      LucideIcons.banknote,
+                      const Color(0xFF8B5CF6).withOpacity(0.15),
+                      const Color(0xFF8B5CF6),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      color: subtextColor,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildSummaryCard(
+                      "Pending Approvals",
+                      "14",
+                      "Requires Action",
+                      LucideIcons.clipboardCheck,
+                      const Color(0xFFF59E0B).withOpacity(0.15),
+                      const Color(0xFFF59E0B),
+                      isWarning: true,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  amount,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: textColor,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  time,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
-                    color: subtextColor,
-                  ),
-                ),
-              ],
-            ),
-          ],
+              const SizedBox(height: 24),
+              _buildOverviewCard(cardColor, primaryPurple, accentPurple),
+              const SizedBox(height: 24),
+              _buildRecentActivity(cardColor),
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildLegendItem(Color color, String label, String percentage,
-      Color textColor, Color subtextColor) {
+  Widget _buildHeader(BuildContext context, Color primaryPurple) {
+    final String name = userData['first_name'] ?? 'Alex Sterling';
+    final profileImage = userData['profileImage'];
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Row(
           children: [
-            Container(
-                width: 10,
-                height: 10,
-                decoration:
-                    BoxDecoration(color: color, shape: BoxShape.circle)),
-            const SizedBox(width: 8),
-            Text(label,
-                style: GoogleFonts.plusJakartaSans(
-                    color: subtextColor, fontSize: 13)),
+            CircleAvatar(
+              radius: 24,
+              backgroundColor: primaryPurple.withOpacity(0.2),
+              backgroundImage: profileImage != null && profileImage.isNotEmpty
+                  ? (profileImage.startsWith('http') ||
+                          profileImage.startsWith('uploads/'))
+                      ? NetworkImage(profileImage.startsWith('http')
+                          ? profileImage
+                          : "${ApiService.baseUrl.replaceAll('/api', '')}/$profileImage") as ImageProvider
+                      : FileImage(File(profileImage))
+                  : null,
+              child: profileImage == null || profileImage.isEmpty
+                  ? Icon(LucideIcons.user, color: primaryPurple, size: 24)
+                  : null,
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Welcome back,",
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14,
+                    color: Colors.grey[400],
+                  ),
+                ),
+                Text(
+                  name,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: primaryPurple,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
-        Text(percentage,
-            style: GoogleFonts.plusJakartaSans(
-                color: textColor, fontWeight: FontWeight.bold, fontSize: 13)),
+        Stack(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E1E30),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(LucideIcons.bell, color: Colors.white, size: 24),
+            ),
+            if (unreadNotificationsCount > 0)
+              Positioned(
+                right: 2,
+                top: 2,
+                child: Container(
+                  width: 10,
+                  height: 10,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF43F5E),
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+          ],
+        ),
       ],
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    Color cardColor = isDark ? const Color(0xFF1E293B) : Colors.white;
-    Color textColor = isDark ? Colors.white : const Color(0xFF1A1D23);
-    Color subtextColor = isDark ? Colors.grey[400]! : Colors.grey[600]!;
-
-    // Logic to pull real data
-    final summary = dashboardData['summary'] ?? {};
-    final double assets =
-        double.tryParse(summary['assets']?.toString() ?? '0') ?? 0;
-    final double liabilities =
-        double.tryParse(summary['liabilities']?.toString() ?? '0') ?? 0;
-    final double equity =
-        double.tryParse(summary['equity']?.toString() ?? '0') ?? 0;
-
-    // Filter pending vouchers
-    final pendingVouchers = vouchers
-        .where((v) => v['status']?.toString().toLowerCase() == 'pending')
-        .toList();
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+  Widget _buildSummaryCard(String title, String value, String trend,
+      IconData icon, Color iconBg, Color iconColor,
+      {bool isWarning = false}) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF161625),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFF1F1F35)),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: _buildMetricCard(
-                  "TOTAL INCOME",
-                  "₹${(totalIncome / 100000).toStringAsFixed(1)} L",
-                  "+14%",
-                  true,
-                  LucideIcons.arrowUpRight,
-                  Colors.green,
-                  cardColor,
-                  textColor,
-                  subtextColor,
-                  () => onNavigate('reports'),
+              Text(
+                title,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14,
+                  color: Colors.grey[400],
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildMetricCard(
-                  "TOTAL EXPENSE",
-                  "₹${(totalExpense / 100000).toStringAsFixed(1)} L",
-                  "-8%",
-                  false,
-                  LucideIcons.arrowDownRight,
-                  Colors.red,
-                  cardColor,
-                  textColor,
-                  subtextColor,
-                  () => onNavigate('reports'),
+              Icon(icon, color: iconColor, size: 20),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              if (!isWarning)
+                Icon(LucideIcons.trendingUp, color: const Color(0xFF10B981), size: 14),
+              if (isWarning)
+                const Text("!", style: TextStyle(color: Color(0xFFF43F5E), fontWeight: FontWeight.bold)),
+              const SizedBox(width: 4),
+              Text(
+                trend,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: isWarning ? const Color(0xFFF43F5E) : const Color(0xFF10B981),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOverviewCard(Color cardColor, Color primaryPurple, Color accentPurple) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFF1F1F35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Manager's Overview",
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    "Weekly Performance Stats",
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 14,
+                      color: Colors.grey[400],
+                    ),
+                  ),
+                ],
+              ),
+              Text(
+                "View Details",
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: primaryPurple,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 24),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
             children: [
               Text(
-                "Awaiting My Approval",
+                "\$42,000",
                 style: GoogleFonts.plusJakartaSans(
-                  fontSize: 18,
+                  fontSize: 32,
                   fontWeight: FontWeight.bold,
-                  color: textColor,
+                  color: Colors.white,
                 ),
               ),
-              GestureDetector(
-                onTap: () => onNavigate('vouchers'),
-                child: Text(
-                  "VIEW ALL (${pendingVouchers.length})",
-                  style: GoogleFonts.plusJakartaSans(
-                    color: const Color(0xFFFFC107),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
+              const SizedBox(width: 8),
+              Text(
+                "Target: \$50k",
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14,
+                  color: Colors.grey[500],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          if (pendingVouchers.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24),
-              child: Center(
-                child: Column(
-                  children: [
-                    const Icon(LucideIcons.checkCircle2,
-                        color: Colors.green, size: 48),
-                    const SizedBox(height: 12),
-                    Text("Great! No pending approvals",
-                        style:
-                            GoogleFonts.plusJakartaSans(color: subtextColor)),
-                  ],
+          const SizedBox(height: 32),
+          SizedBox(
+            height: 150,
+            child: BarChart(
+              BarChartData(
+                alignment: BarChartAlignment.spaceAround,
+                maxY: 20,
+                barTouchData: BarTouchData(enabled: false),
+                titlesData: FlTitlesData(
+                  show: true,
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      getTitlesWidget: (value, meta) {
+                        const days = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            days[value.toInt()],
+                            style: GoogleFonts.plusJakartaSans(
+                              color: Colors.grey[500],
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        );
+                      },
+                      reservedSize: 30,
+                    ),
+                  ),
+                  leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                 ),
+                gridData: const FlGridData(show: false),
+                borderData: FlBorderData(show: false),
+                barGroups: [
+                  _buildBarGroup(0, 10),
+                  _buildBarGroup(1, 14),
+                  _buildBarGroup(2, 18, isHighlighted: true),
+                  _buildBarGroup(3, 8),
+                  _buildBarGroup(4, 13),
+                  _buildBarGroup(5, 6),
+                  _buildBarGroup(6, 4),
+                ],
               ),
-            )
-          else
-            ...pendingVouchers.take(3).map((v) => _buildApprovalItem(
-                v['narration'] ?? 'No Description',
-                "Submitted by ${v['first_name'] ?? 'Staff'} ${v['last_name'] ?? ''}"
-                    .trim(),
-                "₹${double.tryParse(v['total_debit']?.toString() ?? '0')?.toStringAsFixed(0) ?? '0'}",
-                v['voucher_date']?.toString().split(' ')[0] ?? 'Just now',
-                LucideIcons.fileText,
-                cardColor,
-                textColor,
-                subtextColor,
-                () => onNavigate('vouchers'))),
-          const SizedBox(height: 24),
-          Text(
-            "Account Analytics",
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: textColor,
             ),
           ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: cardColor,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.withOpacity(0.1)),
-              boxShadow: isDark
-                  ? []
-                  : [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.02),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      )
-                    ],
+        ],
+      ),
+    );
+  }
+
+  BarChartGroupData _buildBarGroup(int x, double y, {bool isHighlighted = false}) {
+    return BarChartGroupData(
+      x: x,
+      barRods: [
+        BarChartRodData(
+          toY: y,
+          color: isHighlighted ? const Color(0xFF8B5CF6) : const Color(0xFF1F1F35),
+          width: 30,
+          borderRadius: BorderRadius.circular(6),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRecentActivity(Color cardColor) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "Recent Team Activity",
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
+            Text(
+              "See all",
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF8B5CF6),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _buildActivityItem(
+          "Sarah completed 'Project Amethyst'",
+          "2 hours ago • Development Team",
+          LucideIcons.checkCircle2,
+          const Color(0xFF10B981).withOpacity(0.1),
+          const Color(0xFF10B981),
+        ),
+        _buildActivityItem(
+          "James requested leave",
+          "5 hours ago • Sales Team",
+          LucideIcons.alertTriangle,
+          const Color(0xFFF59E0B).withOpacity(0.1),
+          const Color(0xFFF59E0B),
+        ),
+        _buildActivityItem(
+          "New team member joined",
+          "Yesterday • Marketing Team",
+          LucideIcons.userPlus,
+          const Color(0xFF8B5CF6).withOpacity(0.1),
+          const Color(0xFF8B5CF6),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActivityItem(String title, String subtitle, IconData icon, Color bg, Color iconColor) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF161625),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFF1F1F35)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: bg,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: iconColor, size: 20),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(
-                  height: 200,
-                  child: Stack(
-                    children: [
-                      PieChart(
-                        PieChartData(
-                          sectionsSpace: 0,
-                          centerSpaceRadius: 60,
-                          startDegreeOffset: 270,
-                          sections: [
-                            PieChartSectionData(
-                                color: const Color(0xFFFFC107),
-                                value: assets > 0 ? assets : 1,
-                                radius: 25,
-                                showTitle: false),
-                            PieChartSectionData(
-                                color: const Color(0xFFFACC15),
-                                value: liabilities > 0 ? liabilities : 0.1,
-                                radius: 25,
-                                showTitle: false),
-                            PieChartSectionData(
-                                color: const Color(0xFF2E2C23),
-                                value: equity > 0 ? equity : 0.1,
-                                radius: 25,
-                                showTitle: false),
-                          ],
-                        ),
-                      ),
-                      Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "TOTAL ASSETS",
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                color: subtextColor,
-                              ),
-                            ),
-                            Text(
-                              "₹${(assets / 100000).toStringAsFixed(1)}L",
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w800,
-                                color: textColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                Text(
+                  title,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        children: [
-                          _buildLegendItem(const Color(0xFFFFC107), "Assets",
-                              "Active", textColor, subtextColor),
-                          const SizedBox(height: 12),
-                          _buildLegendItem(const Color(0xFFFACC15),
-                              "Liabilities", "Owed", textColor, subtextColor),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 24),
-                    Expanded(
-                      child: Column(
-                        children: [
-                          _buildLegendItem(const Color(0xFF2E2C23), "Equity",
-                              "Capital", textColor, subtextColor),
-                          const SizedBox(height: 12),
-                          _buildLegendItem(Colors.greenAccent, "Net Cash",
-                              "Pos.", textColor, subtextColor),
-                        ],
-                      ),
-                    ),
-                  ],
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    color: Colors.grey[500],
+                  ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 24),
         ],
       ),
     );

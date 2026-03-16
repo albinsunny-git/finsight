@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:finsight_mobile/services/api_service.dart';
-import 'package:finsight_mobile/screens/voucher_detail_screen.dart';
 
 class ManagerVouchersView extends StatefulWidget {
   final List<dynamic> vouchers;
@@ -10,7 +8,6 @@ class ManagerVouchersView extends StatefulWidget {
   final double totalIncome;
   final double totalExpense;
   final String currentUserId;
-
   final Function(String) onNavigate;
   final VoidCallback onRefresh;
 
@@ -32,362 +29,10 @@ class ManagerVouchersView extends StatefulWidget {
 class _ManagerVouchersViewState extends State<ManagerVouchersView> {
   int _selectedTab = 0;
 
-  Widget _buildTab(String title, int index) {
-    bool isSelected = _selectedTab == index;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _selectedTab = index),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color:
-                    isSelected ? const Color(0xFFFFC107) : Colors.transparent,
-                width: 2,
-              ),
-            ),
-          ),
-          child: Center(
-            child: Text(
-              title,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 14,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                color: isSelected ? const Color(0xFFFFC107) : Colors.grey[500],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  final ApiService _apiService = ApiService();
-
-  void _navigateToDetail(Map<String, dynamic> voucher) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => VoucherDetailScreen(
-          voucher: voucher,
-          userRole: 'manager',
-          currentUserId: widget.currentUserId,
-        ),
-      ),
-    );
-
-    if (result == true) {
-      widget.onRefresh();
-    }
-  }
-
-  Future<void> _handleApprove(Map<String, dynamic> voucher) async {
-    final sysId = int.tryParse(voucher['id'].toString()) ?? 0;
-    final result = await _apiService.approveVoucher(sysId);
-    if (mounted) {
-      if (result['success'] == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text("Voucher Approved"), backgroundColor: Colors.green),
-        );
-        widget.onRefresh();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text(result['message'] ?? "Approval failed"),
-              backgroundColor: Colors.red),
-        );
-      }
-    }
-  }
-
-  Future<void> _handleReject(Map<String, dynamic> voucher) async {
-    TextEditingController reasonController = TextEditingController();
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Reject Voucher"),
-        content: TextField(
-          controller: reasonController,
-          decoration: const InputDecoration(hintText: "Reason for rejection"),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text("Cancel")),
-          TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text("Reject")),
-        ],
-      ),
-    );
-
-    if (result == true) {
-      final sysId = int.tryParse(voucher['id'].toString()) ?? 0;
-      final apiResult =
-          await _apiService.rejectVoucher(sysId, reasonController.text);
-      if (mounted) {
-        if (apiResult['success'] == true) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text("Voucher Rejected"),
-                backgroundColor: Colors.orange),
-          );
-          widget.onRefresh();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text(apiResult['message'] ?? "Rejection failed"),
-                backgroundColor: Colors.red),
-          );
-        }
-      }
-    }
-  }
-
-  Widget _buildVoucherCard(Map<String, dynamic> voucher) {
-    final String title =
-        voucher['voucher_type_name']?.toString().toUpperCase() ?? "GENERAL";
-    final String subtitle = voucher['narration'] ?? "No description provided";
-    final String price =
-        "\$${double.tryParse(voucher['total_debit']?.toString() ?? '0')?.toStringAsFixed(2) ?? '0.00'}";
-    final String imgUrl =
-        "https://images.unsplash.com/photo-1554224155-6726b3ff858f?ixlib=rb-1.2.1&auto=format&fit=crop&w=150&q=80";
-    final String user =
-        "${voucher['first_name'] ?? 'Rajesh'} ${voucher['last_name'] ?? 'Kumar'}"
-            .trim();
-    final String id = "#${voucher['voucher_number'] ?? voucher['id']}";
-    final String date =
-        voucher['voucher_date']?.toString().split(' ')[0] ?? "24 OCT";
-    final String status = voucher['status']?.toString() ?? "pending";
-
-    Color cardColor = widget.isDark ? const Color(0xFF1E1E1E) : Colors.white;
-    Color textColor = widget.isDark ? Colors.white : Colors.black87;
-    Color subtextColor = Colors.grey[500]!;
-
-    return GestureDetector(
-      onTap: () => _navigateToDetail(voucher),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.withOpacity(0.05)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 70,
-                  height: 70,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(16),
-                    image: DecorationImage(
-                      image: NetworkImage(imgUrl),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Flexible(
-                            child: Text(
-                              title.toUpperCase(),
-                              style: GoogleFonts.plusJakartaSans(
-                                color: const Color(0xFFFFC107),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 10,
-                                letterSpacing: 1,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          Text(
-                            date.toUpperCase(),
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 10,
-                              color: subtextColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        price,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 24,
-                          fontWeight: FontWeight.w800,
-                          color: textColor,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14,
-                          color: subtextColor,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Icon(Icons.person, size: 14, color: subtextColor),
-                const SizedBox(width: 6),
-                Flexible(
-                  child: Text(
-                    "Submitted by $user",
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      color: subtextColor,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text("•", style: TextStyle(color: subtextColor)),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(
-                    id,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      color: subtextColor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            if (status.toLowerCase() == 'pending' || status == '0') ...[
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => _handleReject(voucher),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        side: const BorderSide(color: Color(0xFFE53E3E)),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        "Reject",
-                        style: GoogleFonts.plusJakartaSans(
-                          color: const Color(0xFFE53E3E),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => _handleApprove(voucher),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF38A169),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        "Approve",
-                        style: GoogleFonts.plusJakartaSans(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ] else ...[
-              Row(
-                children: [
-                  Builder(builder: (context) {
-                    Color statusBg;
-                    Color statusColor;
-                    if (status.toLowerCase() == 'posted' || status == '1') {
-                      statusBg = Colors.green.withOpacity(0.1);
-                      statusColor = Colors.greenAccent;
-                    } else {
-                      statusBg = Colors.red.withOpacity(0.1);
-                      statusColor = Colors.redAccent;
-                    }
-                    return Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: statusBg,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        (status.toLowerCase() == 'posted' || status == '1')
-                            ? "APPROVED"
-                            : "REJECTED",
-                        style: GoogleFonts.plusJakartaSans(
-                          color: statusColor,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    );
-                  }),
-                  const Spacer(),
-                  TextButton.icon(
-                    onPressed: () => _navigateToDetail(voucher),
-                    icon: const Icon(LucideIcons.edit, size: 14),
-                    label: Text(
-                      "Edit",
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    style: TextButton.styleFrom(
-                      foregroundColor: const Color(0xFFFF6B00),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    Color bgColor =
-        widget.isDark ? const Color(0xFF141414) : const Color(0xFFF5F5F5);
+    final Color bgColor = const Color(0xFF0D0D17);
+    final Color primaryPurple = const Color(0xFF8B5CF6);
 
     // Filter logic
     final statusMap = {0: 'pending', 1: 'posted', 2: 'rejected'};
@@ -398,207 +43,389 @@ class _ManagerVouchersViewState extends State<ManagerVouchersView> {
       return s == currentStatus;
     }).toList();
 
-    int pendingCount = widget.vouchers
-        .where((v) => v['status']?.toString().toLowerCase() == 'pending')
-        .length;
-
-    String sectionTitle = "AWAITING ACTION";
-    if (_selectedTab == 1) sectionTitle = "RECENTLY APPROVED";
-    if (_selectedTab == 2) sectionTitle = "REJECTED VOUCHERS";
-
-    return Container(
-      color: bgColor,
-      child: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            // Custom Header
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Scaffold(
+      backgroundColor: bgColor,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
+          onPressed: () => widget.onNavigate('dashboard'),
+        ),
+        title: Text(
+          "Voucher Approvals",
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        actions: [
+          IconButton(icon: const Icon(LucideIcons.history, color: Colors.white), onPressed: () {}),
+          IconButton(icon: const Icon(LucideIcons.filter, color: Colors.white), onPressed: () {}),
+        ],
+      ),
+      body: Column(
+        children: [
+          _buildTabs(primaryPurple),
+          const Divider(color: Color(0xFF1F1F35), height: 1),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Icon(Icons.arrow_back_ios_new,
-                          color: widget.isDark ? Colors.white : Colors.black87,
-                          size: 20),
-                      const SizedBox(width: 16),
-                      Text(
-                        "Voucher Review",
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: widget.isDark ? Colors.white : Colors.black87,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Icon(Icons.notifications,
-                      color: widget.isDark ? Colors.white : Colors.black87,
-                      size: 24),
+                  if (_selectedTab == 0) ...[
+                    _buildSectionHeader("Prioritized Queue", "URGENT", const Color(0xFFF43F5E)),
+                    const SizedBox(height: 16),
+                    ...filteredVouchers.take(2).map((v) => _buildVoucherCard(v, isPrioritized: true)),
+                    const SizedBox(height: 32),
+                    _buildSectionHeader("Standard Queue", null, null),
+                    const SizedBox(height: 16),
+                    ...filteredVouchers.skip(2).map((v) => _buildVoucherCard(v, isPrioritized: false)),
+                  ] else ...[
+                    ...filteredVouchers.map((v) => _buildVoucherCard(v, isPrioritized: false)),
+                  ],
+                  const SizedBox(height: 80),
                 ],
               ),
             ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {},
+        backgroundColor: primaryPurple,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+        child: const Icon(LucideIcons.ticket, color: Colors.white, size: 28),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+    );
+  }
 
-            // Tabs
-            Row(
-              children: [
-                _buildTab("Pending ($pendingCount)", 0),
-                _buildTab("Approved", 1),
-                _buildTab("Rejected", 2),
-              ],
+  Widget _buildTabs(Color primaryPurple) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildTabItem("Pending (12)", 0, primaryPurple),
+          _buildTabItem("Approved", 1, primaryPurple),
+          _buildTabItem("Rejected", 2, primaryPurple),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabItem(String label, int index, Color primaryPurple) {
+    bool isSelected = _selectedTab == index;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedTab = index),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: isSelected ? primaryPurple : Colors.transparent,
+              width: 3,
             ),
-            Divider(
-                height: 1,
-                color: widget.isDark ? Colors.white12 : Colors.black12),
+          ),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 14,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+            color: isSelected ? Colors.white : Colors.grey[500],
+          ),
+        ),
+      ),
+    );
+  }
 
-            Expanded(
-              child: RefreshIndicator(
-                onRefresh: () async {
-                  widget.onRefresh();
-                },
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(20),
+  Widget _buildSectionHeader(String title, String? tag, Color? tagColor) {
+    return Row(
+      children: [
+        if (title == "Prioritized Queue") 
+          const Icon(LucideIcons.alertCircle, color: Color(0xFFF59E0B), size: 20),
+        if (title == "Standard Queue")
+          const Icon(LucideIcons.layoutList, color: Color(0xFF8B5CF6), size: 20),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        const Spacer(),
+        if (tag != null)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: tagColor!.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              tag,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: tagColor,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildVoucherCard(Map<String, dynamic> voucher, {required bool isPrioritized}) {
+    final String type = voucher['voucher_type_name']?.toString() ?? "Marketing";
+    final String time = "2h ago"; // Placeholder
+    final double amount = double.tryParse(voucher['total_debit']?.toString() ?? '0') ?? 450.0;
+    final String narration = voucher['narration'] ?? "Q3 Campaign Social Assets";
+    final String requester = "${voucher['first_name'] ?? 'Sarah'} ${voucher['last_name'] ?? 'Jenkins'}";
+    
+    // Receipt image placeholder
+    final receiptImg = "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=200&q=80";
+
+    if (isPrioritized) {
+      return Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xFF161625),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFF1F1F35)),
+        ),
+        child: Column(
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.green.withOpacity(0.05),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                    color: Colors.green.withOpacity(0.1)),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "TOTAL INCOME",
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.green,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    "₹${(widget.totalIncome / 100000).toStringAsFixed(1)} L",
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: widget.isDark
-                                          ? Colors.white
-                                          : Colors.black87,
-                                    ),
-                                  ),
-                                ],
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF8B5CF6).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              type,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF8B5CF6),
                               ),
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.red.withOpacity(0.05),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                    color: Colors.red.withOpacity(0.1)),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "TOTAL EXPENSE",
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.redAccent,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    "₹${(widget.totalExpense / 100000).toStringAsFixed(1)} L",
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: widget.isDark
-                                          ? Colors.white
-                                          : Colors.black87,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
+                          const SizedBox(width: 8),
                           Text(
-                            sectionTitle,
+                            "• $time",
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
-                              fontWeight: FontWeight.bold,
                               color: Colors.grey[500],
-                              letterSpacing: 1,
                             ),
                           ),
-                          if (_selectedTab == 0)
-                            Row(
-                              children: [
-                                Text(
-                                  "Select All",
-                                  style: GoogleFonts.plusJakartaSans(
-                                    color: const Color(0xFFFFC107),
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                const Icon(Icons.checklist,
-                                    color: Color(0xFFFFC107), size: 18),
-                              ],
-                            ),
                         ],
                       ),
-                      const SizedBox(height: 16),
-                      if (filteredVouchers.isEmpty)
-                        Center(
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 40),
-                            child: Column(
-                              children: [
-                                Icon(LucideIcons.inbox,
-                                    size: 48, color: Colors.grey[400]),
-                                const SizedBox(height: 12),
-                                Text("No vouchers in this category",
-                                    style: TextStyle(color: Colors.grey[500])),
-                              ],
-                            ),
-                          ),
-                        )
-                      else
-                        ...filteredVouchers.map((v) => _buildVoucherCard(v)),
+                      const SizedBox(height: 12),
+                      Text(
+                        "\$${amount.toStringAsFixed(2)}",
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        narration,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14,
+                          color: Colors.grey[400],
+                        ),
+                      ),
                     ],
                   ),
                 ),
-              ),
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    image: DecorationImage(
+                      image: NetworkImage(receiptImg),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 12,
+                  backgroundImage: NetworkImage("https://i.pravatar.cc/150?u=$requester"),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  "Requested by: ",
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    color: Colors.grey[500],
+                  ),
+                ),
+                Text(
+                  requester,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {},
+                    icon: const Icon(LucideIcons.checkCircle, size: 16),
+                    label: const Text("Approve"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF8B5CF6),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {},
+                    icon: const Icon(LucideIcons.eye, size: 16),
+                    label: const Text("Review"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1F1F35),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
-      ),
-    );
+      );
+    } else {
+      // Standard Queue Item
+      return Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF161625),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFF1F1F35)),
+        ),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  type.toUpperCase(),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[500],
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                Text(
+                  "\$${amount.toStringAsFixed(2)}",
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        narration,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      Text(
+                        requester,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2E2344),
+                      foregroundColor: const Color(0xFFA855F7),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: const Text("Approve"),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1F1F35),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    child: const Text("Review"),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
   }
 }

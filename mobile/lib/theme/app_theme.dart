@@ -31,6 +31,14 @@ class AppTheme {
   static const Color textMutedDark = Color(0xFF6B7280);
   static const Color textMutedLight = Color(0xFF94A3B8);
 
+  // --- Amethyst Theme Colors (Manager Redesign) ---
+  static const Color amethystPrimary = Color(0xFF9333EA);
+  static const Color amethystPrimaryLight = Color(0xFFA855F7);
+  static const Color amethystBackground = Color(0xFF0D0D17);
+  static const Color amethystSurface = Color(0xFF161625);
+  static const Color amethystSurfaceLighter = Color(0xFF1F1F35);
+  static const Color amethystAccent = Color(0xFFD8B4FE);
+
   // --- Light Theme ---
   static ThemeData get lightTheme {
     return ThemeData(
@@ -89,35 +97,35 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      primaryColor: primaryOrange,
-      scaffoldBackgroundColor: darkBackground,
+      primaryColor: amethystPrimary,
+      scaffoldBackgroundColor: amethystBackground,
       colorScheme: const ColorScheme.dark(
-        primary: primaryBlue,
-        secondary: accentNeon,
-        surface: darkSurface,
+        primary: amethystPrimary,
+        secondary: amethystAccent,
+        surface: amethystSurface,
         onSurface: textLight,
         onPrimary: Colors.white,
         error: error,
       ),
-      dividerColor: const Color(0xFF334155),
+      dividerColor: const Color(0xFF1F1F35),
       cardTheme: CardThemeData(
-        color: darkSurface,
+        color: amethystSurface,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: Color(0xFF334155), width: 1),
+          borderRadius: BorderRadius.circular(24),
+          side: const BorderSide(color: Color(0xFF1F1F35), width: 1),
         ),
       ),
       textTheme:
           GoogleFonts.plusJakartaSansTextTheme(ThemeData.dark().textTheme)
               .apply(
-        bodyColor: textLight,
-        displayColor: textLight,
+        bodyColor: Colors.white,
+        displayColor: Colors.white,
       ),
       appBarTheme: const AppBarTheme(
-        backgroundColor: darkBackground,
+        backgroundColor: amethystBackground,
         elevation: 0,
-        centerTitle: true,
+        centerTitle: false,
         iconTheme: IconThemeData(color: textLight),
         titleTextStyle: TextStyle(
           color: textLight,
@@ -126,11 +134,13 @@ class AppTheme {
         ),
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: darkSurface,
-        selectedItemColor: accentNeon,
+        backgroundColor: amethystBackground,
+        selectedItemColor: amethystPrimaryLight,
         unselectedItemColor: Color(0xFF64748B),
         type: BottomNavigationBarType.fixed,
         elevation: 0,
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
       ),
     );
   }

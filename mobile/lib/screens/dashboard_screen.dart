@@ -32,6 +32,7 @@ import 'package:finsight_mobile/screens/manager/manager_accounts_view.dart';
 import 'package:finsight_mobile/screens/manager/manager_vouchers_view.dart';
 import 'package:finsight_mobile/screens/manager/manager_reports_view.dart';
 import 'package:finsight_mobile/screens/manager/manager_profile_view.dart';
+import 'package:finsight_mobile/screens/manager/manager_team_view.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -134,9 +135,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     if (normalizedRole == 'admin') {
       _currentPages = _allPages; // Admin gets everything
     } else if (normalizedRole == 'manager') {
-      // Managers get everything except users management for now
+      // Managers get everything including Team Hub
       _currentPages = _allPages.where((page) {
-        return ['dashboard', 'vouchers', 'accounts', 'reports', 'profile']
+        return ['dashboard', 'users', 'accounts', 'vouchers', 'reports', 'profile']
             .contains(page['id']);
       }).toList();
     } else {
@@ -371,7 +372,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         currentIndex: _selectedIndex,
         onTap: _navigateToPageIndex,
         selectedItemColor: normalizedRole == 'manager'
-            ? const Color(0xFFFFC107)
+            ? const Color(0xFFA855F7) // Amethyst Primary Light
             : const Color(0xFFFF6B00),
         unselectedItemColor: Colors.grey[400],
         selectedLabelStyle: GoogleFonts.plusJakartaSans(
@@ -431,126 +432,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               },
               itemCount: _currentPages.length,
               itemBuilder: (context, index) {
-                final pageId = _currentPages[index]['id'];
-                Widget content = _buildPageContent(index);
-
-                // Add custom app bar for Manager Home Dashboard specifically
-                if (pageId == 'dashboard') {
-                  return SafeArea(
-                    bottom: false,
-                    child: Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Image.asset(
-                                      'assets/images/logo.png',
-                                      width: 32,
-                                      height: 32,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  CircleAvatar(
-                                    backgroundColor: const Color(0xFFFDE6D2),
-                                    backgroundImage: _profileImagePath !=
-                                                null &&
-                                            _profileImagePath!.isNotEmpty
-                                        ? (_profileImagePath!
-                                                    .startsWith('http') ||
-                                                _profileImagePath!
-                                                    .startsWith('uploads/'))
-                                            ? NetworkImage(_profileImagePath!
-                                                        .startsWith('http')
-                                                    ? _profileImagePath!
-                                                    : "${ApiService.baseUrl.replaceAll('/api', '')}/$_profileImagePath")
-                                                as ImageProvider
-                                            : FileImage(
-                                                File(_profileImagePath!))
-                                        : null,
-                                    radius: 18,
-                                    child: _profileImagePath == null ||
-                                            _profileImagePath!.isEmpty
-                                        ? const Icon(LucideIcons.user,
-                                            color: Colors.orange, size: 20)
-                                        : null,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Welcome back,",
-                                        style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 10,
-                                          color: Colors.grey[500],
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      Text(
-                                        _userName,
-                                        style: GoogleFonts.plusJakartaSans(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold,
-                                          color: isDark
-                                              ? Colors.white
-                                              : const Color(0xFF1A1D23),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: isDark
-                                      ? Colors.grey[900]
-                                      : const Color(0xFFF8FAFC),
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                      color: Colors.grey.withOpacity(0.1)),
-                                ),
-                                child: InkWell(
-                                  onTap: _logout,
-                                  child: const Icon(LucideIcons.logOut,
-                                      color: Colors.redAccent, size: 20),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                            child: ManagerDashboardView(
-                          userData: {
-                            'first_name': _userName,
-                            'role': _userRole,
-                            'email': _email,
-                            'phone': _phone,
-                            'id': _userId,
-                            'profileImage': _profileImagePath,
-                          },
-                          dashboardData: _dashboardData,
-                          vouchers: _vouchers,
-                          unreadNotificationsCount: _unreadNotifCount,
-                          isDark: isDark,
-                          totalIncome: _stats['revenue'] ?? 0.0,
-                          totalExpense: _stats['expenses'] ?? 0.0,
-                          onNavigate: _navigateToPage,
-                        )),
-                      ],
-                    ),
-                  );
-                }
-
-                // For other manager pages, headers are mostly built into the views themselves
-                return content;
+                return _buildPageContent(index);
               },
             ),
           ),
@@ -1285,6 +1167,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
             isDark: isDark,
             onLogout: _logout,
             onRefresh: _loadUserData,
+          );
+        case 'users':
+          return ManagerTeamView(
+            users: _users,
+            isDark: isDark,
+            onNavigate: _navigateToPage,
           );
       }
     }

@@ -14,7 +14,6 @@ class ManagerProfileView extends StatefulWidget {
   final String? profileImagePath;
   final bool isDark;
   final VoidCallback onLogout;
-
   final VoidCallback onRefresh;
 
   const ManagerProfileView({
@@ -33,26 +32,18 @@ class ManagerProfileView extends StatefulWidget {
 }
 
 class _ManagerProfileViewState extends State<ManagerProfileView> {
-  double _approvalThreshold = 50000;
-  bool _teamNotifications = true;
-  final ApiService _apiService = ApiService();
-  bool _isUploading = false;
+  bool _approvalNotifs = true;
+  bool _teamAlerts = false;
 
   Future<void> _changeProfilePhoto() async {
     try {
-      // Check Permissions
       if (Platform.isAndroid) {
-        if (await Permission.photos.isDenied) {
-          await Permission.photos.request();
-        }
-        if (await Permission.storage.isDenied) {
-          await Permission.storage.request();
-        }
+        await Permission.photos.request();
+        await Permission.storage.request();
       }
 
       final ImagePicker picker = ImagePicker();
-      final XFile? image = await picker.pickImage(
-          source: ImageSource.gallery, maxWidth: 1024, maxHeight: 1024);
+      final XFile? image = await picker.pickImage(source: ImageSource.gallery, maxWidth: 1024, maxHeight: 1024);
 
       if (image != null) {
         final croppedFile = await ImageCropper().cropImage(
@@ -61,481 +52,344 @@ class _ManagerProfileViewState extends State<ManagerProfileView> {
           uiSettings: [
             AndroidUiSettings(
                 toolbarTitle: 'Crop Profile Photo',
-                toolbarColor: const Color(0xFFFFC107),
-                toolbarWidgetColor: Colors.black,
+                toolbarColor: const Color(0xFF8B5CF6),
+                toolbarWidgetColor: Colors.white,
                 initAspectRatio: CropAspectRatioPreset.square,
                 lockAspectRatio: true),
-            IOSUiSettings(title: 'Crop Profile Photo'),
           ],
         );
 
         if (croppedFile != null) {
-          setState(() => _isUploading = true);
-
-          final result = await _apiService.uploadProfileImage(croppedFile.path);
-
-          setState(() => _isUploading = false);
+          final ApiService apiService = ApiService();
+          final result = await apiService.uploadProfileImage(croppedFile.path);
 
           if (result != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Profile picture updated!"),
-                backgroundColor: Colors.green,
-              ),
-            );
-            widget.onRefresh();
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text("Upload failed. Try again."),
-                backgroundColor: Colors.red,
-              ),
-            );
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Profile updated!"), backgroundColor: Colors.green));
+              widget.onRefresh();
+            }
           }
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red));
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    Color bgColor = widget.isDark ? const Color(0xFF191813) : Colors.white;
-    Color textColor = widget.isDark ? Colors.white : const Color(0xFF1A1D23);
-    Color cardColor = widget.isDark ? const Color(0xFF2E2C23) : Colors.white;
+    final Color bgColor = const Color(0xFF0D0D17);
+    final Color primaryPurple = const Color(0xFF8B5CF6);
 
-    String userName = widget.userData['first_name'] ?? 'Manager';
-    String roleStr = widget.userData['role'] ?? 'Manager';
-    String idStr = widget.userData['id']?.toString() ?? '9921';
+    final String name = "${widget.userData['first_name'] ?? 'Alex'} ${widget.userData['last_name'] ?? 'Sterling'}";
+    final String role = "Senior Operations Manager";
+    final String dept = "Logistics & Supply Chain";
 
-    return Container(
-      color: bgColor,
-      child: SafeArea(
-        bottom: false,
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // Gold Header
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
-                decoration: const BoxDecoration(
-                  color: Color(0xFFFFC107),
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(40),
-                    bottomRight: Radius.circular(40),
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    Stack(
-                      children: [
-                        Container(
-                          width: 100,
-                          height: 100,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                                color: Colors.white.withOpacity(0.5), width: 4),
-                            color: Colors.grey[200],
-                            image: DecorationImage(
-                              image: (widget.profileImagePath != null &&
-                                      widget.profileImagePath!.isNotEmpty)
-                                  ? (widget.profileImagePath!
-                                              .startsWith('http') ||
-                                          widget.profileImagePath!
-                                              .startsWith('uploads/'))
-                                      ? NetworkImage(widget.profileImagePath!
-                                              .startsWith('http')
-                                          ? widget.profileImagePath!
-                                          : "${ApiService.baseUrl.replaceAll('/api', '')}/${widget.profileImagePath}")
-                                      : FileImage(
-                                              File(widget.profileImagePath!))
-                                          as ImageProvider
-                                  : const NetworkImage(
-                                          "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?ixlib=rb-1.2.1&auto=format&fit=crop&w=150&q=80")
-                                      as ImageProvider,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          right: 0,
-                          bottom: 0,
-                          child: GestureDetector(
-                            onTap: _isUploading ? null : _changeProfilePhoto,
-                            child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    blurRadius: 4,
-                                  ),
-                                ],
-                              ),
-                              child: _isUploading
-                                  ? const SizedBox(
-                                      width: 14,
-                                      height: 14,
-                                      child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: Color(0xFFFFC107)))
-                                  : const Icon(LucideIcons.edit2,
-                                      size: 14, color: Color(0xFFFFC107)),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      userName,
-                      style: GoogleFonts.plusJakartaSans(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "Senior $roleStr | Finsight HQ",
-                      style: GoogleFonts.plusJakartaSans(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(LucideIcons.briefcase,
-                              color: Colors.white, size: 12),
-                          const SizedBox(width: 6),
-                          Text(
-                            "MGR-$idStr",
-                            style: GoogleFonts.plusJakartaSans(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Stats Row
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildStatCard(
-                            widget.vouchers.length.toString(),
-                            "APPROVALS",
-                            cardColor,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildStatCard(
-                            widget.unreadNotificationsCount.toString(),
-                            "ALERTS",
-                            cardColor,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _buildStatCard(
-                            "15",
-                            "TEAM",
-                            cardColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Contact Information
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Contact Information",
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFFFFC107),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: cardColor,
-                        borderRadius: BorderRadius.circular(16),
-                        border:
-                            Border.all(color: Colors.grey.withOpacity(0.05)),
-                      ),
-                      child: Column(
-                        children: [
-                          ListTile(
-                            leading: const Icon(LucideIcons.mail,
-                                color: Color(0xFFFFC107), size: 20),
-                            title: Text("Email",
-                                style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 12, color: Colors.grey)),
-                            subtitle: Text(widget.userData['email'] ?? "N/A",
-                                style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: textColor)),
-                          ),
-                          const Divider(height: 1, indent: 56),
-                          ListTile(
-                            leading: const Icon(LucideIcons.phone,
-                                color: Color(0xFFFFC107), size: 20),
-                            title: Text("Phone",
-                                style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 12, color: Colors.grey)),
-                            subtitle: Text(widget.userData['phone'] ?? "N/A",
-                                style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: textColor)),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Managerial Settings
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Managerial Settings",
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFFFFC107),
-                          ),
-                        ),
-                        Text(
-                          "Section 5/5",
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            color: Colors.grey[500],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: cardColor,
-                        borderRadius: BorderRadius.circular(16),
-                        border:
-                            Border.all(color: Colors.grey.withOpacity(0.05)),
-                      ),
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(20),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        const Icon(LucideIcons.banknote,
-                                            color: Color(0xFFFFC107), size: 18),
-                                        const SizedBox(width: 12),
-                                        Text(
-                                          "Approval Threshold",
-                                          style: GoogleFonts.plusJakartaSans(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: textColor,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Text(
-                                      "₹${_approvalThreshold.toInt().toString().replaceAll(RegExp(r'\B(?=(\d{3})+(?!\d))'), ',')}",
-                                      style: GoogleFonts.plusJakartaSans(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                        color: const Color(0xFFFFC107),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                SliderTheme(
-                                  data: SliderThemeData(
-                                    activeTrackColor: const Color(0xFFFFC107),
-                                    inactiveTrackColor: Colors.grey[800],
-                                    thumbColor: const Color(0xFFFFC107),
-                                    overlayColor: const Color(0xFFFFC107)
-                                        .withOpacity(0.2),
-                                    trackHeight: 2,
-                                  ),
-                                  child: Slider(
-                                    value: _approvalThreshold,
-                                    min: 10000,
-                                    max: 500000,
-                                    divisions: 49,
-                                    onChanged: (value) => setState(
-                                        () => _approvalThreshold = value),
-                                  ),
-                                ),
-                                Text(
-                                  "Transactions above this limit require multi-factor verification.",
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 11,
-                                    color: Colors.grey[500],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Divider(
-                              height: 1, color: Colors.grey.withOpacity(0.1)),
-                          ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 8),
-                            leading: const Icon(LucideIcons.bell,
-                                color: Color(0xFFFFC107), size: 20),
-                            title: Text(
-                              "Team Notifications",
-                              style: GoogleFonts.plusJakartaSans(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: textColor,
-                              ),
-                            ),
-                            trailing: Switch(
-                              value: _teamNotifications,
-                              onChanged: (val) =>
-                                  setState(() => _teamNotifications = val),
-                              activeColor: const Color(0xFFFFC107),
-                            ),
-                          ),
-                          Divider(
-                              height: 1, color: Colors.grey.withOpacity(0.1)),
-                          ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 8),
-                            leading: const Icon(LucideIcons.users,
-                                color: Color(0xFFFFC107), size: 20),
-                            title: Text(
-                              "Direct Report Visibility",
-                              style: GoogleFonts.plusJakartaSans(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                                color: textColor,
-                              ),
-                            ),
-                            trailing: const Icon(LucideIcons.chevronRight,
-                                size: 20, color: Colors.grey),
-                            onTap: () {},
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    ElevatedButton(
-                      onPressed: widget.onLogout,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        foregroundColor: Colors.redAccent,
-                        elevation: 0,
-                        side: const BorderSide(color: Colors.redAccent),
-                        minimumSize: const Size(double.infinity, 56),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16)),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(LucideIcons.logOut, size: 20),
-                          const SizedBox(width: 12),
-                          Text(
-                            "Logout",
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 48),
-                  ],
-                ),
-              ),
-            ],
+    return Scaffold(
+      backgroundColor: bgColor,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(icon: const Icon(LucideIcons.arrowLeft, color: Colors.white), onPressed: () {}),
+        title: Text(
+          "Manager Profile",
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
+        ),
+        actions: [
+          IconButton(icon: const Icon(LucideIcons.share2, color: Colors.white), onPressed: () {}),
+          IconButton(icon: const Icon(LucideIcons.settings, color: Colors.white), onPressed: () {}),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            _buildProfileHeader(primaryPurple, name, role, dept),
+            const SizedBox(height: 32),
+            _buildActionButtons(primaryPurple),
+            const SizedBox(height: 32),
+            _buildStatsRow(),
+            const SizedBox(height: 32),
+            _buildBioCard(),
+            const SizedBox(height: 32),
+            _buildPreferencesSection(primaryPurple),
+            const SizedBox(height: 48),
+            _buildLogoutButton(),
+            const SizedBox(height: 40),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildStatCard(String value, String label, Color bgColor) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withOpacity(0.05)),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            value,
-            style: GoogleFonts.plusJakartaSans(
-              color: const Color(0xFFFFC107), // Yellow
-              fontSize: 24,
-              fontWeight: FontWeight.w800,
+  Widget _buildProfileHeader(Color primaryPurple, String name, String role, String dept) {
+    return Column(
+      children: [
+        Stack(
+          alignment: Alignment.bottomRight,
+          children: [
+            GestureDetector(
+              onTap: _changeProfilePhoto,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: primaryPurple, width: 2),
+                ),
+                child: CircleAvatar(
+                  radius: 50,
+                  backgroundImage: (widget.profileImagePath != null && widget.profileImagePath!.isNotEmpty)
+                    ? NetworkImage(widget.profileImagePath!.startsWith('http') ? widget.profileImagePath! : "${ApiService.baseUrl.replaceAll('/api', '')}/${widget.profileImagePath}")
+                    : const NetworkImage("https://i.pravatar.cc/150?u=alex"),
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: const Color(0xFF3B82F6),
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFF0D0D17), width: 3),
+              ),
+              child: const Icon(LucideIcons.check, color: Colors.white, size: 14),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Text(
+          name,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          role,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 16,
+            color: primaryPurple,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          dept,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 14,
+            color: Colors.grey[500],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButtons(Color primaryPurple) {
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton(
+            onPressed: () {},
+            style: ElevatedButton.styleFrom(
+              backgroundColor: primaryPurple,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+            ),
+            child: Text(
+              "Edit Profile",
+              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
             ),
           ),
-          const SizedBox(height: 4),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: ElevatedButton(
+            onPressed: () {},
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1F1F35),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+            ),
+            child: Text(
+              "Access Logs",
+              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatsRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _buildStatItem("15", "Team Size"),
+        _buildStatItem("1.2k", "Approvals"),
+        _buildStatItem("98%", "KPI Score"),
+      ],
+    );
+  }
+
+  Widget _buildStatItem(String value, String label) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        Text(
+          label,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 12,
+            color: Colors.grey[500],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBioCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF161625),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFF1F1F35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Text(
-            label,
+            "Manager Bio",
             style: GoogleFonts.plusJakartaSans(
-              color: Colors.grey[500],
-              fontSize: 10,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            "Focused on optimizing operational efficiency and driving team performance through data-driven financial oversight.",
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 14,
+              color: Colors.grey[400],
+              height: 1.5,
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildPreferencesSection(Color primaryPurple) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Preferences & Controls",
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 16),
+        _buildPreferenceToggle("Approval Notifications", _approvalNotifs, (val) => setState(() => _approvalNotifs = val)),
+        _buildPreferenceToggle("Team Activity Alerts", _teamAlerts, (val) => setState(() => _teamAlerts = val)),
+        const SizedBox(height: 16),
+        Text(
+          "App Appearance",
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey[400],
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            _buildAppearanceChip("Dark Amethyst", true, primaryPurple),
+            const SizedBox(width: 12),
+            _buildAppearanceChip("Light Royal", false, primaryPurple),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPreferenceToggle(String label, bool value, Function(bool) onChanged) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 14,
+              color: Colors.grey[300],
+            ),
+          ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeColor: const Color(0xFF8B5CF6),
+            activeTrackColor: const Color(0xFF8B5CF6).withOpacity(0.3),
+            inactiveThumbColor: Colors.grey[600],
+            inactiveTrackColor: const Color(0xFF1F1F35),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppearanceChip(String label, bool isSelected, Color primaryPurple) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: isSelected ? primaryPurple.withOpacity(0.1) : const Color(0xFF161625),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isSelected ? primaryPurple : const Color(0xFF1F1F35)),
+      ),
+      child: Text(
+        label,
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 12,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          color: isSelected ? Colors.white : Colors.grey[500],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLogoutButton() {
+    return ElevatedButton.icon(
+      onPressed: widget.onLogout,
+      icon: const Icon(LucideIcons.logOut, size: 20),
+      label: const Text("Logout Session"),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: const Color(0xFFF43F5E).withOpacity(0.1),
+        foregroundColor: const Color(0xFFF43F5E),
+        minimumSize: const Size(double.infinity, 56),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 0,
       ),
     );
   }

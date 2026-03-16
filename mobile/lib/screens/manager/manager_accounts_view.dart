@@ -7,7 +7,6 @@ class ManagerAccountsView extends StatefulWidget {
   final bool isDark;
   final double totalIncome;
   final double totalExpense;
-
   final Function(String) onNavigate;
   final VoidCallback onRefresh;
 
@@ -26,31 +25,181 @@ class ManagerAccountsView extends StatefulWidget {
 }
 
 class _ManagerAccountsViewState extends State<ManagerAccountsView> {
-  Widget _buildBusinessUnitCard(String title, String subtitle, String amount,
-      String trend, bool isPositive, IconData icon) {
-    Color cardColor =
-        widget.isDark ? const Color(0xFF1E293B) : const Color(0xFF2E2C23);
-    Color textColor = Colors.white;
-    Color subtextColor = Colors.grey[400]!;
+  @override
+  Widget build(BuildContext context) {
+    // Amethyst theme colors
+    final Color bgColor = const Color(0xFF0D0D17);
+    final Color primaryPurple = const Color(0xFF8B5CF6);
 
+    // Group accounts by category (simplified for now)
+    final assets = widget.accounts.where((a) => a['type'] == 'Asset' || a['type'] == 'Bank' || a['type'] == 'Cash').toList();
+    final liabilities = widget.accounts.where((a) => a['type'] == 'Liability').toList();
+    final equity = widget.accounts.where((a) => a['type'] == 'Equity').toList();
+
+    double totalAssets = 0;
+    for (var a in assets) totalAssets += double.tryParse(a['balance']?.toString() ?? '0') ?? 0;
+    
+    double totalLiabilities = 0;
+    for (var a in liabilities) totalLiabilities += double.tryParse(a['balance']?.toString() ?? '0') ?? 0;
+
+    double totalEquity = 0;
+    for (var a in equity) totalEquity += double.tryParse(a['balance']?.toString() ?? '0') ?? 0;
+
+    return Scaffold(
+      backgroundColor: bgColor,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
+          onPressed: () => widget.onNavigate('dashboard'),
+        ),
+        title: Text(
+          "Chart of Accounts",
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        actions: [
+          IconButton(icon: const Icon(LucideIcons.search, color: Colors.white), onPressed: () {}),
+          IconButton(icon: const Icon(LucideIcons.filter, color: Colors.white), onPressed: () {}),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildMetricTile("Total Assets", totalAssets, "+5.2%", const Color(0xFF10B981), primaryPurple, 0.7),
+            const SizedBox(height: 16),
+            _buildMetricTile("Total Liabilities", totalLiabilities, "-1.8%", const Color(0xFFF43F5E), primaryPurple, 0.3),
+            const SizedBox(height: 16),
+            _buildMetricTile("Total Equity", totalEquity, "+8.4%", const Color(0xFF10B981), primaryPurple, 0.6),
+            const SizedBox(height: 32),
+            Row(
+              children: [
+                const Icon(LucideIcons.wallet, color: Color(0xFF8B5CF6), size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  "Account Categories",
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _buildCategoryTile("Assets", "${assets.length} Sub-accounts", totalAssets, LucideIcons.box, true),
+            _buildCategoryTile("Liabilities", "${liabilities.length} Sub-accounts", totalLiabilities, LucideIcons.creditCard, false),
+            _buildCategoryTile("Equity", "${equity.length} Sub-accounts", totalEquity, LucideIcons.pieChart, false),
+            const SizedBox(height: 32),
+            _buildGenerateReportCard(primaryPurple),
+            const SizedBox(height: 80), // Space for FAB
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {},
+        backgroundColor: primaryPurple,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+        child: const Icon(LucideIcons.plus, color: Colors.white, size: 32),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+    );
+  }
+
+  Widget _buildMetricTile(String title, double value, String trend, Color trendColor, Color barColor, double progress) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF161625),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFF1F1F35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14,
+                  color: Colors.grey[400],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: trendColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  children: [
+                    Icon(trend.startsWith('+') ? LucideIcons.trendingUp : LucideIcons.trendingDown, color: trendColor, size: 12),
+                    const SizedBox(width: 4),
+                    Text(
+                      trend,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: trendColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            "\$${value.toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}",
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: progress,
+              backgroundColor: const Color(0xFF1F1F35),
+              valueColor: AlwaysStoppedAnimation<Color>(barColor),
+              minHeight: 8,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryTile(String title, String subtitle, double amount, IconData icon, bool isExpanded) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(16),
+        color: const Color(0xFF161625),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFF1F1F35)),
       ),
       child: Column(
         children: [
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFC107),
+                  color: const Color(0xFF1F1F35),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: Colors.black87, size: 24),
+                child: Icon(icon, color: const Color(0xFF8B5CF6), size: 20),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -59,317 +208,127 @@ class _ManagerAccountsViewState extends State<ManagerAccountsView> {
                   children: [
                     Text(
                       title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.plusJakartaSans(
-                        fontWeight: FontWeight.bold,
                         fontSize: 16,
-                        color: textColor,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
-                    const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
-                        color: subtextColor,
+                        color: Colors.grey[500],
                       ),
                     ),
                   ],
                 ),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    amount,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: textColor,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    trend,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      color: isPositive
-                          ? Colors.greenAccent
-                          : (trend == 'Stable'
-                              ? Colors.greenAccent
-                              : Colors.redAccent),
-                    ),
-                  ),
-                ],
+              Text(
+                "\$${amount.toStringAsFixed(2)}",
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF8B5CF6),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(isExpanded ? LucideIcons.chevronUp : LucideIcons.chevronDown, color: Colors.grey[600], size: 20),
+            ],
+          ),
+          if (isExpanded) ...[
+            const SizedBox(height: 16),
+            const Divider(color: Color(0xFF1F1F35)),
+            const SizedBox(height: 16),
+            _buildSubCategoryItem("Current Assets", "\$200,000.00"),
+            _buildSubCategoryItem("Fixed Assets", "\$250,000.00"),
+            _buildSubCategoryItem("Inventory", "\$50,000.00"),
+          ]
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSubCategoryItem(String title, String amount) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 6,
+                height: 6,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF10B981),
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                title,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14,
+                  color: Colors.grey[300],
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () => widget.onNavigate('reports'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFFC107),
-                    foregroundColor: Colors.black87,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  child: Text(
-                    "Manage",
-                    style: GoogleFonts.plusJakartaSans(
-                        fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () => widget.onNavigate('reports'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    side: BorderSide(color: Colors.grey[700]!),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  icon: const Icon(LucideIcons.trendingUp, size: 16),
-                  label: Text(
-                    "Quick View",
-                    style: GoogleFonts.plusJakartaSans(fontSize: 13),
-                  ),
-                ),
-              ),
-            ],
+          Text(
+            amount,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
         ],
       ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    Color bgColor = widget.isDark ? const Color(0xFF191813) : Colors.white;
-    Color textColor = widget.isDark ? Colors.white : const Color(0xFF1A1D23);
-
-    double totalBalance = 0;
-    for (var acc in widget.accounts) {
-      totalBalance += double.tryParse(acc['balance']?.toString() ?? '0') ?? 0;
-    }
-
+  Widget _buildGenerateReportCard(Color primaryPurple) {
     return Container(
-      color: bgColor,
-      child: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            Expanded(
-              child: RefreshIndicator(
-                onRefresh: () async {
-                  widget.onRefresh();
-                },
-                child: SingleChildScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Total Balance Card
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: widget.isDark
-                              ? const Color(0xFF1E293B)
-                              : const Color(0xFF2E2C23),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                              color: const Color(0xFFFFC107).withOpacity(0.2)),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "TOTAL BALANCE",
-                                  style: GoogleFonts.plusJakartaSans(
-                                    color: const Color(0xFFFFC107),
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 1,
-                                  ),
-                                ),
-                                const Icon(LucideIcons.wallet,
-                                    color: Color(0xFFFFC107), size: 20),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  "₹${(totalBalance / 10000000).toStringAsFixed(2)} Cr",
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.w800,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: Colors.green.withOpacity(0.05),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                          color: Colors.green.withOpacity(0.1)),
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "TOTAL INCOME",
-                                          style: GoogleFonts.plusJakartaSans(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.green,
-                                            letterSpacing: 0.5,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          "₹${(widget.totalIncome / 100000).toStringAsFixed(1)} L",
-                                          style: GoogleFonts.plusJakartaSans(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: Colors.red.withOpacity(0.05),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                          color: Colors.red.withOpacity(0.1)),
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "TOTAL EXPENSE",
-                                          style: GoogleFonts.plusJakartaSans(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.redAccent,
-                                            letterSpacing: 0.5,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          "₹${(widget.totalExpense / 100000).toStringAsFixed(1)} L",
-                                          style: GoogleFonts.plusJakartaSans(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              "Updated: Just now • ${widget.accounts.length} Business Units",
-                              style: GoogleFonts.plusJakartaSans(
-                                color: Colors.grey[400],
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Business Units",
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: textColor,
-                            ),
-                          ),
-                          GestureDetector(
-                            onTap: () => widget.onNavigate('vouchers'),
-                            child: Text(
-                              "View All",
-                              style: GoogleFonts.plusJakartaSans(
-                                color: const Color(0xFFFFC107),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      if (widget.accounts.isEmpty)
-                        Center(
-                            child: Text("No accounts found",
-                                style: TextStyle(color: textColor)))
-                      else
-                        ...widget.accounts
-                            .take(5)
-                            .map((acc) => _buildBusinessUnitCard(
-                                  acc['name'] ?? 'Primary Account',
-                                  "ACC: **** ${acc['code']?.toString().padLeft(4).substring(0, 4) ?? '0000'}",
-                                  "₹${((double.tryParse(acc['balance']?.toString() ?? '0') ?? 0) / 10000000).toStringAsFixed(1)} Cr",
-                                  acc['is_active']?.toString() == '1' ||
-                                          acc['is_active']?.toString() == 'true'
-                                      ? "Active"
-                                      : "Inactive",
-                                  acc['is_active']?.toString() == '1' ||
-                                      acc['is_active']?.toString() == 'true',
-                                  LucideIcons.landmark,
-                                )),
-                    ],
-                  ),
-                ),
-              ),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: primaryPurple,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Generate Report",
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "Export your full Chart of Accounts for auditing purposes.",
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 14,
+              color: Colors.white.withOpacity(0.8),
+            ),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () {},
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              foregroundColor: primaryPurple,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: Text(
+              "Export as PDF",
+              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
       ),
     );
   }
