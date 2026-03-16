@@ -215,8 +215,10 @@ async function loadUsers() {
                     </td>
                     <td>${user.last_login ? new Date(user.last_login).toLocaleDateString() : 'Never'}</td>
                     <td>
-                        <div class="action-buttons" style="display:flex;gap:8px;">
-                             <button class="btn-icon" onclick="editUserModal(${user.id})" title="Edit" style="border:none;background:none;cursor:pointer;color:var(--text-muted);"><i class="fas fa-edit"></i></button>
+                        <div class="action-buttons" style="display:flex;gap:8px;align-items:center;">
+                             <button class="btn-icon-sm" onclick="showContactOptions(${user.id}, '${user.first_name} ${user.last_name}', '${user.email}', '${user.role}')" title="Contact Member" style="width:32px;height:32px;border-radius:8px;background:rgba(234, 179, 8, 0.1);color:var(--gs-accent);border:none;cursor:pointer;"><i class="fas fa-comment-dots"></i></button>
+                             <button class="btn-icon-sm" onclick="viewUserActivity(${user.id})" title="View Activity Logs" style="width:32px;height:32px;border-radius:8px;background:rgba(139, 92, 246, 0.1);color:#8B5CF6;border:none;cursor:pointer;"><i class="fas fa-history"></i></button>
+                             <button class="btn-icon-sm" onclick="editUserModal(${user.id})" title="Edit" style="width:32px;height:32px;border-radius:8px;background:var(--gs-surface2);color:var(--gs-muted);border:none;cursor:pointer;"><i class="fas fa-edit"></i></button>
                              ${getActionButton(user)}
                         </div>
                     </td>
@@ -747,6 +749,156 @@ function confirmToggleUserStatus(checkbox, userId, userName) {
             { title: 'Confirm Status Change', confirmText: 'Yes', icon: 'fas fa-question-circle' }
         );
     }, 10);
+}
+
+// --- User Action Helpers ---
+function showContactOptions(userId, name, email, role) {
+    // Create and show contact modal
+    let modal = document.getElementById('contactOptionsModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'contactOptionsModal';
+        modal.className = 'modal';
+        document.body.appendChild(modal);
+    }
+
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 450px; text-align: center; padding: 40px;">
+            <div class="modal-header" style="justify-content: flex-end; border: none; padding: 0;">
+                <button onclick="closeModal('contactOptionsModal')" class="close-modal" style="top: 20px; right: 20px;">&times;</button>
+            </div>
+            <div style="width: 80px; height: 80px; background: rgba(139, 92, 246, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: #8B5CF6; font-size: 2rem; font-weight: 800;">
+                ${name.charAt(0).toUpperCase()}
+            </div>
+            <h2 style="font-weight: 800; margin-bottom: 5px; color: #fff;">${name}</h2>
+            <p style="color: var(--gs-muted); font-size: 0.9rem; margin-bottom: 30px; text-transform: capitalize;">${role}</p>
+            
+            <div style="display: grid; gap: 15px;">
+                <button class="contact-btn" onclick="window.location.href='tel:+910000000000'" style="display: flex; align-items: center; gap: 15px; padding: 15px 20px; background: var(--gs-surface2); border: 1px solid var(--gs-border); border-radius: 12px; color: #fff; cursor: pointer; transition: all 0.3s ease;">
+                    <i class="fas fa-phone" style="color: var(--gs-success);"></i>
+                    <span style="font-weight: 600;">Call Member</span>
+                    <i class="fas fa-chevron-right" style="margin-left: auto; font-size: 0.8rem; color: var(--gs-border);"></i>
+                </button>
+                <button class="contact-btn" onclick="window.location.href='mailto:${email}'" style="display: flex; align-items: center; gap: 15px; padding: 15px 20px; background: var(--gs-surface2); border: 1px solid var(--gs-border); border-radius: 12px; color: #fff; cursor: pointer; transition: all 0.3s ease;">
+                    <i class="fas fa-envelope" style="color: var(--gs-accent);"></i>
+                    <span style="font-weight: 600;">Send Email</span>
+                    <i class="fas fa-chevron-right" style="margin-left: auto; font-size: 0.8rem; color: var(--gs-border);"></i>
+                </button>
+                <button class="contact-btn" onclick="alert('Live chat feature coming soon!')" style="display: flex; align-items: center; gap: 15px; padding: 15px 20px; background: var(--gs-surface2); border: 1px solid var(--gs-border); border-radius: 12px; color: #fff; cursor: pointer; transition: all 0.3s ease;">
+                    <i class="fas fa-comments" style="color: #8B5CF6;"></i>
+                    <span style="font-weight: 600;">Live Chat</span>
+                    <i class="fas fa-chevron-right" style="margin-left: auto; font-size: 0.8rem; color: var(--gs-border);"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    modal.classList.add('active');
+}
+
+async function viewUserActivity(userId) {
+    // Show a loading modal
+    let modal = document.getElementById('userActivityModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'userActivityModal';
+        modal.className = 'modal';
+        document.body.appendChild(modal);
+    }
+
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 800px; padding: 0; background: var(--gs-surface);">
+            <div class="modal-header" style="background: var(--gs-surface2); padding: 25px 30px; border-bottom: 1px solid var(--gs-border);">
+                <div>
+                    <h2 style="font-weight: 800; margin-bottom: 5px; color: #fff;">Activity Audit History</h2>
+                    <p style="color: var(--gs-muted); font-size: 0.85rem;">Intelligent audit trail for User #${userId}</p>
+                </div>
+                <button onclick="closeModal('userActivityModal')" class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 0; max-height: 70vh; overflow-y: auto;" id="userActivityContent">
+                <div style="padding: 100px 30px; text-align: center;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--gs-accent); margin-bottom: 20px;"></i>
+                    <p>Fetching real-time activity logs...</p>
+                </div>
+            </div>
+        </div>
+    `;
+    modal.classList.add('active');
+
+    try {
+        const res = await fetchWithTimeout(`${API_URL}/audit.php?action=list&user_id=${userId}`, { credentials: 'include' });
+        const json = await res.json();
+
+        if (json.success && json.data.length > 0) {
+            let html = `
+                <table class="data-table" style="width: 100%; border-collapse: separate; border-spacing: 0;">
+                    <thead style="position: sticky; top: 0; background: var(--gs-surface2); z-index: 10;">
+                        <tr>
+                            <th style="padding: 15px 30px; text-align: left; font-size: 0.7rem; color: var(--gs-muted); text-transform: uppercase;">Timestamp</th>
+                            <th style="padding: 15px 30px; text-align: left; font-size: 0.7rem; color: var(--gs-muted); text-transform: uppercase;">Action</th>
+                            <th style="padding: 15px 30px; text-align: left; font-size: 0.7rem; color: var(--gs-muted); text-transform: uppercase;">Entity</th>
+                            <th style="padding: 15px 30px; text-align: left; font-size: 0.7rem; color: var(--gs-muted); text-transform: uppercase;">Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            json.data.forEach(log => {
+                const date = new Date(log.timestamp);
+                const timeStr = date.toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+                
+                let icon = 'fa-info-circle';
+                let color = 'var(--gs-accent)';
+                if (log.action.includes('LOGIN')) { icon = 'fa-sign-in-alt'; color = '#3b82f6'; }
+                if (log.action.includes('CREATE')) { icon = 'fa-plus-circle'; color = '#10b981'; }
+                if (log.action.includes('UPDATE')) { icon = 'fa-edit'; color = '#f59e0b'; }
+                if (log.action.includes('DELETE')) { icon = 'fa-trash-alt'; color = '#ef4444'; }
+
+                html += `
+                    <tr>
+                        <td style="padding: 20px 30px; white-space: nowrap;">
+                            <div style="font-weight: 700; color: #fff; font-size: 0.85rem;">${timeStr}</div>
+                            <div style="font-size: 0.7rem; color: var(--gs-muted);">${log.ip_address}</div>
+                        </td>
+                        <td style="padding: 20px 30px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; color: ${color};">
+                                    <i class="fas ${icon}"></i>
+                                </div>
+                                <span style="font-weight: 600; color: #fff;">${log.action.replace(/_/g, ' ')}</span>
+                            </div>
+                        </td>
+                        <td style="padding: 20px 30px;">
+                            <span class="badge" style="background: rgba(255,255,255,0.05); color: var(--gs-muted); border: 1px solid var(--gs-border);">${log.entity_type} ID: ${log.entity_id}</span>
+                        </td>
+                        <td style="padding: 20px 30px;">
+                            <div style="font-size: 0.8rem; color: var(--gs-muted); max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${log.new_value || 'No detail'}">
+                                ${log.new_value || log.old_value || '-'}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `</tbody></table>`;
+            document.getElementById('userActivityContent').innerHTML = html;
+        } else {
+            document.getElementById('userActivityContent').innerHTML = `
+                <div style="padding: 100px 30px; text-align: center;">
+                    <i class="fas fa-ghost" style="font-size: 3rem; opacity: 0.1; margin-bottom: 20px;"></i>
+                    <h3 style="color: #fff; margin-bottom: 10px;">Nothing to see here</h3>
+                    <p style="color: var(--gs-muted);">No activity logs found for this user in the specified period.</p>
+                </div>
+            `;
+        }
+    } catch (err) {
+        console.error('Fetch Activity Error:', err);
+        document.getElementById('userActivityContent').innerHTML = `
+            <div style="padding: 100px 30px; text-align: center; color: #ef4444;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 3rem; margin-bottom: 20px;"></i>
+                <p>Failed to load activity logs. Please check your connection.</p>
+            </div>
+        `;
+    }
 }
 
 // --- Mock data helpers (localStorage fallback) ---

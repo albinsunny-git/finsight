@@ -5,7 +5,8 @@ import 'package:finsight_mobile/services/api_service.dart';
 
 
 class ManagerAccessLogsScreen extends StatefulWidget {
-  const ManagerAccessLogsScreen({super.key});
+  final String? initialSearchQuery;
+  const ManagerAccessLogsScreen({super.key, this.initialSearchQuery});
 
   @override
   State<ManagerAccessLogsScreen> createState() => _ManagerAccessLogsScreenState();
@@ -18,9 +19,14 @@ class _ManagerAccessLogsScreenState extends State<ManagerAccessLogsScreen> with 
   List<dynamic> _logs = [];
   bool _isLoading = true;
 
+  late TextEditingController _searchController;
+  String _searchQuery = "";
+
   @override
   void initState() {
     super.initState();
+    _searchQuery = widget.initialSearchQuery ?? "";
+    _searchController = TextEditingController(text: _searchQuery);
     _tabController = TabController(length: 2, vsync: this);
     _loadData();
   }
@@ -95,85 +101,124 @@ class _ManagerAccessLogsScreenState extends State<ManagerAccessLogsScreen> with 
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(20),
-      itemCount: _logs.length,
-      itemBuilder: (context, index) {
-        final log = _logs[index];
-        final timestamp = DateTime.tryParse(log['timestamp'] ?? '');
-        final timeStr = timestamp != null ? "${timestamp.hour}:${timestamp.minute.toString().padLeft(2, '0')} ${timestamp.hour >= 12 ? 'PM' : 'AM'}" : "N/A";
-        final dateStr = timestamp != null ? "${timestamp.day} ${_getMonth(timestamp.month)} ${timestamp.year}" : "N/A";
+    final filteredLogs = _logs.where((log) {
+      final name = log['user_name']?.toString().toLowerCase() ?? '';
+      final action = log['action']?.toString().toLowerCase() ?? '';
+      final query = _searchQuery.toLowerCase();
+      return name.contains(query) || action.contains(query);
+    }).toList();
 
-        return Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: cardColor,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: borderColor),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: primaryPurple.withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  _getLogIcon(log['action'] ?? ''),
-                  color: primaryPurple,
-                  size: 20,
-                ),
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          child: Container(
+            decoration: BoxDecoration(
+              color: cardColor,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: borderColor),
+            ),
+            child: TextField(
+              controller: _searchController,
+              style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 14),
+              onChanged: (val) => setState(() => _searchQuery = val),
+              decoration: InputDecoration(
+                hintText: "Search logs by name or action...",
+                hintStyle: GoogleFonts.plusJakartaSans(color: Colors.white24, fontSize: 14),
+                prefixIcon: const Icon(LucideIcons.search, color: Colors.white24, size: 20),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(vertical: 15),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            log['user_name'] ?? 'System',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                            overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
+        Expanded(
+          child: filteredLogs.isEmpty
+              ? Center(child: Text("No matching logs found", style: GoogleFonts.plusJakartaSans(color: Colors.white54)))
+              : ListView.builder(
+                  padding: const EdgeInsets.all(20),
+                  itemCount: filteredLogs.length,
+                  itemBuilder: (context, index) {
+                    final log = filteredLogs[index];
+                    final timestamp = DateTime.tryParse(log['timestamp'] ?? '');
+                    final timeStr = timestamp != null
+                        ? "${timestamp.hour}:${timestamp.minute.toString().padLeft(2, '0')} ${timestamp.hour >= 12 ? 'PM' : 'AM'}"
+                        : "N/A";
+                    final dateStr = timestamp != null ? "${timestamp.day} ${_getMonth(timestamp.month)} ${timestamp.year}" : "N/A";
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: cardColor,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: borderColor),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: primaryPurple.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              _getLogIcon(log['action'] ?? ''),
+                              color: primaryPurple,
+                              size: 20,
+                            ),
                           ),
-                        ),
-                        Text(
-                          timeStr,
-                          style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.white.withOpacity(0.3)),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      log['action'] ?? 'Action',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 14, color: primaryPurple.withOpacity(0.8), fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Icon(LucideIcons.calendar, size: 12, color: Colors.white.withOpacity(0.2)),
-                        const SizedBox(width: 4),
-                        Text(dateStr, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.white.withOpacity(0.2))),
-                        if (log['ip_address'] != null) ...[
-                          const SizedBox(width: 12),
-                          Icon(LucideIcons.globe, size: 12, color: Colors.white.withOpacity(0.2)),
-                          const SizedBox(width: 4),
-                          Text(log['ip_address'], style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.white.withOpacity(0.2))),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        log['user_name'] ?? 'System',
+                                        style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    Text(
+                                      timeStr,
+                                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.white.withOpacity(0.3)),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  log['action'] ?? 'Action',
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 14, color: primaryPurple.withOpacity(0.8), fontWeight: FontWeight.w600),
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    Icon(LucideIcons.calendar, size: 12, color: Colors.white.withOpacity(0.2)),
+                                    const SizedBox(width: 4),
+                                    Text(dateStr, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.white.withOpacity(0.2))),
+                                    if (log['ip_address'] != null) ...[
+                                      const SizedBox(width: 12),
+                                      Icon(LucideIcons.globe, size: 12, color: Colors.white.withOpacity(0.2)),
+                                      const SizedBox(width: 4),
+                                      Text(log['ip_address'], style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.white.withOpacity(0.2))),
+                                    ],
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
                         ],
-                      ],
-                    ),
-                  ],
+                      ),
+                    );
+                  },
                 ),
-              ),
-            ],
-          ),
-        );
-      },
+        ),
+      ],
     );
   }
 
@@ -231,9 +276,27 @@ class _ManagerAccessLogsScreenState extends State<ManagerAccessLogsScreen> with 
                       ],
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(LucideIcons.settings2, color: Colors.white54, size: 20),
-                    onPressed: () => _showPermissionEditor(context, accountant, primaryPurple),
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: Icon(LucideIcons.messageSquare, color: Colors.white.withOpacity(0.4), size: 18),
+                        onPressed: () => _showContactOptions(context, accountant, primaryPurple),
+                      ),
+                      IconButton(
+                        icon: Icon(LucideIcons.activity, color: primaryPurple, size: 18),
+                        onPressed: () {
+                          setState(() {
+                            _searchQuery = name;
+                            _searchController.text = name;
+                          });
+                          _tabController.animateTo(0);
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(LucideIcons.settings2, color: Colors.white54, size: 20),
+                        onPressed: () => _showPermissionEditor(context, accountant, primaryPurple),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -337,6 +400,70 @@ class _ManagerAccessLogsScreenState extends State<ManagerAccessLogsScreen> with 
             activeColor: primaryPurple,
           ),
         ],
+      ),
+    );
+  }
+  void _showContactOptions(BuildContext context, Map<String, dynamic> user, Color primaryPurple) {
+    final name = "${user['first_name'] ?? 'Accountant'} ${user['last_name'] ?? ''}";
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF161625),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: primaryPurple.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text(
+                    name.isNotEmpty ? name[0] : "?",
+                    style: GoogleFonts.plusJakartaSans(fontSize: 32, fontWeight: FontWeight.bold, color: primaryPurple),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                name,
+                style: GoogleFonts.plusJakartaSans(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+              Text(
+                user['role'] ?? 'Member',
+                style: GoogleFonts.plusJakartaSans(color: Colors.white38),
+              ),
+              const SizedBox(height: 32),
+              _buildContactButton(LucideIcons.phone, "Call Member", () {}),
+              const SizedBox(height: 12),
+              _buildContactButton(LucideIcons.mail, "Send Email", () {}),
+              const SizedBox(height: 12),
+              _buildContactButton(LucideIcons.messageCircle, "Live Chat", () {}),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildContactButton(IconData icon, String label, VoidCallback onTap) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.03),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
+      ),
+      child: ListTile(
+        onTap: onTap,
+        leading: Icon(icon, color: Colors.white60, size: 20),
+        title: Text(label, style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+        trailing: const Icon(LucideIcons.chevronRight, color: Colors.white24, size: 16),
       ),
     );
   }

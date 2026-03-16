@@ -246,7 +246,7 @@ class _ManagerTeamViewState extends State<ManagerTeamView> {
                 iconColor: primaryPurple,
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const ManagerAccessLogsScreen()),
+                  MaterialPageRoute(builder: (context) => ManagerAccessLogsScreen(initialSearchQuery: name)),
                 ),
               ),
             ],
