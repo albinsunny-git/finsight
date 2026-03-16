@@ -65,11 +65,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   // Define all possible pages with their internal IDs
   final List<Map<String, dynamic>> _allPages = [
-    {'id': 'dashboard', 'label': 'DASH', 'icon': LucideIcons.layoutGrid},
+    {'id': 'dashboard', 'label': 'DASHBOARD', 'icon': LucideIcons.layoutGrid},
     {'id': 'accounts', 'label': 'ACCOUNTS', 'icon': LucideIcons.landmark},
     {'id': 'vouchers', 'label': 'VOUCHERS', 'icon': LucideIcons.scroll},
     {'id': 'reports', 'label': 'REPORTS', 'icon': LucideIcons.trendingUp},
-    {'id': 'users', 'label': 'USERS', 'icon': LucideIcons.users},
+    {'id': 'users', 'label': 'TEAMS', 'icon': LucideIcons.users},
     {'id': 'profile', 'label': 'PROFILE', 'icon': LucideIcons.user},
   ];
 
@@ -199,7 +199,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final notifs = await _apiService.getNotifications();
       List<dynamic> usersList = [];
 
-      if (normalizedRole == 'admin') {
+      if (normalizedRole.contains('admin') || normalizedRole.contains('manager')) {
         usersList = await _apiService.getUsers();
       }
 
@@ -407,6 +407,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         items: _currentPages.map((page) {
           IconData iconData = page['icon'];
+          String label = page['label'];
+          
           // Match icons to mockup better
           if (page['id'] == 'dashboard') {
             iconData = LucideIcons.layoutGrid;
@@ -415,8 +417,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
             iconData = LucideIcons.arrowLeftRight;
           }
           if (page['id'] == 'reports') iconData = LucideIcons.barChart2;
-          if (page['id'] == 'profile' || page['id'] == 'settings') {
-            iconData = LucideIcons.settings;
+          
+          if (normalizedRole.contains('manager')) {
+            if (page['id'] == 'users') {
+              iconData = LucideIcons.users;
+              label = 'TEAMS';
+            }
+            if (page['id'] == 'profile') {
+              iconData = LucideIcons.user;
+            }
+          } else {
+            if (page['id'] == 'profile' || page['id'] == 'settings') {
+              iconData = LucideIcons.settings;
+            }
           }
 
           return BottomNavigationBarItem(
@@ -424,7 +437,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               padding: const EdgeInsets.only(bottom: 4),
               child: Icon(iconData, size: 24),
             ),
-            label: page['label'].toUpperCase(),
+            label: label,
           );
         }).toList(),
       ),
