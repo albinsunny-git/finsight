@@ -44,11 +44,11 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      primaryColor: primaryOrange,
+      primaryColor: amethystPrimary,
       scaffoldBackgroundColor: lightBackground,
       colorScheme: const ColorScheme.light(
-        primary: primaryOrange,
-        secondary: secondaryOrange,
+        primary: amethystPrimary,
+        secondary: amethystPrimaryLight,
         surface: whiteSurface,
         onSurface: textDark,
         onPrimary: Colors.white,
@@ -82,7 +82,7 @@ class AppTheme {
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: whiteSurface,
-        selectedItemColor: primaryOrange,
+        selectedItemColor: amethystPrimary,
         unselectedItemColor: textMutedDark,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
