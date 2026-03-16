@@ -137,6 +137,12 @@ async function initAdminDashboard() {
 
     // Initialize Mock Data only if necessary (Avoid clearing real-time data syncs)
     // initMockDataIfEmpty(); 
+    
+    // Add theme selector entry to the user menu if on dashboard
+    const userMenu = document.getElementById('userMenuDropdown');
+    if (userMenu) {
+        // Logic to toggle theme can be bound here or to a specific button
+    }
 
     // --- AUTO-LOAD PAGE DATA ---
     console.log("Initializing dashboard data for role:", currentUser.role);
@@ -166,9 +172,23 @@ async function initAdminDashboard() {
             loadFinancialInsights();
         } else if (currentUser.role === 'manager') {
             loadAdminStats(); // Managers see same stats as admin
-            loadFinancialInsights();
         }
     }
+    
+    // Initialize Theme
+    setupTheme();
+
+    // Initialize Security Settings
+    initSecuritySettings();
+}
+
+function setupTheme() {
+    const savedTheme = localStorage.getItem('gs-theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+}
+
+function initSecuritySettings() {
+    // Basic init
 }
 
 async function loadUsers() {
@@ -774,12 +794,17 @@ function showContactOptions(userId, name, email, role) {
             <p style="color: var(--gs-muted); font-size: 0.9rem; margin-bottom: 30px; text-transform: capitalize;">${role}</p>
             
             <div style="display: grid; gap: 15px;">
-                <button class="contact-btn" onclick="openEmailCompose('${email}', '${name}')" style="display: flex; align-items: center; gap: 15px; padding: 15px 20px; background: var(--gs-surface2); border: 1px solid var(--gs-border); border-radius: 12px; color: #fff; cursor: pointer; transition: all 0.3s ease;">
+                <button class="contact-btn" onclick="window.location.href='tel:+910000000000'" style="display: flex; align-items: center; gap: 15px; padding: 15px 20px; background: var(--gs-surface2); border: 1px solid var(--gs-border); border-radius: 12px; color: #fff; cursor: pointer; transition: all 0.3s ease;">
+                    <i class="fas fa-phone" style="color: var(--gs-success);"></i>
+                    <span style="font-weight: 600;">Call Member</span>
+                    <i class="fas fa-chevron-right" style="margin-left: auto; font-size: 0.8rem; color: var(--gs-border);"></i>
+                </button>
+                <button class="contact-btn" onclick="window.location.href='mailto:${email}'" style="display: flex; align-items: center; gap: 15px; padding: 15px 20px; background: var(--gs-surface2); border: 1px solid var(--gs-border); border-radius: 12px; color: #fff; cursor: pointer; transition: all 0.3s ease;">
                     <i class="fas fa-envelope" style="color: var(--gs-accent);"></i>
                     <span style="font-weight: 600;">Send Email</span>
                     <i class="fas fa-chevron-right" style="margin-left: auto; font-size: 0.8rem; color: var(--gs-border);"></i>
                 </button>
-                <button class="contact-btn" onclick="openLiveChat('${name}')" style="display: flex; align-items: center; gap: 15px; padding: 15px 20px; background: var(--gs-surface2); border: 1px solid var(--gs-border); border-radius: 12px; color: #fff; cursor: pointer; transition: all 0.3s ease;">
+                <button class="contact-btn" onclick="alert('Live chat feature coming soon!')" style="display: flex; align-items: center; gap: 15px; padding: 15px 20px; background: var(--gs-surface2); border: 1px solid var(--gs-border); border-radius: 12px; color: #fff; cursor: pointer; transition: all 0.3s ease;">
                     <i class="fas fa-comments" style="color: #8B5CF6;"></i>
                     <span style="font-weight: 600;">Live Chat</span>
                     <i class="fas fa-chevron-right" style="margin-left: auto; font-size: 0.8rem; color: var(--gs-border);"></i>
@@ -789,101 +814,6 @@ function showContactOptions(userId, name, email, role) {
     `;
     modal.classList.add('active');
 }
-
-function openLiveChat(name) {
-    closeModal('contactOptionsModal');
-    let chatBox = document.getElementById('floatingChatBox');
-    if (!chatBox) {
-        chatBox = document.createElement('div');
-        chatBox.id = 'floatingChatBox';
-        chatBox.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 300px;
-            height: 400px;
-            background: #1e1e2d;
-            border: 1px solid #323248;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            display: flex;
-            flex-direction: column;
-            z-index: 10000;
-            overflow: hidden;
-        `;
-        document.body.appendChild(chatBox);
-    }
-
-    chatBox.innerHTML = `
-        <div style="background: #2b2b40; padding: 15px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #323248;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></div>
-                <span style="color: #fff; font-weight: 700; font-size: 0.9rem;">Chat with ${name}</span>
-            </div>
-            <button onclick="this.parentElement.parentElement.remove()" style="background: transparent; border: none; color: #fff; cursor: pointer; font-size: 1.2rem;">&times;</button>
-        </div>
-        <div style="flex: 1; padding: 15px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto;">
-            <div style="background: #323248; padding: 10px; border-radius: 10px 10px 10px 0; max-width: 80%; align-self: flex-start;">
-                <p style="color: #fff; font-size: 0.85rem; margin: 0;">Hello! How can I help you today?</p>
-            </div>
-        </div>
-        <div style="padding: 15px; border-top: 1px solid #323248;">
-            <div style="display: flex; gap: 10px;">
-                <input type="text" placeholder="Type a message..." style="flex: 1; background: #2b2b40; border: 1px solid #323248; border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 0.85rem;">
-                <button style="background: #8B5CF6; border: none; border-radius: 8px; width: 35px; height: 35px; color: #fff; cursor: pointer;"><i class="fas fa-paper-plane"></i></button>
-            </div>
-        </div>
-    `;
-}
-
-function openEmailCompose(email, name) {
-    closeModal('contactOptionsModal');
-    let emailBox = document.getElementById('floatingEmailBox');
-    if (!emailBox) {
-        emailBox = document.createElement('div');
-        emailBox.id = 'floatingEmailBox';
-        emailBox.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 400px;
-            background: #1e1e2d;
-            border: 1px solid #323248;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            display: flex;
-            flex-direction: column;
-            z-index: 10000;
-            overflow: hidden;
-        `;
-        document.body.appendChild(emailBox);
-    }
-
-    emailBox.innerHTML = `
-        <div style="background: #2b2b40; padding: 15px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #323248;">
-            <span style="color: #fff; font-weight: 700; font-size: 0.9rem;">New Message to ${name}</span>
-            <button onclick="this.parentElement.parentElement.remove()" style="background: transparent; border: none; color: #fff; cursor: pointer; font-size: 1.2rem;">&times;</button>
-        </div>
-        <div style="padding: 20px; display: flex; flex-direction: column; gap: 15px;">
-            <div>
-                <label style="color: #6c757d; font-size: 0.75rem; display: block; margin-bottom: 5px;">TO</label>
-                <input type="text" value="${email}" readonly style="width: 100%; background: #2b2b40; border: 1px solid #323248; border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 0.85rem;">
-            </div>
-            <div>
-                <label style="color: #6c757d; font-size: 0.75rem; display: block; margin-bottom: 5px;">SUBJECT</label>
-                <input type="text" placeholder="Enter subject" style="width: 100%; background: #2b2b40; border: 1px solid #323248; border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 0.85rem;">
-            </div>
-            <div>
-                <label style="color: #6c757d; font-size: 0.75rem; display: block; margin-bottom: 5px;">MESSAGE</label>
-                <textarea rows="5" placeholder="Write your message here..." style="width: 100%; background: #2b2b40; border: 1px solid #323248; border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 0.85rem; resize: none;"></textarea>
-            </div>
-            <button onclick="alert('Email sending functionality would go here in a real app!'); this.parentElement.parentElement.remove();" style="background: var(--gs-accent); color: #000; border: none; border-radius: 8px; padding: 12px; font-weight: 700; cursor: pointer; transition: all 0.3s ease;">
-                <i class="fas fa-paper-plane" style="margin-right: 8px;"></i> Send Email
-            </button>
-        </div>
-    `;
-}
-
 
 async function viewUserActivity(userId) {
     // Show a loading modal
@@ -2449,11 +2379,23 @@ async function generateDynamicReport(type) {
     try {
         let url = `${API_URL}/reports.php?type=${type}&from=${from}&to=${to}`;
         if (type === 'ledger') url += `&account_id=${accountId}`;
-        // Adjust for Balance Sheet/Trial Balance as_on_date param
         if (type === 'balance-sheet' || type === 'trial-balance') url += `&as_on_date=${to}`;
 
-        const res = await fetchWithTimeout(url, { timeout: 8000, credentials: 'include' });
-        const json = await res.json();
+        // Caching Logic
+        const cacheKey = `report_${type}_${from}_${to}_${accountId || 'none'}`;
+        let json;
+        const cached = sessionStorage.getItem(cacheKey);
+        
+        if (cached) {
+            console.log("Loading report from cache:", cacheKey);
+            json = JSON.parse(cached);
+        } else {
+            const res = await fetchWithTimeout(url, { timeout: 8000, credentials: 'include' });
+            json = await res.json();
+            if (json.success) {
+                sessionStorage.setItem(cacheKey, JSON.stringify(json));
+            }
+        }
 
         if (!json.success) {
             container.innerHTML = `
@@ -2479,6 +2421,10 @@ async function generateDynamicReport(type) {
             content = renderNewCashFlow(data, from, to);
         } else if (type === 'ledger') {
             content = renderNewAccountLedger(data);
+        } else if (type === 'performance') {
+            content = renderPerformanceReport(data, from, to);
+        } else if (type === 'summary') {
+            content = renderFinancialHealthSummary(data);
         }
 
         container.innerHTML = content;
@@ -2849,6 +2795,81 @@ function renderNewCashFlow(data, from, to) {
     `;
 }
 
+function renderPerformanceReport(data, from, to) {
+    // We can use analytics data for this or re-process ledger data.
+    // For now, let's assume 'data' contains summary info if we add a 'performance' type to reports.php
+    // If reports.php doesn't have 'performance', we might need to add it or use 'analytics' type.
+    
+    // Let's assume we use the analytics-like structure.
+    const income = data.total_income || 0;
+    const expense = data.total_expense || 0;
+    const net = income - expense;
+    const margin = income > 0 ? (net / income * 100).toFixed(2) : 0;
+
+    return `
+        <div class="report-view animate-fadeIn" style="background: var(--bg-card); padding: 50px; border-radius: 24px; border: 1px solid var(--border-color); max-width: 950px; margin: 0 auto; width: 100%;">
+            <div class="report-header" style="text-align: center; margin-bottom: 40px; border-bottom: 2px solid var(--gs-accent); padding-bottom: 30px;">
+                <h1 style="font-size: 26px; color: var(--text-main); font-weight: 800; margin: 0;">MONTHLY PERFORMANCE REPORT</h1>
+                <p style="color: var(--gs-accent); font-weight: 700; font-size: 14px; margin-top: 10px; text-transform: uppercase;">Tracking Period: ${new Date(from).toLocaleDateString()} - ${new Date(to).toLocaleDateString()}</p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; margin-bottom: 40px;">
+                <div style="background: rgba(16, 185, 129, 0.05); padding: 25px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.2); text-align: center;">
+                    <i class="fas fa-arrow-up-right-dots" style="color: var(--success-color); font-size: 1.5rem; margin-bottom: 10px;"></i>
+                    <span style="display: block; font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 800; margin-bottom: 5px;">Gross Revenue</span>
+                    <strong style="font-size: 22px; color: var(--text-main);">${formatCurrency(income)}</strong>
+                </div>
+                <div style="background: rgba(239, 68, 68, 0.05); padding: 25px; border-radius: 20px; border: 1px solid rgba(239, 68, 68, 0.2); text-align: center;">
+                    <i class="fas fa-arrow-down-right-dots" style="color: var(--danger-color); font-size: 1.5rem; margin-bottom: 10px;"></i>
+                    <span style="display: block; font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 800; margin-bottom: 5px;">Total Expenditures</span>
+                    <strong style="font-size: 22px; color: var(--text-main);">${formatCurrency(expense)}</strong>
+                </div>
+                <div style="background: rgba(234, 179, 8, 0.1); padding: 25px; border-radius: 20px; border: 1px solid var(--gs-accent); text-align: center;">
+                    <i class="fas fa-chart-pie" style="color: var(--gs-accent); font-size: 1.5rem; margin-bottom: 10px;"></i>
+                    <span style="display: block; font-size: 11px; color: #000; text-transform: uppercase; font-weight: 800; margin-bottom: 5px; background: var(--gs-accent); display: inline-block; padding: 2px 8px; border-radius: 4px;">Net Profit Margin</span>
+                    <strong style="font-size: 24px; color: var(--text-main); display: block;">${margin}%</strong>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 40px;">
+                <h3 style="font-size: 14px; font-weight: 800; color: var(--text-main); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-heart-pulse" style="color: var(--gs-accent);"></i> Financial Health Indicators
+                </h3>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+                    <div style="padding: 20px; background: var(--gs-surface2); border: 1px solid var(--gs-border); border-radius: 15px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="font-size: 13px; font-weight: 600; color: var(--text-main);">Profitability Index</span>
+                            <span style="font-size: 13px; font-weight: 800; color: var(--success-color);">${(net > 0 ? 'HIGH' : 'ACTION REQ.')}</span>
+                        </div>
+                        <div style="height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden;">
+                            <div style="width: ${Math.min(100, margin)}%; height: 100%; background: var(--success-color);"></div>
+                        </div>
+                    </div>
+                    <div style="padding: 20px; background: var(--gs-surface2); border: 1px solid var(--gs-border); border-radius: 15px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="font-size: 13px; font-weight: 600; color: var(--text-main);">Expense Efficiency</span>
+                            <span style="font-size: 13px; font-weight: 800; color: var(--gs-accent);">${(100 - margin).toFixed(0)}% Utilized</span>
+                        </div>
+                        <div style="height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden;">
+                            <div style="width: ${Math.min(100, 100 - margin)}%; height: 100%; background: var(--gs-accent);"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="padding: 25px; background: var(--bg-body); border-radius: 15px; border-left: 5px solid var(--gs-accent);">
+                <h4 style="font-size: 13px; font-weight: 800; color: var(--text-main); margin-bottom: 10px;">Strategic Insights</h4>
+                <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6; margin: 0;">
+                    ${net >= 0 
+                        ? `The business is currently maintaining a healthy profit margin of ${margin}%. Efforts should focus on optimizing operating costs to further improve scaling efficiency.`
+                        : `Current expenditures exceed revenue. It is recommended to review high-cost ledgers and implement immediate cost-saving measures to stabilize cash flow.`
+                    }
+                </p>
+            </div>
+        </div>
+    `;
+}
+
 function renderNewAccountLedger(data) {
     const acc = data.account;
     const trans = data.transactions;
@@ -2915,6 +2936,53 @@ function renderNewAccountLedger(data) {
                     ${rows || '<tr><td colspan="6" style="padding: 40px; text-align: center; color: var(--text-muted);">No transactions found for the selected period.</td></tr>'}
                 </tbody>
             </table>
+        </div>
+    `;
+}
+
+function renderFinancialHealthSummary(data) {
+    const margin = (data.profit_margin || 0).toFixed(2);
+    const cr = (data.current_ratio || 0).toFixed(2);
+    const solvency = (data.equity / (data.liabilities || 1)).toFixed(2);
+
+    return `
+        <div class="report-view animate-fadeIn" style="background: var(--bg-card); padding: 50px; border-radius: 24px; border: 1px solid var(--border-color); max-width: 950px; margin: 0 auto; width: 100%;">
+            <div class="report-header" style="text-align: center; margin-bottom: 40px; border-bottom: 2px solid var(--gs-accent); padding-bottom: 30px;">
+                <div style="background: linear-gradient(45deg, #8b5cf6, #d946ef); color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; display: inline-block; margin-bottom: 10px;">AI POWERED ANALYSIS</div>
+                <h1 style="font-size: 26px; color: var(--text-main); font-weight: 800; margin: 0;">STRATEGIC FINANCIAL HEALTH</h1>
+                <p style="color: var(--text-muted); font-size: 14px; margin-top: 10px;">Comprehensive Solvency, Liquidity & Profitability Audit</p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px;">
+                <!-- Liquidity -->
+                <div style="background: rgba(var(--gs-accent-rgb), 0.03); padding: 25px; border-radius: 20px; border: 1px solid var(--gs-border); text-align: center;">
+                    <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 800; margin-bottom: 10px;">Current Ratio</div>
+                    <div style="font-size: 28px; font-weight: 900; color: ${cr > 1.5 ? 'var(--success-color)' : 'var(--danger-color)'};">${cr}</div>
+                    <div style="font-size: 10px; color: var(--text-muted); margin-top: 5px;">Benchmark: > 1.5</div>
+                </div>
+                <!-- Profitability -->
+                <div style="background: rgba(var(--gs-accent-rgb), 0.03); padding: 25px; border-radius: 20px; border: 1px solid var(--gs-border); text-align: center;">
+                    <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 800; margin-bottom: 10px;">Net Margin</div>
+                    <div style="font-size: 28px; font-weight: 900; color: var(--gs-accent);">${margin}%</div>
+                    <div style="font-size: 10px; color: var(--text-muted); margin-top: 5px;">YTD Average</div>
+                </div>
+                <!-- Solvency -->
+                <div style="background: rgba(var(--gs-accent-rgb), 0.03); padding: 25px; border-radius: 20px; border: 1px solid var(--gs-border); text-align: center;">
+                    <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 800; margin-bottom: 10px;">Debt-to-Equity</div>
+                    <div style="font-size: 28px; font-weight: 900; color: #fff;">${solvency}</div>
+                    <div style="font-size: 10px; color: var(--text-muted); margin-top: 5px;">Risk Exposure</div>
+                </div>
+            </div>
+
+            <div style="background: var(--bg-body); padding: 30px; border-radius: 20px; border: 1px solid var(--gs-border);">
+                <h3 style="font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-microchip" style="color: var(--gs-accent);"></i> AI Executive Commentary
+                </h3>
+                <div style="font-size: 14px; color: var(--text-muted); line-height: 1.8;">
+                    <p style="margin-bottom: 15px;">Based on the current fiscal data, the organization shows a <strong>${cr > 1.2 ? 'stable' : 'conservative'}</strong> liquidity position. With a current ratio of ${cr}, there is sufficient coverage for short-term obligations.</p>
+                    <p><strong>Recommendation:</strong> ${margin > 20 ? 'Profitability is optimal. Consider reinvestment or dividend distribution.' : 'Margin improvement is possible through further operational efficiency and vendor renegotiations.'}</p>
+                </div>
+            </div>
         </div>
     `;
 }

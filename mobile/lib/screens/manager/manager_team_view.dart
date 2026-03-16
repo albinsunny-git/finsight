@@ -2,12 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:finsight_mobile/screens/manager/manager_access_logs_screen.dart';
-import 'package:finsight_mobile/screens/add_user_screen.dart';
-
-import 'package:url_launcher/url_launcher.dart';
-import 'package:finsight_mobile/screens/communication/chat_screen.dart';
-import 'package:finsight_mobile/screens/communication/email_compose_screen.dart';
-
 
 class ManagerTeamView extends StatefulWidget {
   final List<dynamic> users;
@@ -247,17 +241,6 @@ class _ManagerTeamViewState extends State<ManagerTeamView> {
               ),
               const SizedBox(width: 8),
               _buildSimpleIconButton(
-                LucideIcons.edit2, 
-                Colors.white.withOpacity(0.05),
-                onTap: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => AddUserScreen(user: user)),
-                  );
-                },
-              ),
-              const SizedBox(width: 8),
-              _buildSimpleIconButton(
                 LucideIcons.activity, 
                 primaryPurple.withOpacity(0.1), 
                 iconColor: primaryPurple,
@@ -266,7 +249,6 @@ class _ManagerTeamViewState extends State<ManagerTeamView> {
                   MaterialPageRoute(builder: (context) => ManagerAccessLogsScreen(initialSearchQuery: name)),
                 ),
               ),
-
             ],
           ),
         ],
@@ -344,9 +326,6 @@ class _ManagerTeamViewState extends State<ManagerTeamView> {
 
   void _showContactOptions(BuildContext context, Map<String, dynamic> user, Color primaryPurple, Color cardColor) {
     final name = "${user['first_name'] ?? ''} ${user['last_name'] ?? ''}";
-    final phone = user['phone']?.toString() ?? '';
-    final email = user['email']?.toString() ?? '';
-
     showModalBottomSheet(
       context: context,
       backgroundColor: cardColor,
@@ -381,48 +360,17 @@ class _ManagerTeamViewState extends State<ManagerTeamView> {
                 style: GoogleFonts.plusJakartaSans(color: Colors.white38),
               ),
               const SizedBox(height: 32),
-              _buildContactButton(LucideIcons.phone, "Call Member", () async {
-                Navigator.pop(context);
-                if (phone.isNotEmpty) {
-                  final Uri telLaunchUri = Uri(scheme: 'tel', path: phone);
-                  if (await canLaunchUrl(telLaunchUri)) {
-                    await launchUrl(telLaunchUri);
-                  } else {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Could not launch phone dialer")),
-                      );
-                    }
-                  }
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("No phone number registered for this user")),
-                  );
-                }
-              }),
+              _buildContactButton(LucideIcons.phone, "Call Member", () {}),
               const SizedBox(height: 12),
-              _buildContactButton(LucideIcons.mail, "Send Email", () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => EmailComposeScreen(userName: name, userEmail: email)),
-                );
-              }),
+              _buildContactButton(LucideIcons.mail, "Send Email", () {}),
               const SizedBox(height: 12),
-              _buildContactButton(LucideIcons.messageCircle, "Live Chat", () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => ChatScreen(userName: name)),
-                );
-              }),
+              _buildContactButton(LucideIcons.messageCircle, "Live Chat", () {}),
             ],
           ),
         );
       },
     );
   }
-
 
   Widget _buildContactButton(IconData icon, String label, VoidCallback onTap) {
     return Container(

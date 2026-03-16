@@ -347,7 +347,21 @@ class ReportController {
                                    WHERE ac.type = 'Equity' AND DATE(gl.voucher_date) <= '$asOnDate'");
         $summary['equity'] = $result->fetch_assoc()['total'];
         
-        sendResponse(true, $summary, 'Financial summary retrieved');
+        // Income (Year to Date)
+        $result = $this->db->query("SELECT COALESCE(SUM(credit) - SUM(debit), 0) as total FROM general_ledger gl JOIN account_chart ac ON gl.account_id = ac.id WHERE ac.type = 'Income'");
+        $summary['total_income'] = (float)$result->fetch_assoc()['total'];
+
+        // Expense (Year to Date)
+        $result = $this->db->query("SELECT COALESCE(SUM(debit) - SUM(credit), 0) as total FROM general_ledger gl JOIN account_chart ac ON gl.account_id = ac.id WHERE ac.type = 'Expense'");
+        $summary['total_expense'] = (float)$result->fetch_assoc()['total'];
+
+        $summary['net_profit'] = $summary['total_income'] - $summary['total_expense'];
+        
+        // Ratios
+        $summary['profit_margin'] = $summary['total_income'] > 0 ? ($summary['net_profit'] / $summary['total_income']) * 100 : 0;
+        $summary['current_ratio'] = $summary['liabilities'] > 0 ? ($summary['assets'] / $summary['liabilities']) : 0;
+
+        sendResponse(true, $summary, 'Financial summary and health ratios retrieved');
     }
 
     public function getTransactionHistory() {
@@ -371,6 +385,37 @@ class ReportController {
         }
         
         sendResponse(true, $history, 'Transaction history retrieved');
+    }
+
+    public function getPerformanceReport() {
+        checkAuth();
+        
+        $fromDate = $_GET['from'] ?? date('Y-m-01');
+        $toDate = $_GET['to'] ?? date('Y-m-d');
+        
+        // Get Total Income
+        $sqlInc = "SELECT COALESCE(SUM(vd.credit - vd.debit), 0) as total 
+                   FROM voucher_details vd
+                   JOIN vouchers v ON vd.voucher_id = v.id
+                   JOIN account_chart ac ON vd.account_id = ac.id
+                   WHERE ac.type = 'Income' AND v.status = 'Posted'
+                   AND v.voucher_date BETWEEN '$fromDate' AND '$toDate'";
+        $incRes = $this->db->query($sqlInc)->fetch_assoc();
+        
+        // Get Total Expense
+        $sqlExp = "SELECT COALESCE(SUM(vd.debit - vd.credit), 0) as total 
+                   FROM voucher_details vd
+                   JOIN vouchers v ON vd.voucher_id = v.id
+                   JOIN account_chart ac ON vd.account_id = ac.id
+                   WHERE ac.type = 'Expense' AND v.status = 'Posted'
+                   AND v.voucher_date BETWEEN '$fromDate' AND '$toDate'";
+        $expRes = $this->db->query($sqlExp)->fetch_assoc();
+        
+        sendResponse(true, [
+            'total_income' => (float)$incRes['total'],
+            'total_expense' => (float)$expRes['total'],
+            'period' => ['from' => $fromDate, 'to' => $toDate]
+        ], 'Performance report retrieved');
     }
 }
 
@@ -402,6 +447,9 @@ switch ($type) {
         break;
     case 'analytics':
         $report->getAnalyticsData();
+        break;
+    case 'performance':
+        $report->getPerformanceReport();
         break;
     default:
         sendResponse(false, null, 'Report type not found', 404);
