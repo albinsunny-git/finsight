@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:finsight_mobile/services/api_service.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:finsight_mobile/screens/communication/chat_screen.dart';
+import 'package:finsight_mobile/screens/communication/email_compose_screen.dart';
+
 
 
 class ManagerAccessLogsScreen extends StatefulWidget {
@@ -405,6 +409,9 @@ class _ManagerAccessLogsScreenState extends State<ManagerAccessLogsScreen> with 
   }
   void _showContactOptions(BuildContext context, Map<String, dynamic> user, Color primaryPurple) {
     final name = "${user['first_name'] ?? 'Accountant'} ${user['last_name'] ?? ''}";
+    final phone = user['phone']?.toString() ?? '';
+    final email = user['email']?.toString() ?? '';
+
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF161625),
@@ -439,17 +446,48 @@ class _ManagerAccessLogsScreenState extends State<ManagerAccessLogsScreen> with 
                 style: GoogleFonts.plusJakartaSans(color: Colors.white38),
               ),
               const SizedBox(height: 32),
-              _buildContactButton(LucideIcons.phone, "Call Member", () {}),
+              _buildContactButton(LucideIcons.phone, "Call Member", () async {
+                Navigator.pop(context);
+                if (phone.isNotEmpty) {
+                  final Uri telLaunchUri = Uri(scheme: 'tel', path: phone);
+                  if (await canLaunchUrl(telLaunchUri)) {
+                    await launchUrl(telLaunchUri);
+                  } else {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Could not launch phone dialer")),
+                      );
+                    }
+                  }
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("No phone number registered for this user")),
+                  );
+                }
+              }),
               const SizedBox(height: 12),
-              _buildContactButton(LucideIcons.mail, "Send Email", () {}),
+              _buildContactButton(LucideIcons.mail, "Send Email", () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => EmailComposeScreen(userName: name, userEmail: email)),
+                );
+              }),
               const SizedBox(height: 12),
-              _buildContactButton(LucideIcons.messageCircle, "Live Chat", () {}),
+              _buildContactButton(LucideIcons.messageCircle, "Live Chat", () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ChatScreen(userName: name)),
+                );
+              }),
             ],
           ),
         );
       },
     );
   }
+
 
   Widget _buildContactButton(IconData icon, String label, VoidCallback onTap) {
     return Container(

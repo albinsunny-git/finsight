@@ -774,17 +774,12 @@ function showContactOptions(userId, name, email, role) {
             <p style="color: var(--gs-muted); font-size: 0.9rem; margin-bottom: 30px; text-transform: capitalize;">${role}</p>
             
             <div style="display: grid; gap: 15px;">
-                <button class="contact-btn" onclick="window.location.href='tel:+910000000000'" style="display: flex; align-items: center; gap: 15px; padding: 15px 20px; background: var(--gs-surface2); border: 1px solid var(--gs-border); border-radius: 12px; color: #fff; cursor: pointer; transition: all 0.3s ease;">
-                    <i class="fas fa-phone" style="color: var(--gs-success);"></i>
-                    <span style="font-weight: 600;">Call Member</span>
-                    <i class="fas fa-chevron-right" style="margin-left: auto; font-size: 0.8rem; color: var(--gs-border);"></i>
-                </button>
-                <button class="contact-btn" onclick="window.location.href='mailto:${email}'" style="display: flex; align-items: center; gap: 15px; padding: 15px 20px; background: var(--gs-surface2); border: 1px solid var(--gs-border); border-radius: 12px; color: #fff; cursor: pointer; transition: all 0.3s ease;">
+                <button class="contact-btn" onclick="openEmailCompose('${email}', '${name}')" style="display: flex; align-items: center; gap: 15px; padding: 15px 20px; background: var(--gs-surface2); border: 1px solid var(--gs-border); border-radius: 12px; color: #fff; cursor: pointer; transition: all 0.3s ease;">
                     <i class="fas fa-envelope" style="color: var(--gs-accent);"></i>
                     <span style="font-weight: 600;">Send Email</span>
                     <i class="fas fa-chevron-right" style="margin-left: auto; font-size: 0.8rem; color: var(--gs-border);"></i>
                 </button>
-                <button class="contact-btn" onclick="alert('Live chat feature coming soon!')" style="display: flex; align-items: center; gap: 15px; padding: 15px 20px; background: var(--gs-surface2); border: 1px solid var(--gs-border); border-radius: 12px; color: #fff; cursor: pointer; transition: all 0.3s ease;">
+                <button class="contact-btn" onclick="openLiveChat('${name}')" style="display: flex; align-items: center; gap: 15px; padding: 15px 20px; background: var(--gs-surface2); border: 1px solid var(--gs-border); border-radius: 12px; color: #fff; cursor: pointer; transition: all 0.3s ease;">
                     <i class="fas fa-comments" style="color: #8B5CF6;"></i>
                     <span style="font-weight: 600;">Live Chat</span>
                     <i class="fas fa-chevron-right" style="margin-left: auto; font-size: 0.8rem; color: var(--gs-border);"></i>
@@ -794,6 +789,101 @@ function showContactOptions(userId, name, email, role) {
     `;
     modal.classList.add('active');
 }
+
+function openLiveChat(name) {
+    closeModal('contactOptionsModal');
+    let chatBox = document.getElementById('floatingChatBox');
+    if (!chatBox) {
+        chatBox = document.createElement('div');
+        chatBox.id = 'floatingChatBox';
+        chatBox.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            height: 400px;
+            background: #1e1e2d;
+            border: 1px solid #323248;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            z-index: 10000;
+            overflow: hidden;
+        `;
+        document.body.appendChild(chatBox);
+    }
+
+    chatBox.innerHTML = `
+        <div style="background: #2b2b40; padding: 15px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #323248;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></div>
+                <span style="color: #fff; font-weight: 700; font-size: 0.9rem;">Chat with ${name}</span>
+            </div>
+            <button onclick="this.parentElement.parentElement.remove()" style="background: transparent; border: none; color: #fff; cursor: pointer; font-size: 1.2rem;">&times;</button>
+        </div>
+        <div style="flex: 1; padding: 15px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto;">
+            <div style="background: #323248; padding: 10px; border-radius: 10px 10px 10px 0; max-width: 80%; align-self: flex-start;">
+                <p style="color: #fff; font-size: 0.85rem; margin: 0;">Hello! How can I help you today?</p>
+            </div>
+        </div>
+        <div style="padding: 15px; border-top: 1px solid #323248;">
+            <div style="display: flex; gap: 10px;">
+                <input type="text" placeholder="Type a message..." style="flex: 1; background: #2b2b40; border: 1px solid #323248; border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 0.85rem;">
+                <button style="background: #8B5CF6; border: none; border-radius: 8px; width: 35px; height: 35px; color: #fff; cursor: pointer;"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    `;
+}
+
+function openEmailCompose(email, name) {
+    closeModal('contactOptionsModal');
+    let emailBox = document.getElementById('floatingEmailBox');
+    if (!emailBox) {
+        emailBox = document.createElement('div');
+        emailBox.id = 'floatingEmailBox';
+        emailBox.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 400px;
+            background: #1e1e2d;
+            border: 1px solid #323248;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            z-index: 10000;
+            overflow: hidden;
+        `;
+        document.body.appendChild(emailBox);
+    }
+
+    emailBox.innerHTML = `
+        <div style="background: #2b2b40; padding: 15px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #323248;">
+            <span style="color: #fff; font-weight: 700; font-size: 0.9rem;">New Message to ${name}</span>
+            <button onclick="this.parentElement.parentElement.remove()" style="background: transparent; border: none; color: #fff; cursor: pointer; font-size: 1.2rem;">&times;</button>
+        </div>
+        <div style="padding: 20px; display: flex; flex-direction: column; gap: 15px;">
+            <div>
+                <label style="color: #6c757d; font-size: 0.75rem; display: block; margin-bottom: 5px;">TO</label>
+                <input type="text" value="${email}" readonly style="width: 100%; background: #2b2b40; border: 1px solid #323248; border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 0.85rem;">
+            </div>
+            <div>
+                <label style="color: #6c757d; font-size: 0.75rem; display: block; margin-bottom: 5px;">SUBJECT</label>
+                <input type="text" placeholder="Enter subject" style="width: 100%; background: #2b2b40; border: 1px solid #323248; border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 0.85rem;">
+            </div>
+            <div>
+                <label style="color: #6c757d; font-size: 0.75rem; display: block; margin-bottom: 5px;">MESSAGE</label>
+                <textarea rows="5" placeholder="Write your message here..." style="width: 100%; background: #2b2b40; border: 1px solid #323248; border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 0.85rem; resize: none;"></textarea>
+            </div>
+            <button onclick="alert('Email sending functionality would go here in a real app!'); this.parentElement.parentElement.remove();" style="background: var(--gs-accent); color: #000; border: none; border-radius: 8px; padding: 12px; font-weight: 700; cursor: pointer; transition: all 0.3s ease;">
+                <i class="fas fa-paper-plane" style="margin-right: 8px;"></i> Send Email
+            </button>
+        </div>
+    `;
+}
+
 
 async function viewUserActivity(userId) {
     // Show a loading modal
