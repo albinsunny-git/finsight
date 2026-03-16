@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import '../theme/app_theme.dart';
 import 'package:finsight_mobile/services/api_service.dart';
 import 'package:finsight_mobile/screens/login_screen.dart';
 import 'dart:io';
@@ -130,30 +131,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _updateNavigationForRole(String role) {
+    if (!mounted) return;
     final normalizedRole = role.trim().toLowerCase();
 
-    if (normalizedRole == 'admin') {
-      _currentPages = _allPages; // Admin gets everything
-    } else if (normalizedRole == 'manager') {
-      // Managers get everything including Team Hub
-      _currentPages = _allPages.where((page) {
-        return ['dashboard', 'users', 'accounts', 'vouchers', 'reports', 'profile']
-            .contains(page['id']);
-      }).toList();
-    } else {
-      // Accountant, etc.
-      _currentPages = _allPages.where((page) {
-        return ['dashboard', 'vouchers', 'accounts', 'reports', 'profile']
-            .contains(page['id']);
-      }).toList();
-    }
-
-    if (_currentPages.isNotEmpty && _selectedIndex >= _currentPages.length) {
-      _selectedIndex = 0;
-      if (mounted && _pageController.hasClients) {
-        _pageController.jumpToPage(0);
+    setState(() {
+      if (normalizedRole.contains('admin')) {
+        _currentPages = _allPages;
+      } else if (normalizedRole.contains('manager')) {
+        _currentPages = _allPages.where((page) {
+          return [
+            'dashboard',
+            'users',
+            'accounts',
+            'vouchers',
+            'reports',
+            'profile'
+          ].contains(page['id']);
+        }).toList();
+      } else {
+        _currentPages = _allPages.where((page) {
+          return ['dashboard', 'vouchers', 'accounts', 'reports', 'profile']
+              .contains(page['id']);
+        }).toList();
       }
-    }
+    });
   }
 
   Future<void> _loadUserData() async {
@@ -340,7 +341,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
       );
     }
 
-    return Scaffold(
+    final normalizedRole = _userRole.trim().toLowerCase();
+    final isManager = normalizedRole.contains('manager');
+
+    Widget mainScaffold = Scaffold(
+      backgroundColor: isManager ? const Color(0xFF0D0D17) : null,
       body: LayoutBuilder(
         builder: (context, constraints) {
           if (constraints.maxWidth > 900) {
@@ -354,6 +359,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ? _buildBottomNavigationBar(isDark)
           : null,
     );
+
+    if (isManager) {
+      return Theme(
+        data: AppTheme.darkTheme,
+        child: mainScaffold,
+      );
+    }
+
+    return mainScaffold;
   }
 
   Widget _buildBottomNavigationBar(bool isDark) {
@@ -361,9 +375,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
+        color: normalizedRole == 'manager' 
+            ? const Color(0xFF0D0D17) 
+            : (isDark ? const Color(0xFF1E293B) : Colors.white),
         border: Border(
-            top: BorderSide(color: Colors.grey.withOpacity(0.1), width: 1)),
+            top: BorderSide(
+                color: normalizedRole == 'manager' 
+                    ? const Color(0xFF1F1F35) 
+                    : Colors.grey.withOpacity(0.1), 
+                width: 1)),
       ),
       child: BottomNavigationBar(
         elevation: 0,
@@ -1106,7 +1126,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final normalizedRole = _userRole.trim().toLowerCase();
 
     // Use manager-specific views if the role is manager
-    if (normalizedRole == 'manager') {
+    if (normalizedRole.contains('manager')) {
       switch (pageId) {
         case 'dashboard':
           return ManagerDashboardView(
