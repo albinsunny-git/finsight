@@ -47,7 +47,7 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
               ),
               child: Column(
                 children: [
-                  ListTile(
+                   ListTile(
                     leading: Icon(LucideIcons.key, color: theme.primaryColor),
                     title: Text("Change Password",
                         style: GoogleFonts.plusJakartaSans(
@@ -96,57 +96,6 @@ class _SecuritySettingsScreenState extends State<SecuritySettingsScreen> {
                     onChanged: (val) {
                       setState(() => _biometricsEnabled = val);
                     },
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text("Active Sessions",
-                style: GoogleFonts.plusJakartaSans(
-                    fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            Container(
-              decoration: BoxDecoration(
-                color: theme.cardTheme.color,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  if (!isDark)
-                    BoxShadow(
-                        color: Colors.black.withOpacity(0.02),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4))
-                ],
-              ),
-              child: Column(
-                children: [
-                  ListTile(
-                    leading:
-                        const Icon(LucideIcons.monitor, color: Colors.green),
-                    title: Text("MacBook Pro 16\"",
-                        style: GoogleFonts.plusJakartaSans(
-                            fontWeight: FontWeight.w600)),
-                    subtitle: Text("Chrome - New York, USA",
-                        style: GoogleFonts.plusJakartaSans(
-                            color: Colors.grey, fontSize: 12)),
-                    trailing: Text("Current",
-                        style: GoogleFonts.plusJakartaSans(
-                            color: Colors.green,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600)),
-                  ),
-                  const Divider(height: 1, indent: 60),
-                  ListTile(
-                    leading:
-                        const Icon(LucideIcons.smartphone, color: Colors.grey),
-                    title: Text("iPhone 14 Pro",
-                        style: GoogleFonts.plusJakartaSans(
-                            fontWeight: FontWeight.w600)),
-                    subtitle: Text("App - London, UK",
-                        style: GoogleFonts.plusJakartaSans(
-                            color: Colors.grey, fontSize: 12)),
-                    trailing: Text("Last active 2d ago",
-                        style: GoogleFonts.plusJakartaSans(
-                            color: Colors.grey, fontSize: 10)),
                   ),
                 ],
               ),

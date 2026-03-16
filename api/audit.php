@@ -10,7 +10,7 @@ class AuditController {
     }
     
     public function getAuditTrail() {
-        checkRole(['admin']);
+        checkRole(['admin', 'manager']);
         
         $userId = $_GET['user_id'] ?? null;
         $fromDate = $_GET['from_date'] ?? null;
@@ -69,7 +69,7 @@ class AuditController {
     }
     
     public function getUserActivity() {
-        checkRole(['admin']);
+        checkRole(['admin', 'manager']);
         
         $userId = $_GET['user_id'] ?? null;
         
@@ -94,7 +94,7 @@ class AuditController {
     }
     
     public function getEntityChanges() {
-        checkRole(['admin']);
+        checkRole(['admin', 'manager']);
         
         $entityType = $_GET['entity_type'] ?? null;
         $entityId = $_GET['entity_id'] ?? null;
@@ -130,7 +130,7 @@ class AuditController {
     }
     
     public function getLoginHistory() {
-        checkRole(['admin']);
+        checkRole(['admin', 'manager']);
         
         $userId = $_GET['user_id'] ?? null;
         $days = $_GET['days'] ?? 30;
@@ -165,7 +165,7 @@ class AuditController {
     }
     
     public function getFailedLoginAttempts() {
-        checkRole(['admin']);
+        checkRole(['admin', 'manager']);
         
         $days = $_GET['days'] ?? 7;
         

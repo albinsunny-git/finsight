@@ -1158,6 +1158,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             totalIncome: _stats['revenue'] ?? 0.0,
             totalExpense: _stats['expenses'] ?? 0.0,
             onNavigate: _navigateToPage,
+            userRole: _userRole,
+            currentUserId: _userId,
           );
         case 'accounts':
           return ManagerAccountsView(
@@ -1175,6 +1177,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             totalIncome: _stats['revenue'] ?? 0.0,
             totalExpense: _stats['expenses'] ?? 0.0,
             currentUserId: _userId,
+            userRole: _userRole,
             onNavigate: _navigateToPage,
             onRefresh: _loadUserData,
           );
@@ -1200,6 +1203,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             isDark: isDark,
             onLogout: _logout,
             onRefresh: _loadUserData,
+            onNavigate: _navigateToPage,
           );
         case 'users':
           return ManagerTeamView(

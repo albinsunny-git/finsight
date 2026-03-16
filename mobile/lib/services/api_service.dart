@@ -947,4 +947,26 @@ class ApiService {
       return false;
     }
   }
+  Future<List<dynamic>> getAuditLogs() async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http
+          .get(
+            Uri.parse('${ApiService.baseUrl}/audit.php?action=list'),
+            headers: headers,
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success']) {
+          return data['data'] ?? [];
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Error fetching audit logs: $e');
+      return [];
+    }
+  }
 }

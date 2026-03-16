@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:finsight_mobile/services/api_service.dart';
+import 'package:finsight_mobile/screens/voucher_detail_screen.dart';
 import 'dart:io';
 
 class ManagerDashboardView extends StatelessWidget {
@@ -14,6 +15,8 @@ class ManagerDashboardView extends StatelessWidget {
   final double totalIncome;
   final double totalExpense;
   final Function(String) onNavigate;
+  final String userRole;
+  final String currentUserId;
 
   const ManagerDashboardView({
     super.key,
@@ -25,6 +28,8 @@ class ManagerDashboardView extends StatelessWidget {
     required this.totalIncome,
     required this.totalExpense,
     required this.onNavigate,
+    required this.userRole,
+    required this.currentUserId,
   });
 
   @override
@@ -85,7 +90,7 @@ class ManagerDashboardView extends StatelessWidget {
               const SizedBox(height: 32),
               
               // Recent Team Activity Section
-              _buildRecentActivity(cardColor, borderColor, primaryPurple),
+              _buildRecentActivity(context, cardColor, borderColor, primaryPurple),
               
               const SizedBox(height: 40),
             ],
@@ -261,22 +266,27 @@ class ManagerDashboardView extends StatelessWidget {
   }
 
   Widget _buildOverviewCard(Color cardColor, Color borderColor, Color primaryPurple, Color accentPurple) {
-    // Extract real chart data
-    List<double> chartData = [10, 14, 18, 8, 13, 6, 4]; // Default
+    List<double> incomeData = [10, 14, 18, 8, 13, 6, 4];
+    List<double> expenseData = [8, 10, 12, 6, 11, 4, 3];
     List<String> labels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
     if (dashboardData['analytics'] != null && dashboardData['analytics']['cash_flow'] != null) {
       final cashFlow = dashboardData['analytics']['cash_flow'];
-      final income = List<double>.from(cashFlow['income'].map((i) => (i as num).toDouble()));
+      incomeData = List<double>.from(cashFlow['income'].map((i) => (i as num).toDouble()));
+      expenseData = List<double>.from(cashFlow['expense'].map((i) => (i as num).toDouble()));
       final labelsRaw = List<String>.from(cashFlow['labels']);
       
-      if (income.isNotEmpty) {
-        chartData = income;
+      if (incomeData.isNotEmpty) {
         labels = labelsRaw.map((l) => l.split(' ')[0]).toList();
       }
     }
 
-    double maxVal = chartData.reduce((a, b) => a > b ? a : b);
+    double maxVal = 10;
+    if (incomeData.isNotEmpty) maxVal = incomeData.reduce((a, b) => a > b ? a : b);
+    if (expenseData.isNotEmpty) {
+      double maxExp = expenseData.reduce((a, b) => a > b ? a : b);
+      if (maxExp > maxVal) maxVal = maxExp;
+    }
     if (maxVal == 0) maxVal = 10;
 
     return Container(
@@ -399,8 +409,8 @@ class ManagerDashboardView extends StatelessWidget {
                 ),
                 gridData: const FlGridData(show: false),
                 borderData: FlBorderData(show: false),
-                barGroups: chartData.asMap().entries.map((e) {
-                  return _buildBarGroup(e.key, e.value, accentPurple, isHighlighted: e.key == chartData.length - 1);
+                barGroups: incomeData.asMap().entries.map((e) {
+                  return _buildDualBarGroup(e.key, e.value, expenseData[e.key], accentPurple, const Color(0xFFF43F5E), isHighlighted: e.key == incomeData.length - 1);
                 }).toList(),
               ),
             ),
@@ -410,24 +420,27 @@ class ManagerDashboardView extends StatelessWidget {
     );
   }
 
-  BarChartGroupData _buildBarGroup(int x, double y, Color accentPurple, {bool isHighlighted = false}) {
+  BarChartGroupData _buildDualBarGroup(int x, double y1, double y2, Color c1, Color c2, {bool isHighlighted = false}) {
     return BarChartGroupData(
       x: x,
       barRods: [
         BarChartRodData(
-          toY: y,
-          color: isHighlighted ? accentPurple : const Color(0xFF1F1F35),
-          width: 22,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(6),
-            topRight: Radius.circular(6),
-          ),
+          toY: y1,
+          color: isHighlighted ? c1 : c1.withOpacity(0.3),
+          width: 8,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        BarChartRodData(
+          toY: y2,
+          color: isHighlighted ? c2 : c2.withOpacity(0.3),
+          width: 8,
+          borderRadius: BorderRadius.circular(4),
         ),
       ],
     );
   }
 
-  Widget _buildRecentActivity(Color cardColor, Color borderColor, Color primaryPurple) {
+  Widget _buildRecentActivity(BuildContext context, Color cardColor, Color borderColor, Color primaryPurple) {
     // Get real activity from vouchers
     final recentVouchers = vouchers.take(5).toList();
 
@@ -481,6 +494,8 @@ class ManagerDashboardView extends StatelessWidget {
             }
 
             return _buildActivityItem(
+              context,
+              v,
               "${v['first_name'] ?? 'User'} added ${v['voucher_type_name'] ?? 'Voucher'}",
               "₹${_formatCurrency(double.tryParse(v['total_debit']?.toString() ?? '0') ?? 0)} • ${v['voucher_date'] ?? 'Recent'}",
               icon,
@@ -492,53 +507,68 @@ class ManagerDashboardView extends StatelessWidget {
     );
   }
 
-  Widget _buildActivityItem(String title, String subtitle, IconData icon, Color bg, Color iconColor) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF161625),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF1F1F35)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: bg,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: iconColor, size: 22),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    color: Colors.white.withOpacity(0.35),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
+  Widget _buildActivityItem(BuildContext context, Map<String, dynamic> voucher, String title, String subtitle, IconData icon, Color bg, Color iconColor) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VoucherDetailScreen(
+              voucher: voucher,
+              userRole: userRole,
+              currentUserId: currentUserId,
             ),
           ),
-        ],
+        );
+      },
+      borderRadius: BorderRadius.circular(24),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF161625),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: const Color(0xFF1F1F35)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: bg,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: iconColor, size: 22),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      color: Colors.white.withOpacity(0.35),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

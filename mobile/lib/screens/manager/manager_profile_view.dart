@@ -6,6 +6,11 @@ import 'package:finsight_mobile/services/api_service.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:finsight_mobile/screens/settings/profile_edit_screen.dart';
+import 'package:finsight_mobile/screens/manager/manager_access_logs_screen.dart';
+import 'package:finsight_mobile/screens/settings/security_settings_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:finsight_mobile/providers/theme_provider.dart';
 
 class ManagerProfileView extends StatefulWidget {
   final Map<String, dynamic> userData;
@@ -15,6 +20,7 @@ class ManagerProfileView extends StatefulWidget {
   final bool isDark;
   final VoidCallback onLogout;
   final VoidCallback onRefresh;
+  final Function(String) onNavigate;
 
   const ManagerProfileView({
     super.key,
@@ -25,6 +31,7 @@ class ManagerProfileView extends StatefulWidget {
     required this.isDark,
     required this.onLogout,
     required this.onRefresh,
+    required this.onNavigate,
   });
 
   @override
@@ -83,16 +90,19 @@ class _ManagerProfileViewState extends State<ManagerProfileView> {
     final Color bgColor = const Color(0xFF0D0D17);
     final Color primaryPurple = const Color(0xFF8B5CF6);
 
-    final String name = "${widget.userData['first_name'] ?? 'Alex'} ${widget.userData['last_name'] ?? 'Sterling'}";
-    final String role = "Senior Operations Manager";
-    final String dept = "Logistics & Supply Chain";
+    final String name = "${widget.userData['first_name'] ?? 'Alex'} ${widget.userData['last_name'] ?? ''}";
+    final String role = widget.userData['role'] ?? "Senior Operations Manager";
+    final String dept = widget.userData['department'] ?? "Management";
 
     return Scaffold(
       backgroundColor: bgColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(icon: const Icon(LucideIcons.arrowLeft, color: Colors.white), onPressed: () {}),
+        leading: IconButton(
+          icon: const Icon(LucideIcons.arrowLeft, color: Colors.white), 
+          onPressed: () => widget.onNavigate('dashboard')
+        ),
         title: Text(
           "Manager Profile",
           style: GoogleFonts.plusJakartaSans(
@@ -102,8 +112,10 @@ class _ManagerProfileViewState extends State<ManagerProfileView> {
           ),
         ),
         actions: [
-          IconButton(icon: const Icon(LucideIcons.share2, color: Colors.white), onPressed: () {}),
-          IconButton(icon: const Icon(LucideIcons.settings, color: Colors.white), onPressed: () {}),
+          IconButton(
+            icon: const Icon(LucideIcons.settings, color: Colors.white), 
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const SecuritySettingsScreen())),
+          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -196,7 +208,13 @@ class _ManagerProfileViewState extends State<ManagerProfileView> {
       children: [
         Expanded(
           child: ElevatedButton(
-            onPressed: () {},
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (c) => ProfileEditScreen(userData: widget.userData)),
+              );
+              if (result == true) widget.onRefresh();
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: primaryPurple,
               foregroundColor: Colors.white,
@@ -213,7 +231,7 @@ class _ManagerProfileViewState extends State<ManagerProfileView> {
         const SizedBox(width: 12),
         Expanded(
           child: ElevatedButton(
-            onPressed: () {},
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (c) => const ManagerAccessLogsScreen())),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1F1F35),
               foregroundColor: Colors.white,
@@ -325,9 +343,27 @@ class _ManagerProfileViewState extends State<ManagerProfileView> {
         const SizedBox(height: 12),
         Row(
           children: [
-            _buildAppearanceChip("Dark Amethyst", true, primaryPurple),
+            _buildAppearanceChip(
+              "Dark Amethyst", 
+              context.watch<ThemeProvider>().isDarkMode, 
+              primaryPurple,
+              onTap: () {
+                if (!context.read<ThemeProvider>().isDarkMode) {
+                  context.read<ThemeProvider>().toggleTheme();
+                }
+              }
+            ),
             const SizedBox(width: 12),
-            _buildAppearanceChip("Light Royal", false, primaryPurple),
+            _buildAppearanceChip(
+              "Light Royal", 
+              !context.watch<ThemeProvider>().isDarkMode, 
+              primaryPurple,
+              onTap: () {
+                if (context.read<ThemeProvider>().isDarkMode) {
+                  context.read<ThemeProvider>().toggleTheme();
+                }
+              }
+            ),
           ],
         ),
       ],
@@ -360,20 +396,23 @@ class _ManagerProfileViewState extends State<ManagerProfileView> {
     );
   }
 
-  Widget _buildAppearanceChip(String label, bool isSelected, Color primaryPurple) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: isSelected ? primaryPurple.withOpacity(0.1) : const Color(0xFF161625),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isSelected ? primaryPurple : const Color(0xFF1F1F35)),
-      ),
-      child: Text(
-        label,
-        style: GoogleFonts.plusJakartaSans(
-          fontSize: 12,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          color: isSelected ? Colors.white : Colors.grey[500],
+  Widget _buildAppearanceChip(String label, bool isSelected, Color primaryPurple, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? primaryPurple.withOpacity(0.1) : const Color(0xFF161625),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: isSelected ? primaryPurple : const Color(0xFF1F1F35)),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 12,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            color: isSelected ? Colors.white : Colors.grey[500],
+          ),
         ),
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:finsight_mobile/screens/edit_account_screen.dart';
 
 class ManagerAccountsView extends StatefulWidget {
   final List<dynamic> accounts;
@@ -285,54 +286,69 @@ class _ManagerAccountsViewState extends State<ManagerAccountsView> {
                 child: Text("No accounts in this category", style: TextStyle(color: Colors.white.withOpacity(0.2))),
               )
             else
-              ...subAccounts.map((acc) => _buildSubCategoryItem(acc['name'], "₹${(double.tryParse(acc['balance']?.toString() ?? '0') ?? 0).abs().toStringAsFixed(0)}")),
+              ...subAccounts.map((acc) => _buildSubCategoryItem(context, acc, "₹${(double.tryParse(acc['balance']?.toString() ?? '0') ?? 0).abs().toStringAsFixed(0)}")),
           ]
         ],
       ),
     );
   }
 
-  Widget _buildSubCategoryItem(String title, String amount) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 6,
-                height: 6,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF8B5CF6),
-                  shape: BoxShape.circle,
+  Widget _buildSubCategoryItem(BuildContext context, Map<String, dynamic> account, String amount) {
+    return InkWell(
+      onTap: () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (c) => EditAccountScreen(account: account)),
+        );
+        if (result == true) widget.onRefresh();
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF8B5CF6),
+                    shape: BoxShape.circle,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              SizedBox(
-                width: 150,
-                child: Text(
-                  title,
+                const SizedBox(width: 12),
+                SizedBox(
+                  width: 150,
+                  child: Text(
+                    account['name'] ?? '',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white.withOpacity(0.7),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Text(
+                  amount,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white.withOpacity(0.7),
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
-          ),
-          Text(
-            amount,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
+                const SizedBox(width: 8),
+                Icon(LucideIcons.edit3, color: Colors.white.withOpacity(0.2), size: 14),
+              ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

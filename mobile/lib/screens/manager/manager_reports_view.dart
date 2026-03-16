@@ -70,7 +70,7 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
                     _buildQuickInsight(cardColor, borderColor, primaryPurple, accentPurple),
                     const SizedBox(height: 32),
                     Text(
-                      "Critical Business Reports",
+                      _selectedTab == 0 ? "Critical Business Reports" : (_selectedTab == 1 ? "Tax & Compliance" : "Audit & History"),
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 18,
                         fontWeight: FontWeight.w800,
@@ -78,36 +78,50 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    _buildReportItem(
-                      "Monthly Performance",
-                      "Revenue streams, operational expenses, and monthly target KPIs for all departments.",
-                      LucideIcons.trendingUp,
-                      "Generate Report",
-                      primaryPurple,
-                      cardColor,
-                      borderColor,
-                      onTap: () => widget.onNavigate('reports'), // Logic to open specific report
-                    ),
-                    _buildReportItem(
-                      "Tax Compliance",
-                      "Projected tax liabilities and compliance checks based on current quarterly earnings.",
-                      LucideIcons.shieldCheck,
-                      "Review Status",
-                      const Color(0xFF1F1F35),
-                      cardColor,
-                      borderColor
-                    ),
-                    _buildReportItem(
-                      "Audit Readiness",
-                      "Financial documentation and compliance certificates status for annual audit.",
-                      LucideIcons.fileCheck,
-                      "Check Readiness",
-                      const Color(0xFF1F1F35),
-                      cardColor,
-                      borderColor,
-                      trailingTag: "Actions Req.",
-                      tagColor: const Color(0xFFF59E0B),
-                    ),
+                    if (_selectedTab == 0) ...[
+                      _buildReportItem(
+                        "Monthly Performance",
+                        "Detailed revenue streams, operational expenses, and monthly target KPIs.",
+                        LucideIcons.barChart4,
+                        "Generate Report",
+                        primaryPurple,
+                        cardColor,
+                        borderColor,
+                        onTap: () => _showMonthPicker(context),
+                      ),
+                      _buildReportItem(
+                        "Financial Entry Logs",
+                        "Complete trail of all voucher entries, modifications, and approvals for the current period.",
+                        LucideIcons.scrollText,
+                        "Download CSV",
+                        const Color(0xFF1F1F35),
+                        cardColor,
+                        borderColor,
+                        onTap: () => _simulateDownload(context, "Financial_Entry_Logs.csv"),
+                      ),
+                    ] else if (_selectedTab == 1) ...[
+                      _buildReportItem(
+                        "GST / VAT Summary",
+                        "Quarterly tax projections and collected tax summary based on posted transactions.",
+                        LucideIcons.calculator,
+                        "Export for Filing",
+                        accentPurple,
+                        cardColor,
+                        borderColor,
+                        onTap: () => _simulateDownload(context, "Tax_Summary_Q1.pdf"),
+                      ),
+                    ] else ...[
+                      _buildReportItem(
+                        "System Audit Trail",
+                        "Security logs showing user logins, data access, and critical system modifications.",
+                        LucideIcons.shieldCheck,
+                        "View Full Logs",
+                        const Color(0xFF1F1F35),
+                        cardColor,
+                        borderColor,
+                        onTap: () => _simulateDownload(context, "System_Audit_Trail.log"),
+                      ),
+                    ],
                     const SizedBox(height: 40),
                   ],
                 ),
@@ -415,6 +429,62 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  void _showMonthPicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF161625),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+      builder: (context) {
+        final months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        return Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text("Select Month", style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+              const SizedBox(height: 20),
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: months.length,
+                  itemBuilder: (c, i) => ListTile(
+                    title: Text(months[i], style: const TextStyle(color: Colors.white)),
+                    trailing: const Icon(LucideIcons.chevronRight, color: Colors.white24, size: 16),
+                    onTap: () {
+                      Navigator.pop(context);
+                      _simulateDownload(context, "${months[i]}_Performance_Report.pdf");
+                    },
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _simulateDownload(BuildContext context, String filename) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator(color: Color(0xFF8B5CF6))),
+    );
+    
+    await Future.delayed(const Duration(seconds: 2));
+    if (!context.mounted) return;
+    Navigator.pop(context);
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Downloading $filename..."),
+        backgroundColor: const Color(0xFF10B981),
+        duration: const Duration(seconds: 3),
+        action: SnackBarAction(label: "OPEN", textColor: Colors.white, onPressed: () {}),
       ),
     );
   }
