@@ -3,6 +3,13 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:fl_chart/fl_chart.dart';
 
+import 'package:finsight_mobile/screens/reports/balance_sheet_screen.dart';
+import 'package:finsight_mobile/screens/reports/profit_loss_screen.dart';
+import 'package:finsight_mobile/screens/reports/cash_flow_screen.dart';
+import 'package:finsight_mobile/screens/reports/ledger_screen.dart';
+import 'package:finsight_mobile/screens/reports/monthly_performance_screen.dart';
+import 'package:finsight_mobile/screens/manager/manager_access_logs_screen.dart';
+
 class ManagerReportsView extends StatefulWidget {
   final Map<String, dynamic> dashboardData;
   final bool isDark;
@@ -50,10 +57,7 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
             color: Colors.white,
           ),
         ),
-        actions: [
-          IconButton(icon: const Icon(LucideIcons.share2, color: Colors.white, size: 20), onPressed: () {}),
-          const SizedBox(width: 8),
-        ],
+        actions: const [],
       ),
       body: Column(
         children: [
@@ -82,44 +86,124 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
                       _buildReportItem(
                         "Monthly Performance",
                         "Detailed revenue streams, operational expenses, and monthly target KPIs.",
-                        LucideIcons.barChart4,
-                        "Generate Report",
+                        LucideIcons.calendar,
+                        "View Insights",
                         primaryPurple,
                         cardColor,
                         borderColor,
-                        onTap: () => _showMonthPicker(context),
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MonthlyPerformanceScreen())),
+                      ),
+                      _buildReportItem(
+                        "Balance Sheet",
+                        "Overview of assets, liabilities, and shareholder equity.",
+                        LucideIcons.landmark,
+                        "View Report",
+                        primaryPurple,
+                        cardColor,
+                        borderColor,
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const BalanceSheetScreen())),
+                      ),
+                      _buildReportItem(
+                        "Profit & Loss (P&L)",
+                        "Summary of revenues, costs, and expenses incurred during a specific period.",
+                        LucideIcons.trendingUp,
+                        "View Report",
+                        primaryPurple,
+                        cardColor,
+                        borderColor,
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ProfitLossScreen())),
+                      ),
+                      _buildReportItem(
+                        "Cash Flow",
+                        "Summary of cash inflows and outflows from operating, investing, and financing activities.",
+                        LucideIcons.banknote,
+                        "View Report",
+                        primaryPurple,
+                        cardColor,
+                        borderColor,
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const CashFlowScreen())),
+                      ),
+                      _buildReportItem(
+                        "Financial Health Analysis",
+                        "AI-driven audit of solvency, liquidity, and margins.",
+                        LucideIcons.activity,
+                        "Analyze Now",
+                        const Color(0xFF10B981),
+                        cardColor,
+                        borderColor,
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MonthlyPerformanceScreen())),
+                      ),
+                      _buildReportItem(
+                        "Trial Balance",
+                        "Worksheet listing all account balances to ensure accounting accuracy.",
+                        LucideIcons.calculator,
+                        "Run Check",
+                        primaryPurple,
+                        cardColor,
+                        borderColor,
+                        onTap: () => _simulateDownload(context, "Trial_Balance.pdf"),
+                      ),
+                      _buildReportItem(
+                        "General Ledger",
+                        "Complete record of all financial transactions during the fiscal period.",
+                        LucideIcons.bookOpen,
+                        "View Ledger",
+                        primaryPurple,
+                        cardColor,
+                        borderColor,
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const LedgerScreen())),
                       ),
                       _buildReportItem(
                         "Financial Entry Logs",
-                        "Complete trail of all voucher entries, modifications, and approvals for the current period.",
+                        "Complete trail of all voucher entries, modifications, and approvals.",
                         LucideIcons.scrollText,
-                        "Download CSV",
+                        "View History",
                         const Color(0xFF1F1F35),
                         cardColor,
                         borderColor,
-                        onTap: () => _simulateDownload(context, "Financial_Entry_Logs.csv"),
+                        onTap: () => widget.onNavigate('vouchers'),
                       ),
                     ] else if (_selectedTab == 1) ...[
                       _buildReportItem(
-                        "GST / VAT Summary",
-                        "Quarterly tax projections and collected tax summary based on posted transactions.",
-                        LucideIcons.calculator,
-                        "Export for Filing",
+                        "Tax Compliance Summary",
+                        "Comprehensive summary for VAT, GST, or other statutory filings.",
+                        LucideIcons.briefcase,
+                        "Export Summary",
                         accentPurple,
                         cardColor,
                         borderColor,
-                        onTap: () => _simulateDownload(context, "Tax_Summary_Q1.pdf"),
+                        onTap: () => _simulateDownload(context, "Tax_Compliance_Summary.pdf"),
                       ),
-                    ] else ...[
                       _buildReportItem(
-                        "System Audit Trail",
-                        "Security logs showing user logins, data access, and critical system modifications.",
-                        LucideIcons.shieldCheck,
-                        "View Full Logs",
+                        "Quarterly Projections",
+                        "Estimated tax liability based on current fiscal year performance.",
+                        LucideIcons.calculator,
+                        "View Projections",
                         const Color(0xFF1F1F35),
                         cardColor,
                         borderColor,
-                        onTap: () => _simulateDownload(context, "System_Audit_Trail.log"),
+                        onTap: () => _simulateDownload(context, "Tax_Projections_Q3.pdf"),
+                      ),
+                    ] else ...[
+                      _buildReportItem(
+                        "Audit & Access Logs",
+                        "Security logs showing user logins, data access, and critical modifications.",
+                        LucideIcons.shieldCheck,
+                        "Audit Now",
+                        const Color(0xFF1F1F35),
+                        cardColor,
+                        borderColor,
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ManagerAccessLogsScreen())),
+                      ),
+                      _buildReportItem(
+                        "System Activity History",
+                        "Detailed timeline of all system-wide administrative actions.",
+                        LucideIcons.history,
+                        "View Timeline",
+                        const Color(0xFF1F1F35),
+                        cardColor,
+                        borderColor,
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ManagerAccessLogsScreen())),
                       ),
                     ],
                     const SizedBox(height: 40),
@@ -178,10 +262,10 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
 
   Widget _buildQuickInsight(Color cardColor, Color borderColor, Color primaryPurple, Color accentPurple) {
     // Extract real chart data (Profit Trend)
-    List<double> profitData = [8, 12, 11, 14, 17, 19];
-    List<String> labels = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN'];
-    double totalProfit = 124500;
-    String trend = "+22.5%";
+    List<double> profitData = [0];
+    List<String> labels = ['NO DATA'];
+    double totalProfit = 0;
+    String trend = "0.0%";
 
     if (widget.dashboardData['analytics'] != null && widget.dashboardData['analytics']['cash_flow'] != null) {
       final cashFlow = widget.dashboardData['analytics']['cash_flow'];
@@ -433,58 +517,25 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
     );
   }
 
-  void _showMonthPicker(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFF161625),
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
-      builder: (context) {
-        final months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        return Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text("Select Month", style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-              const SizedBox(height: 20),
-              Flexible(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: months.length,
-                  itemBuilder: (c, i) => ListTile(
-                    title: Text(months[i], style: const TextStyle(color: Colors.white)),
-                    trailing: const Icon(LucideIcons.chevronRight, color: Colors.white24, size: 16),
-                    onTap: () {
-                      Navigator.pop(context);
-                      _simulateDownload(context, "${months[i]}_Performance_Report.pdf");
-                    },
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   void _simulateDownload(BuildContext context, String filename) async {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator(color: Color(0xFF8B5CF6))),
+      builder: (context) =>
+          const Center(child: CircularProgressIndicator(color: Color(0xFF8B5CF6))),
     );
-    
+
     await Future.delayed(const Duration(seconds: 2));
     if (!context.mounted) return;
     Navigator.pop(context);
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text("Downloading $filename..."),
         backgroundColor: const Color(0xFF10B981),
         duration: const Duration(seconds: 3),
-        action: SnackBarAction(label: "OPEN", textColor: Colors.white, onPressed: () {}),
+        action:
+            SnackBarAction(label: "OPEN", textColor: Colors.white, onPressed: () {}),
       ),
     );
   }

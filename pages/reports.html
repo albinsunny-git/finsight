@@ -2,280 +2,229 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Executive Summaries - FinSight</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="../css/modern-dashboard.css?v=11">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <style>
-    :root {
-        --purple-main: #8b5cf6;
-        --purple-dark: #0f111a;
-        --purple-card: #221a36;
-        --purple-surface: #1a1429;
-        
-        /* Compatibility Mappings */
-        --gs-accent: var(--purple-main);
-        --gs-accent-rgb: 139, 92, 246;
-        --text-main: #ffffff;
-        --text-muted: #94a3b8;
-        --gs-muted: #94a3b8;
-        --bg-card: var(--purple-card);
-        --bg-body: var(--purple-dark);
-        --gs-border: rgba(139, 92, 246, 0.1);
-        --gs-surface: var(--purple-surface);
-        --gs-surface2: rgba(255,255,255,0.05);
-        --border-color: rgba(139, 92, 246, 0.1);
-        --success-color: #10b981;
-        --danger-color: #ef4444;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Reports - FinSight</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/modern-dashboard.css?v=13">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        .report-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
 
-    body {
-        background-color: var(--purple-dark);
-    }
+        .report-card {
+            background: var(--gs-surface);
+            border: 1px solid var(--gs-border);
+            border-radius: var(--gs-radius);
+            padding: 24px;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
 
-    .executive-tabs {
-        display: flex;
-        gap: 2rem;
-        border-bottom: 1px solid rgba(255,255,255,0.05);
-        margin-bottom: 2rem;
-    }
+        .report-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--gs-accent);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
 
-    .executive-tab {
-        padding: 0.8rem 0;
-        color: #94a3b8;
-        font-weight: 600;
-        font-size: 0.9rem;
-        cursor: pointer;
-        border-bottom: 2px solid transparent;
-        transition: all 0.3s ease;
-    }
+        .report-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--gs-surface2);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: var(--gs-accent);
+        }
 
-    .executive-tab.active {
-        color: #fff;
-        border-color: var(--purple-main);
-    }
+        .report-info h3 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: var(--text-main);
+        }
 
-    .insight-card {
-        background: var(--purple-card);
-        border-radius: 24px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-        border: 1px solid rgba(139, 92, 246, 0.1);
-    }
+        .report-info p {
+            font-size: 0.85rem;
+            color: var(--gs-muted);
+            line-height: 1.5;
+        }
 
-    .trend-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 1rem;
-    }
+        .report-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: auto;
+        }
 
-    .trend-title {
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: #94a3b8;
-        font-weight: 700;
-    }
+        .btn-view {
+            flex: 1;
+            padding: 10px;
+            border-radius: 8px;
+            background: var(--gs-accent);
+            color: #000;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
 
-    .trend-amount {
-        font-size: 2.2rem;
-        font-weight: 800;
-        color: #fff;
-        margin-top: 5px;
-    }
+        .btn-pdf {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: var(--gs-surface2);
+            color: var(--gs-muted);
+            border: 1px solid var(--gs-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
 
-    .trend-badge {
-        background: rgba(16, 185, 129, 0.1);
-        color: #10b981;
-        padding: 4px 12px;
-        border-radius: 12px;
-        font-size: 0.8rem;
-        font-weight: 700;
-    }
+        .btn-pdf:hover {
+            color: #ef4444;
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
 
-    .report-card-stack {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-    }
+        #report-viewer-container {
+            display: none;
+            animation: slideUp 0.4s ease-out;
+        }
 
-    .report-exec-card {
-        background: var(--purple-card);
-        border-radius: 20px;
-        padding: 24px;
-        border: 1px solid rgba(139, 92, 246, 0.05);
-        transition: transform 0.3s ease;
-        display: flex;
-        flex-direction: column;
-    }
+        @keyframes slideUp {
+            from { opacity:0; transform: translateY(20px); }
+            to { opacity:1; transform: translateY(0); }
+        }
 
-    .report-exec-card:hover {
-        transform: translateY(-4px);
-        border-color: rgba(139, 92, 246, 0.2);
-    }
+        .report-header-nav {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
 
-    .report-exec-icon-box {
-        width: 100%;
-        height: 120px;
-        background: rgba(139, 92, 246, 0.05);
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 20px;
-        font-size: 2.5rem;
-        color: var(--purple-main);
-        opacity: 0.8;
-    }
+        .btn-back {
+            background: var(--gs-surface2);
+            border: 1px solid var(--gs-border);
+            color: var(--text-main);
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+        }
 
-    .report-exec-title {
-        font-size: 1.1rem;
-        font-weight: 800;
-        color: #fff;
-        margin-bottom: 8px;
-    }
+        .filter-bar {
+            background: var(--gs-surface);
+            border: 1px solid var(--gs-border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: flex-end;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
 
-    .report-exec-desc {
-        font-size: 0.85rem;
-        color: #94a3b8;
-        line-height: 1.5;
-        margin-bottom: 20px;
-    }
+        .filter-group {
+            flex: 1;
+            min-width: 150px;
+        }
 
-    .report-exec-actions {
-        display: flex;
-        gap: 10px;
-    }
+        .filter-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--gs-muted);
+            text-transform: uppercase;
+        }
 
-    .btn-exec-view {
-        background: var(--purple-main);
-        color: #fff;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 10px;
-        font-weight: 700;
-        font-size: 0.85rem;
-        cursor: pointer;
-        transition: filter 0.3s ease;
-    }
+        .filter-group select, .filter-group input {
+            width: 100%;
+            padding: 10px;
+            background: var(--gs-surface2);
+            border: 1px solid var(--gs-border);
+            border-radius: 8px;
+            color: var(--text-main);
+        }
 
-    .btn-exec-pdf {
-        background: rgba(255,255,255,0.05);
-        color: #fff;
-        border: 1px solid rgba(255,255,255,0.1);
-        padding: 10px 20px;
-        border-radius: 10px;
-        font-weight: 700;
-        font-size: 0.85rem;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .btn-exec-view:hover { filter: brightness(1.1); }
-    .btn-exec-pdf:hover { background: rgba(255,255,255,0.1); }
-
-    #detail-view-container {
-        display: none;
-        animation: fadeIn 0.4s ease;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    .ai-badge {
-        background: linear-gradient(45deg, #8b5cf6, #d946ef);
-        color: #fff;
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-size: 0.65rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        margin-left: 8px;
-        vertical-align: middle;
-    }
-
-    .dashboard-container {
-        display: flex;
-        min-height: 100vh;
-    }
-
-    .sidebar {
-        width: 280px;
-        background: #111;
-        border-right: 1px solid var(--gs-border);
-        flex-shrink: 0;
-    }
-
-    .main-content {
-        flex: 1;
-        background: var(--purple-dark);
-        overflow-y: auto;
-    }
-    
-    .header {
-        background: var(--purple-dark);
-        border-bottom: 1px solid rgba(255,255,255,0.05);
-    }
-  </style>
+        .report-content-area {
+            background: var(--gs-surface);
+            border: 1px solid var(--gs-border);
+            border-radius: 12px;
+            padding: 40px;
+            min-height: 500px;
+        }
+    </style>
 </head>
 
 <body>
-  <div class="dashboard-container">
-    <!-- Sidebar -->
+    <div class="dashboard-container">
+        <!-- Sidebar -->
         <aside class="sidebar">
-            <div class="sidebar-header" style="padding: 24px;">
-                <a href="../index.html" class="brand-logo" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
+            <div class="sidebar-header">
+                <a href="../index.html" class="brand-logo" style="display: flex; align-items: center; gap: 12px;">
                     <img src="../assets/images/logo.png" alt="FinSight Logo" style="height: 35px; width: 35px; border-radius: 8px;">
-                    <span class="brand-logo-name" style="font-weight: 800; font-size: 1.25rem; color: #fff; letter-spacing: -0.5px;">FINSIGHT</span>
+                    <span class="brand-logo-name" style="font-weight: 800; font-size: 1.25rem; color: var(--text-main); letter-spacing: -0.5px;">FINSIGHT</span>
                 </a>
             </div>
 
-            <nav class="sidebar-nav" style="padding: 0 16px;">
-                <a href="dashboard.html" class="nav-link" style="display: flex; align-items: center; gap: 12px; padding: 12px; color: #94a3b8; text-decoration: none; border-radius: 8px; margin-bottom: 4px;">
+            <nav class="sidebar-nav">
+                <a href="dashboard.html" class="nav-link">
                     <i class="fas fa-th-large"></i>
                     <span>Dashboard</span>
                 </a>
-                <a href="accounts.html" class="nav-link" style="display: flex; align-items: center; gap: 12px; padding: 12px; color: #94a3b8; text-decoration: none; border-radius: 8px; margin-bottom: 4px;">
+                <a href="accounts.html" class="nav-link">
                     <i class="fas fa-university"></i>
                     <span>Accounts</span>
                 </a>
-                <a href="vouchers.html" class="nav-link" style="display: flex; align-items: center; gap: 12px; padding: 12px; color: #94a3b8; text-decoration: none; border-radius: 8px; margin-bottom: 4px;">
+                <a href="vouchers.html" class="nav-link">
                     <i class="fas fa-exchange-alt"></i>
                     <span>Transactions</span>
                 </a>
-                <a href="users.html" class="nav-link" style="display: flex; align-items: center; gap: 12px; padding: 12px; color: #94a3b8; text-decoration: none; border-radius: 8px; margin-bottom: 4px;">
+                <a href="users.html" class="nav-link">
                     <i class="fas fa-users"></i>
                     <span>Team Hub</span>
                 </a>
-                <a href="reports.html" class="nav-link active" style="display: flex; align-items: center; gap: 12px; padding: 12px; color: #fff; background: rgba(139, 92, 246, 0.1); text-decoration: none; border-radius: 8px; margin-bottom: 4px;">
-                    <i class="fas fa-file-contract" style="color: var(--purple-main);"></i>
+                <a href="reports.html" class="nav-link active">
+                    <i class="fas fa-file-contract"></i>
                     <span>Reports</span>
                 </a>
-                <a href="access-logs.html" class="nav-link" style="display: flex; align-items: center; gap: 12px; padding: 12px; color: #94a3b8; text-decoration: none; border-radius: 8px; margin-bottom: 4px;">
+                <a href="access-logs.html" class="nav-link">
                     <i class="fas fa-shield-halved"></i>
                     <span>Access & Control</span>
                 </a>
-                <a href="settings.html" class="nav-link" style="display: flex; align-items: center; gap: 12px; padding: 12px; color: #94a3b8; text-decoration: none; border-radius: 8px; margin-bottom: 4px;">
+                <a href="settings.html" class="nav-link">
                     <i class="fas fa-cog"></i>
                     <span>Settings</span>
                 </a>
             </nav>
 
-            <div class="sidebar-footer" style="padding: 24px; margin-top: auto;">
-                <div class="sidebar-user-profile" style="background: transparent; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; display: flex; align-items: center; gap: 12px;">
-                    <div class="sidebar-user-avatar" id="sidebarUserAvatar" style="width: 40px; height: 40px; border-radius: 50%; background: var(--purple-card); border: 1px solid rgba(139, 92, 246, 0.2); display: flex; align-items: center; justify-content: center; overflow: hidden; color: var(--purple-main); font-weight: 800;">A</div>
+            <div class="sidebar-footer">
+                <a href="#" class="btn-get-app">
+                    <i class="fab fa-android"></i>
+                    <span>Get Android App</span>
+                </a>
+                <div class="sidebar-user-profile">
+                    <div class="sidebar-user-avatar" id="sidebarUserAvatar">A</div>
                     <div style="display: flex; flex-direction: column; overflow: hidden;">
-                        <span class="sidebar-user-name" id="sidebarUserName" style="font-weight: 700; font-size: 0.85rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">User</span>
-                        <span class="sidebar-user-role" id="sidebarUserRole" style="font-size: 0.75rem; color: #94a3b8;">Role</span>
+                        <span class="sidebar-user-name" id="sidebarUserName">User</span>
+                        <span class="sidebar-user-role" id="sidebarUserRole">Role</span>
                     </div>
                 </div>
             </div>
@@ -283,345 +232,261 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <header class="header" style="height: 80px; display: flex; align-items: center; padding: 0 3rem; justify-content: space-between;">
+            <header class="header">
                 <div class="header-left">
+                    <button class="mobile-toggle" id="mobileToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
                     <div class="header-title">
-                        <h1 style="font-weight: 800; font-size: 1.5rem; margin-bottom: 2px; color: #fff;">Executive Summaries</h1>
-                        <p style="color: #94a3b8; font-size: 0.85rem; font-weight: 500;">Strategic financial overview and key performance reporting.</p>
+                        <h1 id="page-main-title">Financial Reports</h1>
+                        <p style="color: var(--gs-muted); font-size: 0.85rem;">Analyze your business health with real-time data.</p>
                     </div>
                 </div>
 
-                <div class="header-actions" style="display: flex; align-items: center; gap: 15px;">
-                    <button class="btn-icon" style="background: var(--purple-card); border: 1px solid rgba(139, 92, 246, 0.1); width: 40px; height: 40px; border-radius: 10px; color: #fff; cursor: pointer;">
+                <div class="header-actions">
+                    <button class="btn-icon">
                         <i class="fas fa-bell"></i>
                     </button>
-                    <div class="user-menu" style="background: var(--purple-card); padding: 5px 15px 5px 5px; border-radius: 30px; border: 1px solid rgba(139, 92, 246, 0.1); display: flex; align-items: center; gap: 12px; cursor: pointer;">
-                        <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--purple-main); display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                            <img id="headerUserAvatarImg" src="https://ui-avatars.com/api/?name=User&background=8b5cf6&color=fff" style="width: 100%; height: 100%; object-fit: cover;">
-                        </div>
-                        <span id="headerUserName" style="font-size: 0.8rem; font-weight: 700; color: #fff;">User Name</span>
+                    <div class="user-menu" id="headerUserMenu">
+                        <div class="user-avatar" id="headerUserAvatar">U</div>
+                        <span class="user-name" id="headerUserName">User Name</span>
                     </div>
                 </div>
             </header>
 
-            <div class="page-content" id="executive-hub-container" style="padding: 2rem 3rem;">
-                <div class="executive-tabs">
-                    <div class="executive-tab active">Overview</div>
-                    <div class="executive-tab">Tax Filing</div>
-                    <div class="executive-tab" onclick="location.href='access-logs.html'">Audit Logs</div>
-                </div>
-
-                <div class="insight-card">
-                    <div class="trend-header">
-                        <div>
-                            <div class="trend-title">Net Profit Trend</div>
-                            <div class="trend-amount" id="exec-net-profit">+$0.00</div>
-                        </div>
-                        <div class="trend-badge" id="exec-profit-badge">+0%</div>
-                    </div>
-                    <div style="height: 180px; margin-top: 20px;">
-                        <canvas id="execTrendChart"></canvas>
-                    </div>
-                </div>
-
-                <h2 style="font-size: 1.25rem; font-weight: 800; color: #fff; margin-bottom: 2rem;">Key Reports</h2>
-
-                <div class="report-card-stack" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem;">
-                    <!-- Monthly Performance -->
-                    <div class="report-exec-card">
-                        <div class="report-exec-icon-box"><i class="fas fa-calendar-alt"></i></div>
-                        <div class="report-exec-title">Monthly Performance</div>
-                        <div class="report-exec-desc">Detailed breakdown of revenue streams, operational expenses, and monthly target KPIs.</div>
-                        <div class="report-exec-actions" style="margin-top: auto;">
-                            <button class="btn-exec-view" onclick="switchToDetail('performance')">View Report</button>
-                            <button class="btn-exec-pdf" onclick="directExportPDF('performance')"><i class="fas fa-file-pdf"></i> PDF</button>
-                        </div>
-                    </div>
-
+            <!-- Page Content: Grid View -->
+            <div class="page-content" id="reports-grid-view" style="padding: 2rem 3rem;">
+                <div class="report-grid">
                     <!-- Balance Sheet -->
-                    <div class="report-exec-card">
-                        <div class="report-exec-icon-box"><i class="fas fa-university"></i></div>
-                        <div class="report-exec-title">Balance Sheet</div>
-                        <div class="report-exec-desc">Summary of the company's assets, liabilities, and shareholder equity at a specific point in time.</div>
-                        <div class="report-exec-actions" style="margin-top: auto;">
-                            <button class="btn-exec-view" onclick="switchToDetail('balance-sheet')">View Details</button>
-                            <button class="btn-exec-pdf" onclick="directExportPDF('balance-sheet')"><i class="fas fa-file-pdf"></i> PDF</button>
+                    <div class="report-card">
+                        <div class="report-icon"><i class="fas fa-balance-scale"></i></div>
+                        <div class="report-info">
+                            <h3>Balance Sheet</h3>
+                            <p>Assets, liabilities, and equity at a specific point in time.</p>
+                        </div>
+                        <div class="report-actions">
+                            <button class="btn-view" onclick="switchToDetail('balance-sheet')">Open Report</button>
+                            <button class="btn-pdf" onclick="directExportPDF('balance-sheet')"><i class="fas fa-file-pdf"></i></button>
                         </div>
                     </div>
 
-                    <!-- P&L -->
-                    <div class="report-exec-card">
-                        <div class="report-exec-icon-box"><i class="fas fa-money-bill-wave"></i></div>
-                        <div class="report-exec-title">Profit & Loss (P&L)</div>
-                        <div class="report-exec-desc">Financial statement that summarizes the revenues, costs, and expenses incurred during a specific period.</div>
-                        <div class="report-exec-actions" style="margin-top: auto;">
-                            <button class="btn-exec-view" onclick="switchToDetail('profit-loss')">View Statement</button>
-                            <button class="btn-exec-pdf" onclick="directExportPDF('profit-loss')"><i class="fas fa-file-pdf"></i> PDF</button>
+                    <!-- Profit & Loss -->
+                    <div class="report-card">
+                        <div class="report-icon"><i class="fas fa-chart-line"></i></div>
+                        <div class="report-info">
+                            <h3>Profit & Loss</h3>
+                            <p>Summary of revenues and expenses for a specific period.</p>
                         </div>
-                    </div>
-
-                    <!-- Cash Flow -->
-                    <div class="report-exec-card">
-                        <div class="report-exec-icon-box"><i class="fas fa-wallet"></i></div>
-                        <div class="report-exec-title">Cash Flow</div>
-                        <div class="report-exec-desc">Tracking the movement of money in and out of the business to ensure liquidity and operational stability.</div>
-                        <div class="report-exec-actions" style="margin-top: auto;">
-                            <button class="btn-exec-view" onclick="switchToDetail('cash-flow')">View Forecast</button>
-                            <button class="btn-exec-pdf" onclick="directExportPDF('cash-flow')"><i class="fas fa-file-pdf"></i> PDF</button>
+                        <div class="report-actions">
+                            <button class="btn-view" onclick="switchToDetail('profit-loss')">Open Report</button>
+                            <button class="btn-pdf" onclick="directExportPDF('profit-loss')"><i class="fas fa-file-pdf"></i></button>
                         </div>
                     </div>
 
                     <!-- Trial Balance -->
-                    <div class="report-exec-card">
-                        <div class="report-exec-icon-box"><i class="fas fa-balance-scale"></i></div>
-                        <div class="report-exec-title">Trial Balance</div>
-                        <div class="report-exec-desc">A bookkeeping worksheet in which the balances of all ledgers are compiled into debit and credit columns.</div>
-                        <div class="report-exec-actions" style="margin-top: auto;">
-                            <button class="btn-exec-view" onclick="switchToDetail('trial-balance')">Run Check</button>
-                            <button class="btn-exec-pdf" onclick="directExportPDF('trial-balance')"><i class="fas fa-file-pdf"></i> PDF</button>
+                    <div class="report-card">
+                        <div class="report-icon"><i class="fas fa-calculator"></i></div>
+                        <div class="report-info">
+                            <h3>Trial Balance</h3>
+                            <p>Worksheet listing all account balances for validation.</p>
+                        </div>
+                        <div class="report-actions">
+                            <button class="btn-view" onclick="switchToDetail('trial-balance')">Open Report</button>
+                            <button class="btn-pdf" onclick="directExportPDF('trial-balance')"><i class="fas fa-file-pdf"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Cash Flow -->
+                    <div class="report-card">
+                        <div class="report-icon"><i class="fas fa-stream"></i></div>
+                        <div class="report-info">
+                            <h3>Cash Flow</h3>
+                            <p>Tracking the flow of money in and out of the business.</p>
+                        </div>
+                        <div class="report-actions">
+                            <button class="btn-view" onclick="switchToDetail('cash-flow')">Open Report</button>
+                            <button class="btn-pdf" onclick="directExportPDF('cash-flow')"><i class="fas fa-file-pdf"></i></button>
                         </div>
                     </div>
 
                     <!-- General Ledger -->
-                    <div class="report-exec-card">
-                        <div class="report-exec-icon-box"><i class="fas fa-book"></i></div>
-                        <div class="report-exec-title">General Ledger</div>
-                        <div class="report-exec-desc">Complete record of all financial transactions over the life of the organization, organized by account.</div>
-                        <div class="report-exec-actions" style="margin-top: auto;">
-                            <button class="btn-exec-view" onclick="switchToDetail('ledger')">Browse Ledger</button>
-                            <button class="btn-exec-pdf" onclick="directExportPDF('ledger')"><i class="fas fa-file-pdf"></i> PDF</button>
+                    <div class="report-card">
+                        <div class="report-icon"><i class="fas fa-book"></i></div>
+                        <div class="report-info">
+                            <h3>General Ledger</h3>
+                            <p>Complete historical record of all financial transitions.</p>
+                        </div>
+                        <div class="report-actions">
+                            <button class="btn-view" onclick="switchToDetail('ledger')">Open Report</button>
+                            <button class="btn-pdf" onclick="directExportPDF('ledger')"><i class="fas fa-file-pdf"></i></button>
                         </div>
                     </div>
 
-                    <!-- Tax Compliance -->
-                    <div class="report-exec-card">
-                        <div class="report-exec-icon-box"><i class="fas fa-briefcase"></i></div>
-                        <div class="report-exec-title">Tax Compliance Summary</div>
-                        <div class="report-exec-desc">Automated summary of taxable income and deductible expenses for statutory annual or quarterly filing.</div>
-                        <div class="report-exec-actions" style="margin-top: auto;">
-                            <button class="btn-exec-view" onclick="switchToDetail('profit-loss')">View Summary</button>
-                            <button class="btn-exec-pdf" onclick="directExportPDF('profit-loss')"><i class="fas fa-file-pdf"></i> PDF</button>
+                    <!-- Monthly Performance -->
+                    <div class="report-card">
+                        <div class="report-icon"><i class="fas fa-bullseye"></i></div>
+                        <div class="report-info">
+                            <h3>Monthly Performance</h3>
+                            <p>Deep dive into your periodic business targets and KPIs.</p>
+                        </div>
+                        <div class="report-actions">
+                            <button class="btn-view" onclick="switchToDetail('performance')">Open Report</button>
+                            <button class="btn-pdf" onclick="directExportPDF('performance')"><i class="fas fa-file-pdf"></i></button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Detail View Container (Initially Hidden) -->
-            <div id="detail-view-container" style="padding: 2rem 3rem; display: none;">
-                <div style="margin-bottom: 25px; display: flex; align-items: center; gap: 20px;">
-                    <button onclick="backToHub()" class="btn-exec-view" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
-                        <i class="fas fa-arrow-left"></i> Back to Hub
+            <!-- Page Content: Viewer View -->
+            <div class="page-content" id="report-viewer-container" style="padding: 2rem 3rem;">
+                <div class="report-header-nav">
+                    <button class="btn-back" onclick="backToGrid()">
+                        <i class="fas fa-arrow-left"></i> Back to Reports
                     </button>
-                    <h2 id="active-report-title" style="font-weight: 800; font-size: 1.4rem; color: #fff;">Report Title</h2>
+                    <h2 id="active-report-title" style="font-weight: 800; color: var(--text-main);">Report Name</h2>
                 </div>
 
-                <!-- Report Filters Bar (Dynamic) -->
-                <div id="report-filters" class="stat-card" style="padding: 20px; margin-bottom: 25px; display: flex; align-items: flex-end; gap: 20px; flex-wrap: wrap; background: var(--purple-card); border: 1px solid rgba(139, 92, 246, 0.1); border-radius: 15px;">
-                    <div id="account-selector-wrapper" style="flex: 3; min-width: 250px; display: none; gap: 15px;">
-                        <div style="flex: 1;">
-                            <label style="display: block; color: #94a3b8; font-size: 0.75rem; text-transform: uppercase; font-weight: 700; margin-bottom: 8px;">Category</label>
-                            <select id="reportCategoryFilter" onchange="updateAccountDropdown()" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff;">
-                                <option value="">ALL CATEGORIES</option>
-                                <option value="Asset">ASSETS</option>
-                                <option value="Liability">LIABILITIES</option>
-                                <option value="Equity">EQUITY</option>
-                                <option value="Income">INCOME</option>
-                                <option value="Expense">EXPENSE</option>
-                            </select>
-                        </div>
-                        <div style="flex: 2;">
-                            <label style="display: block; color: #94a3b8; font-size: 0.75rem; text-transform: uppercase; font-weight: 700; margin-bottom: 8px;">Select Account</label>
-                            <select id="reportAccountSelect" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff;">
-                                <option value="">Choose an account...</option>
-                            </select>
-                        </div>
+                <div class="filter-bar">
+                    <div id="account-filter-wrapper" class="filter-group" style="display: none;">
+                        <label>Account</label>
+                        <select id="reportAccountSelect">
+                            <option value="">All Accounts</option>
+                        </select>
                     </div>
-                    
-                    <div style="flex: 1; min-width: 150px;">
-                        <label style="display: block; color: #94a3b8; font-size: 0.75rem; text-transform: uppercase; font-weight: 700; margin-bottom: 8px;">From Date</label>
-                        <input type="date" id="reportFromDate" style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff;">
+                    <div class="filter-group">
+                        <label>From Date</label>
+                        <input type="date" id="reportFromDate">
                     </div>
-
-                    <div style="flex: 1; min-width: 150px;">
-                        <label style="display: block; color: #94a3b8; font-size: 0.75rem; text-transform: uppercase; font-weight: 700; margin-bottom: 8px;">To Date</label>
-                        <input type="date" id="reportToDate" style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; color: #fff;">
+                    <div class="filter-group">
+                        <label>To Date</label>
+                        <input type="date" id="reportToDate">
                     </div>
-
-                    <button class="btn-exec-view" onclick="generateDynamicReport(currentReportType)">
-                        <i class="fas fa-sync-alt"></i> Update
-                    </button>
-                    
-                    <button class="btn-exec-pdf" onclick="exportPDF()">
-                        <i class="fas fa-file-pdf"></i> PDF
-                    </button>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-primary" onclick="generateDynamicReport(currentReportType)" style="padding: 10px 20px;">
+                            <i class="fas fa-sync"></i> Refresh
+                        </button>
+                        <button class="btn btn-secondary" onclick="exportPDF()" style="padding: 10px 20px;">
+                            <i class="fas fa-file-pdf"></i> Export
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Report Viewer -->
-                <div id="report-container" style="min-height: 400px; padding: 40px; background: var(--purple-card); border: 1px solid rgba(139, 92, 246, 0.05); border-radius: 15px;">
-                    <!-- Content injected by JS -->
+                <div class="report-content-area" id="report-container">
+                    <!-- Dynamic Content -->
                 </div>
             </div>
         </main>
-  </div>
+    </div>
 
-  <!-- PDF Template -->
-  <div id="pdf-template" style="display: none;">
-      <div class="pdf-page" style="padding: 40px; background: white; color: black; font-family: Inter, sans-serif;">
-          <div style="display: flex; justify-content: space-between; border-bottom: 2px solid black; padding-bottom: 20px;">
-              <div>
-                  <h1 style="margin: 0;">FINSIGHT</h1>
-                  <p id="pdf-report-title" style="margin: 5px 0; font-weight: bold; text-transform: uppercase;"></p>
-                  <p id="pdf-report-date" style="margin: 0; color: #666;"></p>
-              </div>
-              <div id="pdf-company-info" style="text-align: right; font-size: 12px;">
-                  <strong id="pdf-co-name"></strong><br>
-                  <span id="pdf-co-address"></span><br>
-                  <span id="pdf-co-contact"></span>
-              </div>
-          </div>
-          <div id="pdf-report-content" style="margin-top: 30px;"></div>
-      </div>
-  </div>
+    <!-- Hidden PDF Template -->
+    <div id="pdf-template" style="display: none;">
+        <div class="pdf-page" style="padding: 50px; background: white; color: black; font-family: 'Inter', sans-serif;">
+            <div style="display: flex; justify-content: space-between; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px;">
+                <div>
+                    <h1 style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -1px;">FINSIGHT</h1>
+                    <h2 id="pdf-report-title" style="margin: 5px 0; font-size: 16px; text-transform: uppercase;"></h2>
+                    <p id="pdf-report-date" style="margin: 0; font-size: 12px; color: #666;"></p>
+                </div>
+                <div style="text-align: right; font-size: 11px; line-height: 1.5;">
+                    <strong id="pdf-co-name" style="font-size: 14px; display: block; margin-bottom: 4px;">FinSight Corp</strong>
+                    <span id="pdf-co-address">123 Business Ave, Tech Park</span><br>
+                    <span id="pdf-co-contact">support@finsight.com</span>
+                </div>
+            </div>
+            <div id="pdf-report-content"></div>
+            <div style="margin-top: 50px; padding-top: 20px; border-top: 1px solid #eee; font-size: 10px; color: #999; text-align: center;">
+                Generated by FinSight ERP System | Confidential Financial Document
+            </div>
+        </div>
+    </div>
 
-  <script src="../js/dashboard.js?v=16"></script>
-  <script src="../js/admin-dashboard.js?v=16"></script>
-  <script>
-    let currentReportType = '';
+    <script src="../js/dashboard.js?v=17"></script>
+    <script src="../js/admin-dashboard.js?v=17"></script>
+    <script>
+        let currentReportType = '';
 
-    function switchToDetail(type) {
-        currentReportType = type;
-        const titles = {
-            'performance': 'Monthly Performance Report',
-            'balance-sheet': 'Balance Sheet Statement',
-            'profit-loss': 'Profit & Loss Statement',
-            'cash-flow': 'Cash Flow Statement',
-            'trial-balance': 'Trial Balance Worksheet',
-            'ledger': 'General Ledger Accounts',
-            'summary': 'Financial Health Summary'
-        };
-        document.getElementById('active-report-title').textContent = titles[type] || 'Financial Report';
-        
-        // Show/Hide account selector for ledger
-        document.getElementById('account-selector-wrapper').style.display = (type === 'ledger') ? 'flex' : 'none';
-
-        document.getElementById('executive-hub-container').style.display = 'none';
-        document.getElementById('detail-view-container').style.display = 'block';
-
-        generateDynamicReport(type);
-    }
-
-    function backToHub() {
-        document.getElementById('detail-view-container').style.display = 'none';
-        document.getElementById('executive-hub-container').style.display = 'block';
-    }
-
-    async function directExportPDF(type) {
-        currentReportType = type;
-        // In a real scenario, we'd fetch data first then export.
-        // For UX, we'll switch to detail view and immediately trigger PDF.
-        switchToDetail(type);
-        setTimeout(() => exportPDF(), 1500);
-    }
-
-    async function exportPDF() {
-        // Fetch Company Details
-        try {
-            const settingsRes = await fetch(`${API_URL}/settings.php`, { credentials: 'include' });
-            const settingsJson = await settingsRes.json();
-            if (settingsJson.success && settingsJson.data) {
-                const s = settingsJson.data;
-                document.getElementById('pdf-co-name').textContent = s.company_name;
-                document.getElementById('pdf-co-address').textContent = s.company_address || '';
-                document.getElementById('pdf-co-contact').textContent = `Email: ${s.company_email} | Web: ${s.company_website || ''}`;
+        function switchToDetail(type) {
+            currentReportType = type;
+            const titles = {
+                'performance': 'Monthly Performance Report',
+                'balance-sheet': 'Balance Sheet',
+                'profit-loss': 'Profit & Loss Statement',
+                'cash-flow': 'Cash Flow Statement',
+                'trial-balance': 'Trial Balance',
+                'ledger': 'General Ledger'
+            };
+            
+            document.getElementById('active-report-title').textContent = titles[type] || 'Financial Report';
+            document.getElementById('account-filter-wrapper').style.display = (type === 'ledger') ? 'block' : 'none';
+            
+            document.getElementById('reports-grid-view').style.display = 'none';
+            document.getElementById('report-viewer-container').style.display = 'block';
+            
+            // Set default dates if empty
+            if (!document.getElementById('reportFromDate').value) {
+                const dec1 = new Date(); dec1.setMonth(0); dec1.setDate(1);
+                document.getElementById('reportFromDate').value = dec1.toISOString().split('T')[0];
+                document.getElementById('reportToDate').value = new Date().toISOString().split('T')[0];
             }
-        } catch (e) {
-            console.warn('Failed to load company metadata:', e);
+
+            generateDynamicReport(type);
         }
 
-        document.getElementById('pdf-report-title').textContent = document.getElementById('active-report-title').textContent;
-        document.getElementById('pdf-report-date').textContent = 'Date: ' + new Date().toLocaleDateString();
-        document.getElementById('pdf-report-content').innerHTML = document.getElementById('report-container').innerHTML;
-
-        const element = document.querySelector('#pdf-template .pdf-page');
-        const opt = {
-            margin: 10,
-            filename: `FinSight_${currentReportType}_${new Date().toISOString().slice(0, 10)}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-
-        html2pdf().set(opt).from(element).save();
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        setupUserHeader();
-        loadExecTrend();
-    });
-
-    function setupUserHeader() {
-        const userStr = localStorage.getItem('user');
-        if (userStr) {
-            const user = JSON.parse(userStr);
-            document.getElementById('headerUserName').textContent = `${user.first_name} ${user.last_name}`;
-            document.getElementById('sidebarUserName').textContent = `${user.first_name} ${user.last_name}`;
-            document.getElementById('sidebarUserRole').textContent = user.role;
-            document.getElementById('sidebarUserAvatar').textContent = user.first_name.charAt(0).toUpperCase();
+        function backToGrid() {
+            document.getElementById('report-viewer-container').style.display = 'none';
+            document.getElementById('reports-grid-view').style.display = 'block';
         }
-    }
 
-    async function loadExecTrend() {
-        try {
-            const res = await fetch(`${API_URL}/reports.php?type=analytics`, { credentials: 'include' });
-            const json = await res.json();
-            if (json.success) {
-                const data = json.data;
-                const ctx = document.getElementById('execTrendChart').getContext('2d');
-                
-                // Calculate Net Profit for trend
-                const netProfits = data.cash_flow.income.map((inc, i) => inc - data.cash_flow.expense[i]);
-                const totalNet = netProfits.reduce((a, b) => a + b, 0);
-                
-                document.getElementById('exec-net-profit').textContent = (totalNet >= 0 ? '+' : '-') + '$' + Math.abs(totalNet).toLocaleString();
-                
-                // Simplified percentage calc for dummy display
-                const lastVal = netProfits[netProfits.length - 1] || 0;
-                const prevVal = netProfits[netProfits.length - 2] || 0;
-                const diff = prevVal === 0 ? 100 : ((lastVal - prevVal) / Math.abs(prevVal)) * 100;
-                document.getElementById('exec-profit-badge').textContent = (diff >= 0 ? '+' : '') + diff.toFixed(1) + '%';
-                document.getElementById('exec-profit-badge').style.background = diff >= 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)';
-                document.getElementById('exec-profit-badge').style.color = diff >= 0 ? '#10b981' : '#ef4444';
+        async function directExportPDF(type) {
+            switchToDetail(type);
+            setTimeout(() => exportPDF(), 1200);
+        }
 
-                new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: data.cash_flow.labels.map(l => l.split(' ')[0]),
-                        datasets: [{
-                            label: 'Net Profit',
-                            data: netProfits,
-                            backgroundColor: '#8b5cf6',
-                            borderRadius: 6,
-                            barThickness: 25
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            y: { display: false },
-                            x: { 
-                                grid: { display: false },
-                                ticks: { color: '#94a3b8', font: { size: 10, weight: '700' } }
-                            }
-                        }
-                    }
-                });
+        async function exportPDF() {
+            // Load company info from settings
+            try {
+                const res = await fetch(`${window.API_URL}/settings.php`, { credentials: 'include' });
+                const json = await res.json();
+                if (json.success && json.data) {
+                    const s = json.data;
+                    document.getElementById('pdf-co-name').textContent = s.company_name;
+                    document.getElementById('pdf-co-address').textContent = s.company_address || '';
+                    document.getElementById('pdf-co-contact').textContent = s.company_email || '';
+                }
+            } catch (e) {
+                console.warn('Metadata load failed', e);
             }
-        } catch (e) {
-            console.error('Trend Load Error:', e);
+
+            document.getElementById('pdf-report-title').textContent = document.getElementById('active-report-title').textContent;
+            document.getElementById('pdf-report-date').textContent = 'As of ' + new Date().toLocaleDateString();
+            document.getElementById('pdf-report-content').innerHTML = document.getElementById('report-container').innerHTML;
+
+            const element = document.querySelector('#pdf-template .pdf-page');
+            const opt = {
+                margin: 10,
+                filename: `FinSight_Report_${currentReportType}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save();
         }
-    }
-  </script>
+
+        // Initialize User Info
+        document.addEventListener('DOMContentLoaded', () => {
+            const userStr = localStorage.getItem('user');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                const fullName = `${user.first_name} ${user.last_name}`;
+                document.getElementById('headerUserName').textContent = fullName;
+                document.getElementById('sidebarUserName').textContent = fullName;
+                document.getElementById('sidebarUserRole').textContent = user.role.toUpperCase();
+                document.getElementById('sidebarUserAvatar').textContent = user.first_name.charAt(0);
+                document.getElementById('headerUserAvatar').textContent = user.first_name.charAt(0);
+            }
+        });
+    </script>
 </body>
+
 </html>

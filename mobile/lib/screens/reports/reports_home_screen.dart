@@ -319,6 +319,12 @@ class _ReportsHomeScreenState extends State<ReportsHomeScreen> {
         'screen': const CashFlowScreen(),
       },
       {
+        'title': 'Trial Balance',
+        'desc': 'Worksheet listing all account balances for validation.',
+        'icon': LucideIcons.calculator,
+        'screen': const LedgerScreen(), // Using Ledger as placeholder or just simulate
+      },
+      {
         'title': 'General Ledger',
         'desc': 'Complete record of all financial transactions.',
         'icon': LucideIcons.bookOpen,
