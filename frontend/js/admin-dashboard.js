@@ -420,29 +420,7 @@ function formatCurrency(amount) {
     }).format(amount || 0);
 }
 
-function renderLedgerEntries(entries) {
-    const tbody = document.getElementById('ledgerTableBody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
 
-    if (!entries || entries.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center">No transactions found for this account.</td></tr>';
-        return;
-    }
-
-    entries.forEach(entry => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${formatDate(entry.voucher_date)}</td>
-            <td>${entry.voucher_number || '-'}</td>
-            <td>${entry.narration || 'Journal Entry'}</td>
-            <td class="text-right" style="color: var(--danger-color)">${entry.debit > 0 ? formatCurrency(entry.debit) : '-'}</td>
-            <td class="text-right" style="color: var(--secondary-color)">${entry.credit > 0 ? formatCurrency(entry.credit) : '-'}</td>
-            <td class="text-right" style="font-weight: 600;">${formatCurrency(entry.running_balance)}</td>
-        `;
-        tbody.appendChild(row);
-    });
-}
 
 // Load and display users with paginationwhen  
 async function loadUsersWithPagination(page = 1) {
@@ -529,7 +507,6 @@ async function loadAccountsWithType() {
                     </td>
                     <td>
                         <button class="btn btn-sm btn-sm-secondary" onclick="editAccountModal(${account.id})"><i class="fas fa-edit"></i> Edit</button>
-                        <button class="btn btn-sm btn-sm-info" onclick="viewLedger(${account.id}, '${account.name.replace(/'/g, "\\'")}')" style="margin: 0 4px;"><i class="fas fa-book"></i> Ledger</button>
                         <button class="btn btn-sm btn-danger" onclick="confirmDeleteAccount(${account.id}, '${account.name.replace(/'/g, "\\'")}')" style="margin: 0 4px;"><i class="fas fa-trash"></i></button>
                         ${getAccountActionButton(account)}
                     </td>
@@ -685,7 +662,6 @@ function loadAccountsFromMock() {
                 <button class="btn btn-sm btn-sm-secondary" onclick="editAccountModal(${account.id})">
                     <i class="fas fa-edit"></i> Edit
                 </button>
-                <button class="btn btn-sm btn-sm-info" onclick="viewLedger(${account.id}, '${account.name.replace(/'/g, "\\'")}')" style="margin: 0 4px;"><i class="fas fa-book"></i> Ledger</button>
                 <button class="btn btn-sm btn-danger" onclick="confirmDeleteAccount(${account.id}, '${account.name.replace(/'/g, "\\'")}')" style="margin: 0 4px;"><i class="fas fa-trash"></i></button>
                 ${getAccountActionButton(account)}
             </td>
@@ -1125,189 +1101,7 @@ async function editAccountModal(accountId) {
     }
 }
 
-// Ledger Global State
-let currentLedgerAccountId = null;
 
-// View account ledger
-function viewLedger(accountId, accountName) {
-    currentLedgerAccountId = accountId;
-    console.log('View ledger for account:', accountId, accountName);
-    const modal = document.getElementById('ledgerModal');
-    if (!modal) return;
-
-    const nameEl = document.getElementById('ledgerAccountName');
-    if (nameEl) nameEl.textContent = accountName;
-
-    // Set default dates if inputs exist and are empty
-    const today = new Date();
-    const financialYearStart = new Date(today.getFullYear(), 3, 1);
-    if (today.getMonth() < 3) financialYearStart.setFullYear(today.getFullYear() - 1);
-
-    const fromInput = document.getElementById('ledgerFromDate');
-    const toInput = document.getElementById('ledgerToDate');
-    if (fromInput && !fromInput.value) fromInput.valueAsDate = financialYearStart;
-    if (toInput && !toInput.value) toInput.valueAsDate = today;
-
-    modal.classList.add('active');
-
-    loadLedgerData(accountId);
-}
-
-// Filter button handler
-function filterLedger() {
-    if (currentLedgerAccountId) {
-        loadLedgerData(currentLedgerAccountId);
-    }
-}
-
-async function loadLedgerData(accountId) {
-    const tbody = document.getElementById('ledgerTableBody');
-    if (!tbody) return;
-
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading transactions...</td></tr>';
-
-    const fromDate = document.getElementById('ledgerFromDate')?.value || '';
-    const toDate = document.getElementById('ledgerToDate')?.value || '';
-
-    try {
-        let url = `${API_URL}/reports.php?action=ledger&account_id=${accountId}`;
-        if (fromDate) url += `&from=${fromDate}`;
-        if (toDate) url += `&to=${toDate}`;
-
-        const res = await fetchWithTimeout(url, { credentials: 'include' });
-        const data = await res.json();
-
-        if (data.success) {
-            renderLedgerEntries(data.data);
-        } else {
-            throw new Error(data.message);
-        }
-    } catch (err) {
-        console.warn('Ledger API failed, using empty/mock state', err);
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center">No transactions found for this account.</td></tr>';
-        resetLedgerSummary();
-    }
-}
-
-function resetLedgerSummary() {
-    ['ledgerOpeningBalance', 'ledgerTotalDebit', 'ledgerTotalCredit', 'ledgerFooterDebit', 'ledgerFooterCredit', 'ledgerClosingBalance'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = '₹0.00';
-    });
-}
-
-function renderLedgerEntries(data) {
-    const tbody = document.getElementById('ledgerTableBody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
-
-    // Handle data structure
-    let entries = [];
-    let openingBalance = 0;
-    let periodDebit = 0;
-    let periodCredit = 0;
-    let closingBalance = 0;
-
-    if (Array.isArray(data)) {
-        // Legacy fallback
-        entries = data;
-    } else if (data && typeof data === 'object') {
-        entries = data.transactions || [];
-        openingBalance = parseFloat(data.opening_balance) || 0;
-        // Use backend provided totals if available, otherwise we will calculate from visible entries
-        periodDebit = (data.period_debit !== undefined) ? parseFloat(data.period_debit) : null;
-        periodCredit = (data.period_credit !== undefined) ? parseFloat(data.period_credit) : null;
-        closingBalance = (data.closing_balance !== undefined) ? parseFloat(data.closing_balance) : null;
-    }
-
-    // Update Opening Balance with Dr/Cr
-    const obEl = document.getElementById('ledgerOpeningBalance');
-    if (obEl) {
-        // Format: ₹1,000.00 Dr
-        const absOB = Math.abs(openingBalance);
-        const suffix = openingBalance >= 0 ? 'Dr' : 'Cr'; // Asset/Expense > 0 is Dr. Liability/Income < 0 is Cr.
-        // Note: Check backend logic. 
-        // Backend says: Assets/Expense (positive), Liability/Equity/Income (negative).
-        // Standard accounting: Positive = Debit, Negative = Credit.
-        obEl.textContent = `${formatCurrency(absOB)} ${suffix}`;
-        obEl.style.color = openingBalance >= 0 ? 'var(--text-main)' : 'var(--text-main)'; // Neutral color generally best for OB
-    }
-
-    // If we don't have backend totals yet (legacy), we'll sum them in the loop
-    let calcDebit = 0;
-    let calcCredit = 0;
-    let runningBalance = openingBalance;
-
-    if (!entries || entries.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center" style="padding: 40px; color: var(--text-muted);">No transactions found for this period.</td></tr>';
-    } else {
-        entries.forEach(entry => {
-            const date = entry.date || entry.voucher_date || entry.created_at;
-            const desc = entry.narration || entry.description || entry.particulars || '-';
-            const vNo = entry.voucher_number || entry.id || '-';
-            const debit = parseFloat(entry.debit) || 0;
-            const credit = parseFloat(entry.credit) || 0;
-
-            calcDebit += debit;
-            calcCredit += credit;
-            runningBalance += (debit - credit); // Ensure running balance logic matches backend
-
-            // Use backend running balance if provided for perfect consistency
-            const displayBalance = (entry.running_balance !== undefined) ? parseFloat(entry.running_balance) : runningBalance;
-            const balSuffix = displayBalance >= 0 ? 'Dr' : 'Cr';
-
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${formatDate(date)}</td>
-                <td style="font-family:monospace; color:var(--primary-color);">${vNo}</td>
-                <td>${desc}</td>
-                <td class="text-right" style="color: var(--danger-color);">${debit > 0 ? formatCurrency(debit) : '-'}</td>
-                <td class="text-right" style="color: var(--success-color);">${credit > 0 ? formatCurrency(credit) : '-'}</td>
-                <td class="text-right" style="font-weight: 600;">
-                    ${formatCurrency(Math.abs(displayBalance))} ${balSuffix}
-                </td>
-            `;
-            tbody.appendChild(row);
-        });
-    }
-
-    // Finalize Totals using Backend values if present, else calculated
-    const finalDebit = (periodDebit !== null) ? periodDebit : calcDebit;
-    const finalCredit = (periodCredit !== null) ? periodCredit : calcCredit;
-
-    // For closing balance: Backend value is best, else calculated last running balance
-    // Note: If entries is empty, runningBalance is still openingBalance.
-    // If backend provided closing_balance, use it (it considers period sum).
-    const finalClosing = (closingBalance !== null) ? closingBalance : runningBalance;
-    const finalClosingSuffix = finalClosing >= 0 ? 'Dr' : 'Cr';
-
-    if (document.getElementById('ledgerTotalDebit')) document.getElementById('ledgerTotalDebit').textContent = formatCurrency(finalDebit);
-    if (document.getElementById('ledgerTotalCredit')) document.getElementById('ledgerTotalCredit').textContent = formatCurrency(finalCredit);
-
-    // Footer totals
-    if (document.getElementById('ledgerFooterDebit')) document.getElementById('ledgerFooterDebit').textContent = formatCurrency(finalDebit);
-    if (document.getElementById('ledgerFooterCredit')) document.getElementById('ledgerFooterCredit').textContent = formatCurrency(finalCredit);
-
-    // Closing Balance footer
-    if (document.getElementById('ledgerClosingBalance')) {
-        document.getElementById('ledgerClosingBalance').innerHTML = `
-            ${formatCurrency(Math.abs(finalClosing))} <span style="font-size:0.8em; color:var(--text-muted);">${finalClosingSuffix}</span>
-        `;
-    }
-}
-
-// Export Functions for Ledger
-function exportLedgerPDF() {
-    alert('📄 PDF export functionality will be implemented with a PDF library like jsPDF');
-}
-
-function exportLedgerExcel() {
-    alert('📊 Excel export functionality will be implemented with a library like SheetJS');
-}
-
-function printLedger() {
-    window.print();
-}
 
 
 // Utility: Populate Account Selects in Vouchers

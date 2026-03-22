@@ -547,29 +547,7 @@ function formatCurrency(amount) {
     }).format(amount || 0);
 }
 
-function renderLedgerEntries(entries) {
-    const tbody = document.getElementById('ledgerTableBody');
-    if (!tbody) return;
-    tbody.innerHTML = '';
 
-    if (!entries || entries.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center">No transactions found for this account.</td></tr>';
-        return;
-    }
-
-    entries.forEach(entry => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${formatDate(entry.voucher_date)}</td>
-            <td>${entry.voucher_number || '-'}</td>
-            <td>${entry.narration || 'Journal Entry'}</td>
-            <td class="text-right" style="color: var(--danger-color)">${entry.debit > 0 ? formatCurrency(entry.debit) : '-'}</td>
-            <td class="text-right" style="color: var(--secondary-color)">${entry.credit > 0 ? formatCurrency(entry.credit) : '-'}</td>
-            <td class="text-right" style="font-weight: 600;">${formatCurrency(entry.running_balance)}</td>
-        `;
-        tbody.appendChild(row);
-    });
-}
 
 // Load and display users with paginationwhen  
 async function loadUsersWithPagination(page = 1) {
