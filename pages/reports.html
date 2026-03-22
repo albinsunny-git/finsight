@@ -353,6 +353,10 @@
                             <option value="">All Accounts</option>
                         </select>
                     </div>
+                    <div id="month-filter-wrapper" class="filter-group" style="display: none;">
+                        <label>Select Month</label>
+                        <input type="month" id="reportMonth" onchange="updateDatesFromMonth(this.value)">
+                    </div>
                     <div class="filter-group">
                         <label>From Date</label>
                         <input type="date" id="reportFromDate">
@@ -417,16 +421,25 @@
             };
             
             document.getElementById('active-report-title').textContent = titles[type] || 'Financial Report';
-            document.getElementById('account-filter-wrapper').style.display = (type === 'ledger') ? 'block' : 'none';
-            
             document.getElementById('reports-grid-view').style.display = 'none';
             document.getElementById('report-viewer-container').style.display = 'block';
+            
+            // Toggle filters
+            document.getElementById('account-filter-wrapper').style.display = (type === 'ledger') ? 'block' : 'none';
+            document.getElementById('month-filter-wrapper').style.display = (type === 'performance') ? 'block' : 'none';
             
             // Set default dates if empty
             if (!document.getElementById('reportFromDate').value) {
                 const dec1 = new Date(); dec1.setMonth(0); dec1.setDate(1);
                 document.getElementById('reportFromDate').value = dec1.toISOString().split('T')[0];
                 document.getElementById('reportToDate').value = new Date().toISOString().split('T')[0];
+            }
+
+            if (type === 'performance' && !document.getElementById('reportMonth').value) {
+                const now = new Date();
+                const currentMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+                document.getElementById('reportMonth').value = currentMonth;
+                updateDatesFromMonth(currentMonth);
             }
 
             generateDynamicReport(type);
@@ -471,6 +484,23 @@
             };
 
             html2pdf().set(opt).from(element).save();
+        }
+
+        function updateDatesFromMonth(monthVal) {
+            if (!monthVal) return;
+            const [year, month] = monthVal.split('-').map(Number);
+            const firstDay = new Date(year, month - 1, 1);
+            const lastDay = new Date(year, month, 0); 
+            
+            const localISO = (date) => {
+                const offset = date.getTimezoneOffset() * 60000;
+                return new Date(date - offset).toISOString().split('T')[0];
+            };
+            
+            document.getElementById('reportFromDate').value = localISO(firstDay);
+            document.getElementById('reportToDate').value = localISO(lastDay);
+            
+            if (currentReportType) generateDynamicReport(currentReportType);
         }
 
         // Initialize User Info
