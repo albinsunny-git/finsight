@@ -166,7 +166,7 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       print("Testing connection to: $url");
       final response =
-          await http.get(Uri.parse(url)).timeout(const Duration(seconds: 5));
+          await http.get(Uri.parse(url)).timeout(const Duration(seconds: 60));
       if (!mounted) return;
 
       _showDiagnosticDialog(
@@ -183,7 +183,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (errorMsg.contains("SocketException") ||
           errorMsg.contains("timed out")) {
         suggestion =
-            "\n\nPOSSIBLE CAUSES:\n1. Backend URL is unreachable.\n2. PC and Phone are not on the same Wi-Fi.\n3. Windows Firewall is blocking Port 80.\n\nSOLUTION:\nUse the Settings icon to configure the correct IP address of your PC.";
+            "\n\nPOSSIBLE CAUSES:\n1. Server is waking up (Render free tier can take up to 60s).\n2. Backend URL is unreachable.\n3. Network connectivity issue.\n\nSOLUTION:\nWait a moment and try again. The server needs time to wake up after inactivity.";
       }
 
       _showDiagnosticDialog(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 import 'login_screen.dart';
 import 'dashboard_screen.dart';
 import '../services/api_service.dart';
@@ -14,10 +15,29 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  String _serverStatus = 'Connecting...';
+
   @override
   void initState() {
     super.initState();
+    _warmUpServer();
     _checkLoginStatus();
+  }
+
+  /// Fire a lightweight GET to the backend so Render wakes up from its
+  /// free-tier sleep while the user watches the splash animation.
+  Future<void> _warmUpServer() async {
+    try {
+      final response = await http
+          .get(Uri.parse('${ApiService.baseUrl}/hello.php'))
+          .timeout(const Duration(seconds: 60));
+      if (mounted) {
+        setState(() => _serverStatus =
+            response.statusCode == 200 ? 'Server ready' : 'Server error');
+      }
+    } catch (_) {
+      if (mounted) setState(() => _serverStatus = 'Server waking up...');
+    }
   }
 
   Future<void> _checkLoginStatus() async {
@@ -105,10 +125,26 @@ class _SplashScreenState extends State<SplashScreen> {
       ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Text(
-          'Debug: ${ApiService.baseUrl}',
-          textAlign: TextAlign.center,
-          style: const TextStyle(color: Colors.white24, fontSize: 10),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              _serverStatus,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: _serverStatus == 'Server ready'
+                    ? Colors.greenAccent.withOpacity(0.6)
+                    : Colors.white38,
+                fontSize: 11,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              ApiService.baseUrl,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white12, fontSize: 9),
+            ),
+          ],
         ),
       ),
     );

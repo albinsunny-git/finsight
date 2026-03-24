@@ -79,7 +79,7 @@ class ApiService {
     final headers = await getHeaders();
     return await http
         .get(Uri.parse(url), headers: headers)
-        .timeout(const Duration(seconds: 15));
+        .timeout(const Duration(seconds: 60));
   }
 
   Future<Map<String, dynamic>> login(
@@ -152,7 +152,7 @@ class ApiService {
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({'token': token}),
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       print("Google Login Response: ${response.statusCode} - ${response.body}");
       await _saveSession(response);
@@ -192,7 +192,7 @@ class ApiService {
             Uri.parse('${ApiService.baseUrl}/reports.php?type=summary'),
             headers: headers,
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       // Fetch Analytics (Cash Flow, Top Expenses)
       final analyticsRes = await http
@@ -200,7 +200,7 @@ class ApiService {
             Uri.parse('${ApiService.baseUrl}/reports.php?type=analytics'),
             headers: headers,
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       // Fetch Recent Transactions
       final historyRes = await http
@@ -209,7 +209,7 @@ class ApiService {
                 '${ApiService.baseUrl}/reports.php?type=transaction-history'),
             headers: headers,
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       Map<String, dynamic> result = {};
 
@@ -244,7 +244,7 @@ class ApiService {
             Uri.parse('${ApiService.baseUrl}/users.php?action=list'),
             headers: headers,
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       print('GetUsers Response: ${response.statusCode} - ${response.body}');
 
@@ -270,7 +270,7 @@ class ApiService {
             Uri.parse('${ApiService.baseUrl}/vouchers.php?action=list'),
             headers: headers,
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -294,7 +294,7 @@ class ApiService {
             Uri.parse('${ApiService.baseUrl}/vouchers.php?action=get&id=$id'),
             headers: headers,
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -318,7 +318,7 @@ class ApiService {
             Uri.parse('${ApiService.baseUrl}/accounts.php?action=list'),
             headers: headers,
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -344,7 +344,7 @@ class ApiService {
             headers: headers,
             body: jsonEncode(voucherData),
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       print('CreateVoucher: ${response.statusCode} - ${response.body}');
 
@@ -381,7 +381,7 @@ class ApiService {
             headers: headers,
             body: jsonEncode(accountData),
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       print('CreateAccount: ${response.statusCode} - ${response.body}');
 
@@ -417,7 +417,7 @@ class ApiService {
             headers: headers,
             body: jsonEncode(accountData),
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       print('UpdateAccount: ${response.statusCode} - ${response.body}');
 
@@ -452,7 +452,7 @@ class ApiService {
             headers: headers,
             body: jsonEncode({'id': accountId}),
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return jsonDecode(response.body);
@@ -473,7 +473,7 @@ class ApiService {
             Uri.parse('${ApiService.baseUrl}/vouchers.php?action=types'),
             headers: headers,
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -498,7 +498,7 @@ class ApiService {
             headers: headers,
             body: jsonEncode(userData),
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       print('CreateUser: ${response.statusCode} - ${response.body}');
 
@@ -540,7 +540,7 @@ class ApiService {
             headers: headers,
             body: jsonEncode(body),
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return jsonDecode(response.body);
@@ -572,7 +572,7 @@ class ApiService {
             headers: headers,
             body: jsonEncode({'user_id': userId}),
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return jsonDecode(response.body);
@@ -595,7 +595,7 @@ class ApiService {
             headers: headers,
             body: jsonEncode({'voucher_id': voucherId}),
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       print('RequestApproval: ${response.statusCode} - ${response.body}');
       if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -618,7 +618,7 @@ class ApiService {
             headers: headers,
             body: jsonEncode({'voucher_id': voucherId}),
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       print('ApproveVoucher: ${response.statusCode} - ${response.body}');
       if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -642,7 +642,7 @@ class ApiService {
             headers: headers,
             body: jsonEncode({'voucher_id': voucherId, 'reason': reason}),
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       print('RejectVoucher: ${response.statusCode} - ${response.body}');
       if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -664,7 +664,7 @@ class ApiService {
             Uri.parse('${ApiService.baseUrl}/insights.php?action=monthly'),
             headers: headers,
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -688,7 +688,7 @@ class ApiService {
             Uri.parse('${ApiService.baseUrl}/vouchers.php?action=timeline'),
             headers: headers,
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -713,7 +713,7 @@ class ApiService {
 
       final response = await http
           .get(Uri.parse(url), headers: headers)
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['success']) return data['data'];
@@ -735,7 +735,7 @@ class ApiService {
 
       final response = await http
           .get(Uri.parse(url), headers: headers)
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['success']) return data['data'];
@@ -755,7 +755,7 @@ class ApiService {
 
       final response = await http
           .get(Uri.parse(url), headers: headers)
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['success']) return data['data'];
@@ -775,7 +775,7 @@ class ApiService {
             Uri.parse('${ApiService.baseUrl}/reports.php?type=analytics'),
             headers: headers,
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -798,7 +798,7 @@ class ApiService {
             Uri.parse('${ApiService.baseUrl}/settings.php'),
             headers: headers,
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -820,7 +820,7 @@ class ApiService {
             headers: headers,
             body: jsonEncode(settings),
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -956,7 +956,7 @@ class ApiService {
             Uri.parse('${ApiService.baseUrl}/audit.php?action=list'),
             headers: headers,
           )
-          .timeout(const Duration(seconds: 15));
+          .timeout(const Duration(seconds: 60));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
