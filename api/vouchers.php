@@ -145,14 +145,29 @@ class VoucherController {
                  $status = 'Pending Approval';
             }
             
-            $stmt = $this->db->prepare("INSERT INTO vouchers (voucher_number, voucher_type_id, from_account_id, to_account_id, voucher_date, narration, status, created_by, posted_by, posted_at) 
-                                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $fromAcc = $data['from_account_id'] ?? null;
-            $toAcc = $data['to_account_id'] ?? null;
-            $stmt->bind_param("siiisssiss", $voucherNumber, $data['voucher_type_id'], $fromAcc, $toAcc, $data['voucher_date'], $data['narration'], $status, $userId, $approvedBy, $approvedAt);
+            // Build INSERT with proper NULL handling for optional fields
+            $sql = "INSERT INTO vouchers (voucher_number, voucher_type_id, from_account_id, to_account_id, voucher_date, narration, status, created_by, posted_by, posted_at) 
+                                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $fromAcc = !empty($data['from_account_id']) ? intval($data['from_account_id']) : null;
+            $toAcc = !empty($data['to_account_id']) ? intval($data['to_account_id']) : null;
+            $narration = $data['narration'] ?? '';
+            
+            $stmt = $this->db->prepare($sql);
+            $stmt->bind_param("siiisssiss",
+                $voucherNumber,
+                $data['voucher_type_id'],
+                $fromAcc,
+                $toAcc,
+                $data['voucher_date'],
+                $narration,
+                $status,
+                $userId,
+                $approvedBy,
+                $approvedAt
+            );
             
             if (!$stmt->execute()) {
-                throw new Exception("Database Error: " . $stmt->error);
+                throw new Exception("Database Error: " . ($stmt->error ?: 'Unknown error during voucher insert'));
             }
             
             $voucherId = $this->db->getConnection()->insert_id;

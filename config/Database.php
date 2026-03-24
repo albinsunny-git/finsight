@@ -113,6 +113,7 @@ class ShimStatement {
     private $stmt;
     private $pdo;
     private $params = [];
+    private $lastError = '';
 
     public function __construct($stmt, $pdo) {
         $this->stmt = $stmt;
@@ -126,10 +127,16 @@ class ShimStatement {
 
     public function execute() {
         try {
-            return $this->stmt->execute($this->params);
+            $result = $this->stmt->execute($this->params);
+            if (!$result) {
+                $errorInfo = $this->stmt->errorInfo();
+                $this->lastError = $errorInfo[2] ?? 'Unknown execute error';
+            }
+            return $result;
         } catch (PDOException $e) {
+            $this->lastError = $e->getMessage();
             error_log("PDO Execute Error: " . $e->getMessage());
-            return false;
+            throw $e;
         }
     }
 
@@ -144,6 +151,9 @@ class ShimStatement {
     public function __get($name) {
         if ($name === 'num_rows') {
             return $this->stmt->rowCount();
+        }
+        if ($name === 'error') {
+            return $this->lastError;
         }
         return null;
     }
