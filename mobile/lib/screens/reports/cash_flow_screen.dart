@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:finsight_mobile/services/api_service.dart';
+import 'package:finsight_mobile/widgets/report_template.dart';
+import 'package:finsight_mobile/widgets/theme_toggle_button.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
@@ -11,175 +14,228 @@ class CashFlowScreen extends StatefulWidget {
 }
 
 class _CashFlowScreenState extends State<CashFlowScreen> {
+  final ApiService _apiService = ApiService();
+  bool _isLoading = true;
+  List<dynamic> _data = [];
   DateTimeRange _dateRange = DateTimeRange(
-    start: DateTime.now().subtract(const Duration(days: 30)),
+    start: DateTime(DateTime.now().year, DateTime.now().month, 1),
     end: DateTime.now(),
   );
 
   @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  Future<void> _fetchData() async {
+    setState(() => _isLoading = true);
+    final from = DateFormat('yyyy-MM-dd').format(_dateRange.start);
+    final to = DateFormat('yyyy-MM-dd').format(_dateRange.end);
+
+    final result = await _apiService.getCashFlow(fromDate: from, toDate: to);
+    if (mounted) {
+      setState(() {
+        _data = result;
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final currency = NumberFormat.currency(symbol: '₹');
+
+    double totalInflow = _data.fold(0, (sum, item) => sum + (double.tryParse(item['inflow'].toString()) ?? 0));
+    double totalOutflow = _data.fold(0, (sum, item) => sum + (double.tryParse(item['outflow'].toString()) ?? 0));
+    double totalOpening = _data.fold(0, (sum, item) => sum + (double.tryParse(item['opening'].toString()) ?? 0));
+    double totalClosing = _data.fold(0, (sum, item) => sum + (double.tryParse(item['closing'].toString()) ?? 0));
 
     return Scaffold(
-      backgroundColor:
-          isDark ? const Color(0xFF111827) : const Color(0xFFF9FAFB),
       appBar: AppBar(
-        title: Text("Cash Flow Statement",
-            style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(LucideIcons.chevronLeft),
-          onPressed: () => Navigator.pop(context),
+        title: Text("Cash Flow", style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold)),
+        actions: [const ThemeToggleButton()],
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: _fetchData,
+              child: SingleChildScrollView(
+                child: ReportTemplate(
+                  title: "Cash Flow Statement",
+                  dateText: "${DateFormat('MMM dd').format(_dateRange.start)} - ${DateFormat('MMM dd, yyyy').format(_dateRange.end)}",
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildRangePicker(theme),
+                        const SizedBox(height: 24),
+                        
+                        if (_data.isEmpty)
+                          _buildEmptyState(theme)
+                        else
+                          Column(
+                            children: [
+                              _buildSummaryCard(theme, totalInflow, totalOutflow, totalClosing - totalOpening),
+                              const SizedBox(height: 32),
+                              
+                              _buildSectionHeader("CASH & BANK BALANCES"),
+                              const SizedBox(height: 8),
+                              ..._data.map((item) => _buildCashAccountCard(theme, item, currency)),
+                              
+                              const Divider(height: 48, thickness: 1),
+                              
+                              _buildTotalRow("CASH AT BEGINNING", currency.format(totalOpening), null),
+                              _buildTotalRow("NET CHANGE IN CASH", currency.format(totalClosing - totalOpening), (totalClosing - totalOpening) >= 0 ? Colors.blue : Colors.red),
+                              _buildTotalRow("CASH AT END", currency.format(totalClosing), Colors.green),
+                            ],
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+    );
+  }
+
+  Widget _buildRangePicker(ThemeData theme) {
+    return InkWell(
+      onTap: () async {
+        final picked = await showDateRangePicker(
+          context: context,
+          firstDate: DateTime(2020),
+          lastDate: DateTime(2101),
+          initialDateRange: _dateRange,
+        );
+        if (picked != null) {
+          setState(() => _dateRange = picked);
+          _fetchData();
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          border: Border.all(color: theme.dividerColor.withOpacity(0.1)),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            const Icon(LucideIcons.calendar, size: 18, color: Colors.blue),
+            const SizedBox(width: 12),
+            Text("Filter Period", style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600)),
+            const Spacer(),
+            const Icon(LucideIcons.chevronDown, size: 16, color: Colors.grey),
+          ],
         ),
       ),
-      body: Column(
+    );
+  }
+
+  Widget _buildSummaryCard(ThemeData theme, double inflow, double outflow, double net) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: theme.cardTheme.color,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildRangeHeader(theme, isDark),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                _buildSectionHeader("OPERATING ACTIVITIES"),
-                _buildCashItem(
-                    "Cash receipts from customers", "₹45,200.00", true),
-                _buildCashItem("Cash paid to suppliers", "₹(28,400.00)", false),
-                _buildCashItem(
-                    "Cash paid for employees", "₹(12,000.00)", false),
-                _buildSubtotal("Net Cash from Operating", "₹4,800.00"),
-                const SizedBox(height: 24),
-                _buildSectionHeader("INVESTING ACTIVITIES"),
-                _buildCashItem("Purchase of equipment", "₹(5,000.00)", false),
-                _buildCashItem("Sale of assets", "₹1,200.00", true),
-                _buildSubtotal("Net Cash from Investing", "₹(3,800.00)"),
-                const SizedBox(height: 24),
-                _buildSectionHeader("FINANCING ACTIVITIES"),
-                _buildCashItem("Proceeds from loans", "₹10,000.00", true),
-                _buildCashItem("Repayment of loans", "₹(2,000.00)", false),
-                _buildSubtotal("Net Cash from Financing", "₹8,000.00"),
-                const Divider(height: 48, thickness: 2),
-                _buildTotalRow(
-                    "NET INCREASE IN CASH", "₹9,000.00", Colors.blue),
-                _buildTotalRow("CASH AT BEGINNING", "₹12,450.00", null),
-                _buildTotalRow("CASH AT END", "₹21,450.00", Colors.green),
-              ],
-            ),
-          ),
+          _buildSummaryItem("Inflow", inflow, Colors.green),
+          _buildSummaryItem("Outflow", outflow, Colors.red),
+          _buildSummaryItem("Net", net, Colors.blue),
         ],
       ),
     );
   }
 
-  Widget _buildRangeHeader(ThemeData theme, bool isDark) {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: theme.cardTheme.color,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+  Widget _buildSummaryItem(String label, double val, Color color) {
+    return Column(
+      children: [
+        Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.grey)),
+        const SizedBox(height: 4),
+        Text(NumberFormat.compactCurrency(symbol: '₹').format(val),
+          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 16, color: color)),
+      ],
+    );
+  }
+
+  Widget _buildCashAccountCard(ThemeData theme, dynamic item, NumberFormat currency) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: theme.dividerColor.withOpacity(0.05)),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              const Icon(LucideIcons.calendar, size: 18, color: Colors.blue),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("PERIOD",
-                      style: GoogleFonts.plusJakartaSans(
-                          fontSize: 10,
-                          color: Colors.grey,
-                          fontWeight: FontWeight.bold)),
-                  Text(
-                    "${DateFormat('MMM dd, yy').format(_dateRange.start)} - ${DateFormat('MMM dd, yy').format(_dateRange.end)}",
-                    style: GoogleFonts.plusJakartaSans(
-                        fontSize: 14, fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          TextButton(
-            onPressed: () async {
-              final picked = await showDateRangePicker(
-                  context: context,
-                  firstDate: DateTime(2020),
-                  lastDate: DateTime(2030),
-                  initialDateRange: _dateRange);
-              if (picked != null) setState(() => _dateRange = picked);
-            },
-            child: Text("Change",
-                style: GoogleFonts.plusJakartaSans(
-                    fontWeight: FontWeight.bold, color: Colors.blue)),
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                const Icon(LucideIcons.wallet, size: 16, color: Colors.blueGrey),
+                const SizedBox(width: 8),
+                Text(item['name'], style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold)),
+                const Spacer(),
+                Text(currency.format(double.tryParse(item['closing'].toString()) ?? 0), 
+                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, color: Colors.blue)),
+              ],
+            ),
+            const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Divider(height: 1)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildMiniLabel("Opening", currency.format(double.tryParse(item['opening'].toString()) ?? 0)),
+                _buildMiniLabel("Inflow", "+ ${currency.format(double.tryParse(item['inflow'].toString()) ?? 0)}", Colors.green),
+                _buildMiniLabel("Outflow", "- ${currency.format(double.tryParse(item['outflow'].toString()) ?? 0)}", Colors.red),
+              ],
+            )
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildMiniLabel(String label, String val, [Color? color]) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 10, color: Colors.grey)),
+        Text(val, style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.bold, color: color)),
+      ],
     );
   }
 
   Widget _buildSectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Text(title,
-          style: GoogleFonts.plusJakartaSans(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: Colors.blueGrey,
-              letterSpacing: 1)),
-    );
+    return Text(title, style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.blueGrey, letterSpacing: 1));
   }
 
-  Widget _buildCashItem(String label, String amount, bool isPositive) {
+  Widget _buildTotalRow(String label, String amount, Color? color) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 14)),
-          Text(amount,
-              style: GoogleFonts.plusJakartaSans(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: isPositive ? Colors.green : Colors.red)),
+          Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.bold, color: color)),
+          Text(amount, style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold, color: color)),
         ],
       ),
     );
   }
 
-  Widget _buildSubtotal(String label, String amount) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8, bottom: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildEmptyState(ThemeData theme) {
+    return Center(
+      child: Column(
         children: [
-          Text(label,
-              style: GoogleFonts.plusJakartaSans(
-                  fontSize: 14, fontWeight: FontWeight.bold)),
-          Text(amount,
-              style: GoogleFonts.plusJakartaSans(
-                  fontSize: 15, fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTotalRow(String label, String amount, Color? color) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label,
-              style: GoogleFonts.plusJakartaSans(
-                  fontSize: 16, fontWeight: FontWeight.bold, color: color)),
-          Text(amount,
-              style: GoogleFonts.plusJakartaSans(
-                  fontSize: 18, fontWeight: FontWeight.bold, color: color)),
+          const SizedBox(height: 48),
+          Icon(LucideIcons.frown, size: 48, color: Colors.grey.withOpacity(0.5)),
+          const SizedBox(height: 16),
+          Text("No cash transactions found", style: GoogleFonts.plusJakartaSans(color: Colors.grey)),
         ],
       ),
     );

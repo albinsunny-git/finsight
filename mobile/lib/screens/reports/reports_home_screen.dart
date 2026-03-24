@@ -11,6 +11,7 @@ import 'package:finsight_mobile/screens/reports/balance_sheet_screen.dart';
 import 'package:finsight_mobile/screens/reports/profit_loss_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:finsight_mobile/config.dart';
+import 'package:finsight_mobile/screens/reports/trial_balance_screen.dart';
 
 class ReportsHomeScreen extends StatefulWidget {
   const ReportsHomeScreen({super.key});
@@ -294,7 +295,7 @@ class _ReportsHomeScreenState extends State<ReportsHomeScreen> {
         'title': 'Trial Balance',
         'desc': 'Worksheet listing all account balances for validation.',
         'icon': LucideIcons.calculator,
-        'screen': const LedgerScreen(), // Using Ledger as placeholder or just simulate
+        'screen': const TrialBalanceScreen(),
       },
       {
         'title': 'General Ledger',

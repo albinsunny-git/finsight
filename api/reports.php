@@ -14,89 +14,99 @@ class ReportController {
         
         $asOnDate = $_GET['as_on_date'] ?? date('Y-m-d');
         
-        // PERFORMANCE: Avoid DATE() in WHERE/JOIN. Include Opening Balances.
-        $sql = "SELECT ac.id, ac.code, ac.name, ac.type, ac.sub_type, 
-                       (COALESCE(ac.opening_balance, 0) + 
-                        COALESCE(
-                            CASE 
-                                WHEN ac.type IN ('Liability', 'Equity', 'Income') 
-                                THEN SUM(COALESCE(gl.credit, 0)) - SUM(COALESCE(gl.debit, 0))
-                                ELSE SUM(COALESCE(gl.debit, 0)) - SUM(COALESCE(gl.credit, 0))
-                            END, 0)) as balance,
-                       SUM(COALESCE(gl.debit, 0)) as total_debit,
-                       SUM(COALESCE(gl.credit, 0)) as total_credit
+        // 1. Get all accounts with their cumulative balances (Opening + All Movements)
+        $sql = "SELECT ac.id, ac.code, ac.name, ac.type, ac.sub_type, ac.opening_balance,
+                       (SELECT SUM(COALESCE(gl.debit, 0)) FROM general_ledger gl WHERE gl.account_id = ac.id AND gl.voucher_date <= '$asOnDate 23:59:59') as total_debit,
+                       (SELECT SUM(COALESCE(gl.credit, 0)) FROM general_ledger gl WHERE gl.account_id = ac.id AND gl.voucher_date <= '$asOnDate 23:59:59') as total_credit
                 FROM account_chart ac
-                LEFT JOIN general_ledger gl ON ac.id = gl.account_id AND gl.voucher_date <= '$asOnDate 23:59:59'
-                WHERE ac.is_active = TRUE
-                GROUP BY ac.id, ac.code, ac.name, ac.type, ac.sub_type
-                ORDER BY ac.type, ac.code";
+                WHERE ac.is_active = TRUE";
         
         $result = $this->db->query($sql);
         $accounts = [];
-        $totalIncome = 0;
-        $totalExpense = 0;
+        $netProfitRetained = 0;
         
         while ($row = $result->fetch_assoc()) {
-            if ($row['type'] == 'Income') {
-                $totalIncome += $row['balance'];
-            } elseif ($row['type'] == 'Expense') {
-                // For BS logic, Expense balance is Dr - Cr. If we want impact on Equity, we treat it as negative.
-                $totalExpense += $row['balance'];
+            $ob = (float)$row['opening_balance'];
+            $dr = (float)$row['total_debit'];
+            $cr = (float)$row['total_credit'];
+            
+            // Natural balances:
+            // Assets/Expenses: Dr - Cr + OB
+            // Liab/Equity/Income: Cr - Dr + OB (assuming OB is stored with natural sign or handled by type)
+            // Let's settle on a standard: Net Debit Balance = (Dr + OB_if_asset) - (Cr + OB_if_liab)
+            
+            $netDebit = 0;
+            if (in_array($row['type'], ['Asset', 'Expense'])) {
+                $netDebit = ($ob + $dr) - $cr;
+            } else {
+                $netDebit = $dr - ($ob + $cr);
             }
-            // Only add real BS accounts to the main list (Asset, Liability, Equity)
-            if (in_array($row['type'], ['Asset', 'Liability', 'Equity'])) {
+            
+            // For P&L accounts, their cumulative balance is the "Net Profit" contribution
+            if (in_array($row['type'], ['Income', 'Expense'])) {
+                // Income is natural Credit (-NetDebit). Expense is natural Debit (+NetDebit).
+                // Profit = Income - Expense = (-NetDebit_Income) - (NetDebit_Expense)
+                // Actually simpler:
+                if ($row['type'] == 'Income') {
+                    $netProfitRetained += ($cr - $dr); // Income OB is usually 0 but we could add it
+                } else {
+                    $netProfitRetained -= ($dr - $cr);
+                }
+            } else {
+                // Asset, Liability, Equity go to Balance Sheet
+                // Balance is absolute "natural" value for UI
+                $row['balance'] = ($row['type'] == 'Asset') ? $netDebit : -$netDebit;
                 $accounts[] = $row;
             }
         }
         
-        // Calculate Net Profit up to this date
-        // Profit = Income - Expense
-        $netProfit = $totalIncome - $totalExpense;
-        
         // Add Net Profit as a virtual Equity account
         $accounts[] = [
             'id' => 0,
-            'code' => 'PROFIT',
-            'name' => 'Net Profit (Period)',
+            'code' => 'P&L-RES',
+            'name' => 'Net Profit (Retained)',
             'type' => 'Equity',
             'sub_type' => 'Retained Earnings',
-            'balance' => $netProfit,
-            'total_debit' => $totalIncome,
-            'total_credit' => $totalExpense
+            'balance' => $netProfitRetained,
+            'total_debit' => 0,
+            'total_credit' => 0
         ];
         
         sendResponse(true, $accounts, 'Balance sheet retrieved');
     }
-    
+
     public function getProfitLoss() {
         checkAuth();
         
         $fromDate = $_GET['from_date'] ?? date('Y-01-01');
         $toDate = $_GET['to_date'] ?? date('Y-m-d');
         
-        // PERFORMANCE: Avoid DATE() in WHERE/JOIN. 
+        // P&L shows income and expenses for a period
         $sql = "SELECT ac.id, ac.code, ac.name, ac.type, ac.sub_type,
-                       COALESCE(
-                           CASE 
-                               WHEN ac.type = 'Income' 
-                               THEN SUM(COALESCE(gl.credit, 0)) - SUM(COALESCE(gl.debit, 0))
-                               ELSE SUM(COALESCE(gl.debit, 0)) - SUM(COALESCE(gl.credit, 0))
-                           END, 0) as amount,
-                       SUM(COALESCE(gl.debit, 0)) as total_debit,
-                       SUM(COALESCE(gl.credit, 0)) as total_credit
+                       (SELECT SUM(COALESCE(gl.debit, 0)) FROM general_ledger gl WHERE gl.account_id = ac.id AND gl.voucher_date >= '$fromDate 00:00:00' AND gl.voucher_date <= '$toDate 23:59:59') as total_debit,
+                       (SELECT SUM(COALESCE(gl.credit, 0)) FROM general_ledger gl WHERE gl.account_id = ac.id AND gl.voucher_date >= '$fromDate 00:00:00' AND gl.voucher_date <= '$toDate 23:59:59') as total_credit
                 FROM account_chart ac
-                LEFT JOIN general_ledger gl ON ac.id = gl.account_id 
-                          AND gl.voucher_date >= '$fromDate 00:00:00' 
-                          AND gl.voucher_date <= '$toDate 23:59:59'
-                WHERE ac.type IN ('Income', 'Expense') AND ac.is_active = TRUE
-                GROUP BY ac.id, ac.code, ac.name, ac.type, ac.sub_type
-                ORDER BY ac.type DESC, ac.code";
+                WHERE ac.type IN ('Income', 'Expense') AND ac.is_active = TRUE";
         
         $result = $this->db->query($sql);
         $accounts = [];
         
         while ($row = $result->fetch_assoc()) {
-            $accounts[] = $row;
+            $dr = (float)$row['total_debit'];
+            $cr = (float)$row['total_credit'];
+            
+            // Amount is natural balance
+            // Income: Cr - Dr
+            // Expense: Dr - Cr
+            if ($row['type'] == 'Income') {
+                $row['amount'] = $cr - $dr;
+            } else {
+                $row['amount'] = $dr - $cr;
+            }
+            
+            if (round($row['amount'], 2) != 0) {
+                $accounts[] = $row;
+            }
         }
         
         sendResponse(true, $accounts, 'P&L report retrieved');
@@ -191,19 +201,13 @@ class ReportController {
 
     public function getTrialBalance() {
         checkAuth();
-        
         $asOnDate = $_GET['as_on_date'] ?? date('Y-m-d');
         
-        $sql = "SELECT ac.id, ac.code, ac.name,
-                       COALESCE(SUM(gl.debit), 0) as total_debit,
-                       COALESCE(SUM(gl.credit), 0) as total_credit,
-                       ac.opening_balance
+        $sql = "SELECT ac.id, ac.code, ac.name, ac.type, ac.opening_balance,
+                       (SELECT SUM(COALESCE(gl.debit, 0)) FROM general_ledger gl WHERE gl.account_id = ac.id AND gl.voucher_date <= '$asOnDate 23:59:59') as td,
+                       (SELECT SUM(COALESCE(gl.credit, 0)) FROM general_ledger gl WHERE gl.account_id = ac.id AND gl.voucher_date <= '$asOnDate 23:59:59') as tc
                 FROM account_chart ac
-                LEFT JOIN general_ledger gl ON ac.id = gl.account_id AND gl.voucher_date <= '$asOnDate 23:59:59'
-                WHERE ac.is_active = TRUE
-                GROUP BY ac.id, ac.code, ac.name, ac.opening_balance
-                HAVING SUM(gl.debit) != 0 OR SUM(gl.credit) != 0 OR ac.opening_balance != 0
-                ORDER BY ac.code";
+                WHERE ac.is_active = TRUE";
         
         $result = $this->db->query($sql);
         $accounts = [];
@@ -211,23 +215,32 @@ class ReportController {
         $totalCredit = 0;
         
         while ($row = $result->fetch_assoc()) {
-            $ob = (float)($row['opening_balance'] ?? 0);
-            // Include opening balance in Debit/Credit for Trial Balance?
-            // Standard TB lists OB in its own column OR merged?
-            // Usually, if Asset/Expense, OB is Debit. If Liab/Equity/Income, OB is Credit.
-            // Let's check type.
-            $typeRes = $this->db->query("SELECT type FROM account_chart WHERE id = " . $row['id']);
-            $type = $typeRes->fetch_assoc()['type'];
+            $ob = (float)$row['opening_balance'];
+            $dr = (float)$row['td'];
+            $cr = (float)$row['tc'];
             
-            if (in_array($type, ['Asset', 'Expense'])) {
-                $row['total_debit'] += $ob;
+            // Determine net balance
+            // Natural Dr: Asset, Expense. Natural Cr: Liability, Equity, Income.
+            $balance = 0;
+            if (in_array($row['type'], ['Asset', 'Expense'])) {
+                $balance = ($ob + $dr) - $cr;
             } else {
-                $row['total_credit'] += $ob;
+                $balance = $dr - ($ob + $cr); // Negative means Credit balance
             }
-
-            $accounts[] = $row;
-            $totalDebit += $row['total_debit'];
-            $totalCredit += $row['total_credit'];
+            
+            if (round($balance, 2) == 0) continue; // Skip zero balances
+            
+            $entry = [
+                'id' => $row['id'],
+                'code' => $row['code'],
+                'name' => $row['name'],
+                'total_debit' => ($balance > 0) ? $balance : 0,
+                'total_credit' => ($balance < 0) ? abs($balance) : 0
+            ];
+            
+            $accounts[] = $entry;
+            $totalDebit += $entry['total_debit'];
+            $totalCredit += $entry['total_credit'];
         }
         
         $accounts[] = [
@@ -245,25 +258,42 @@ class ReportController {
         $fromDate = $_GET['from_date'] ?? date('Y-01-01');
         $toDate = $_GET['to_date'] ?? date('Y-m-d');
         
-        // Get cash accounts
-        $sql = "SELECT ac.id, ac.code, ac.name,
-                       (COALESCE(ac.opening_balance, 0) + COALESCE(SUM(gl.debit) - SUM(gl.credit), 0)) as net_flow
-                FROM account_chart ac
-                LEFT JOIN general_ledger gl ON ac.id = gl.account_id
-                          AND gl.voucher_date >= '$fromDate 00:00:00'
-                          AND gl.voucher_date <= '$toDate 23:59:59'
-                WHERE ac.type = 'Asset' AND (ac.name LIKE '%Cash%' OR ac.name LIKE '%Bank%')
-                GROUP BY ac.id, ac.code, ac.name, ac.opening_balance
-                ORDER BY ac.code";
+        // Fetch all Cash/Bank Asset accounts
+        $sql = "SELECT id, code, name, opening_balance FROM account_chart 
+                WHERE type = 'Asset' AND (name LIKE '%Cash%' OR name LIKE '%Bank%' OR code LIKE '10%') 
+                AND is_active = TRUE";
+        $accResult = $this->db->query($sql);
         
-        $result = $this->db->query($sql);
-        $cashAccounts = [];
-        
-        while ($row = $result->fetch_assoc()) {
-            $cashAccounts[] = $row;
+        $cashSummary = [];
+        while ($acc = $accResult->fetch_assoc()) {
+            $id = $acc['id'];
+            $ob = (float)$acc['opening_balance'];
+            
+            // Movement before period
+            $prevSql = "SELECT SUM(debit) as d, SUM(credit) as c FROM general_ledger WHERE account_id = $id AND voucher_date < '$fromDate 00:00:00'";
+            $prevRes = $this->db->query($prevSql)->fetch_assoc();
+            $openingBalanceAsOfDate = $ob + ((float)$prevRes['d'] - (float)$prevRes['c']);
+            
+            // Movement during period
+            $currSql = "SELECT SUM(debit) as inbox, SUM(credit) as outbox FROM general_ledger WHERE account_id = $id AND voucher_date BETWEEN '$fromDate 00:00:00' AND '$toDate 23:59:59'";
+            $currRes = $this->db->query($currSql)->fetch_assoc();
+            
+            $inflow = (float)$currRes['inbox'];
+            $outflow = (float)$currRes['outbox'];
+            $closing = $openingBalanceAsOfDate + $inflow - $outflow;
+            
+            $cashSummary[] = [
+                'id' => $id,
+                'code' => $acc['code'],
+                'name' => $acc['name'],
+                'opening' => $openingBalanceAsOfDate,
+                'inflow' => $inflow,
+                'outflow' => $outflow,
+                'closing' => $closing
+            ];
         }
         
-        sendResponse(true, $cashAccounts, 'Cash flow retrieved');
+        sendResponse(true, $cashSummary, 'Cash flow analysis retrieved');
     }
     
     public function getAccountLedger() {

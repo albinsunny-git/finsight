@@ -788,6 +788,27 @@ class ApiService {
     }
   }
 
+  Future<List<dynamic>> getCashFlow({String? fromDate, String? toDate}) async {
+    try {
+      final headers = await _getHeaders();
+      String url = '${ApiService.baseUrl}/reports.php?type=cash-flow';
+      if (fromDate != null) url += '&from_date=$fromDate';
+      if (toDate != null) url += '&to_date=$toDate';
+
+      final response = await http
+          .get(Uri.parse(url), headers: headers)
+          .timeout(const Duration(seconds: 60));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success']) return data['data'];
+      }
+      return [];
+    } catch (e) {
+      print('Error fetching Cash Flow: $e');
+      return [];
+    }
+  }
+
   // --- Settings ---
 
   Future<Map<String, dynamic>> getCompanySettings() async {
