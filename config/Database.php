@@ -188,6 +188,37 @@ class ConnectionProxy {
         return null;
     }
     
+    public function query($sql) {
+        try {
+            $stmt = $this->pdo->query($sql);
+            if (!$stmt) return false;
+            return new ShimResult($stmt);
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+
+    public function prepare($sql) {
+        try {
+            $stmt = $this->pdo->prepare($sql);
+            return new ShimStatement($stmt, $this->pdo);
+        } catch (PDOException $e) {
+            return false;
+        }
+    }
+
+    public function begin_transaction() {
+        return $this->pdo->beginTransaction();
+    }
+
+    public function commit() {
+        return $this->pdo->commit();
+    }
+
+    public function rollback() {
+        return $this->pdo->rollBack();
+    }
+    
     public function close() {
         return true;
     }

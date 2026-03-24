@@ -14,17 +14,19 @@ class ReportController {
         
         $asOnDate = $_GET['as_on_date'] ?? date('Y-m-d');
         
+        // PERFORMANCE: Avoid DATE() in WHERE/JOIN. Include Opening Balances.
         $sql = "SELECT ac.id, ac.code, ac.name, ac.type, ac.sub_type, 
-                       COALESCE(
-                           CASE 
-                               WHEN ac.type IN ('Liability', 'Equity', 'Income') 
-                               THEN SUM(COALESCE(gl.credit, 0)) - SUM(COALESCE(gl.debit, 0))
-                               ELSE SUM(COALESCE(gl.debit, 0)) - SUM(COALESCE(gl.credit, 0))
-                           END, 0) as balance,
+                       (COALESCE(ac.opening_balance, 0) + 
+                        COALESCE(
+                            CASE 
+                                WHEN ac.type IN ('Liability', 'Equity', 'Income') 
+                                THEN SUM(COALESCE(gl.credit, 0)) - SUM(COALESCE(gl.debit, 0))
+                                ELSE SUM(COALESCE(gl.debit, 0)) - SUM(COALESCE(gl.credit, 0))
+                            END, 0)) as balance,
                        SUM(COALESCE(gl.debit, 0)) as total_debit,
                        SUM(COALESCE(gl.credit, 0)) as total_credit
                 FROM account_chart ac
-                LEFT JOIN general_ledger gl ON ac.id = gl.account_id AND DATE(gl.voucher_date) <= '$asOnDate'
+                LEFT JOIN general_ledger gl ON ac.id = gl.account_id AND gl.voucher_date <= '$asOnDate 23:59:59'
                 WHERE ac.is_active = TRUE
                 GROUP BY ac.id, ac.code, ac.name, ac.type, ac.sub_type
                 ORDER BY ac.type, ac.code";
@@ -72,7 +74,7 @@ class ReportController {
         $fromDate = $_GET['from_date'] ?? date('Y-01-01');
         $toDate = $_GET['to_date'] ?? date('Y-m-d');
         
-        // Use CASE to return correct positive balance based on account type
+        // PERFORMANCE: Avoid DATE() in WHERE/JOIN. 
         $sql = "SELECT ac.id, ac.code, ac.name, ac.type, ac.sub_type,
                        COALESCE(
                            CASE 
@@ -84,8 +86,8 @@ class ReportController {
                        SUM(COALESCE(gl.credit, 0)) as total_credit
                 FROM account_chart ac
                 LEFT JOIN general_ledger gl ON ac.id = gl.account_id 
-                          AND DATE(gl.voucher_date) >= '$fromDate' 
-                          AND DATE(gl.voucher_date) <= '$toDate'
+                          AND gl.voucher_date >= '$fromDate 00:00:00' 
+                          AND gl.voucher_date <= '$toDate 23:59:59'
                 WHERE ac.type IN ('Income', 'Expense') AND ac.is_active = TRUE
                 GROUP BY ac.id, ac.code, ac.name, ac.type, ac.sub_type
                 ORDER BY ac.type DESC, ac.code";
@@ -194,12 +196,13 @@ class ReportController {
         
         $sql = "SELECT ac.id, ac.code, ac.name,
                        COALESCE(SUM(gl.debit), 0) as total_debit,
-                       COALESCE(SUM(gl.credit), 0) as total_credit
+                       COALESCE(SUM(gl.credit), 0) as total_credit,
+                       ac.opening_balance
                 FROM account_chart ac
-                LEFT JOIN general_ledger gl ON ac.id = gl.account_id AND DATE(gl.voucher_date) <= '$asOnDate'
+                LEFT JOIN general_ledger gl ON ac.id = gl.account_id AND gl.voucher_date <= '$asOnDate 23:59:59'
                 WHERE ac.is_active = TRUE
-                GROUP BY ac.id, ac.code, ac.name
-                HAVING SUM(gl.debit) != 0 OR SUM(gl.credit) != 0
+                GROUP BY ac.id, ac.code, ac.name, ac.opening_balance
+                HAVING SUM(gl.debit) != 0 OR SUM(gl.credit) != 0 OR ac.opening_balance != 0
                 ORDER BY ac.code";
         
         $result = $this->db->query($sql);
@@ -208,6 +211,20 @@ class ReportController {
         $totalCredit = 0;
         
         while ($row = $result->fetch_assoc()) {
+            $ob = (float)($row['opening_balance'] ?? 0);
+            // Include opening balance in Debit/Credit for Trial Balance?
+            // Standard TB lists OB in its own column OR merged?
+            // Usually, if Asset/Expense, OB is Debit. If Liab/Equity/Income, OB is Credit.
+            // Let's check type.
+            $typeRes = $this->db->query("SELECT type FROM account_chart WHERE id = " . $row['id']);
+            $type = $typeRes->fetch_assoc()['type'];
+            
+            if (in_array($type, ['Asset', 'Expense'])) {
+                $row['total_debit'] += $ob;
+            } else {
+                $row['total_credit'] += $ob;
+            }
+
             $accounts[] = $row;
             $totalDebit += $row['total_debit'];
             $totalCredit += $row['total_credit'];
@@ -230,13 +247,13 @@ class ReportController {
         
         // Get cash accounts
         $sql = "SELECT ac.id, ac.code, ac.name,
-                       COALESCE(SUM(gl.debit) - SUM(gl.credit), 0) as net_flow
+                       (COALESCE(ac.opening_balance, 0) + COALESCE(SUM(gl.debit) - SUM(gl.credit), 0)) as net_flow
                 FROM account_chart ac
                 LEFT JOIN general_ledger gl ON ac.id = gl.account_id
-                          AND DATE(gl.voucher_date) >= '$fromDate'
-                          AND DATE(gl.voucher_date) <= '$toDate'
-                WHERE ac.type = 'Asset' AND ac.name LIKE '%Cash%'
-                GROUP BY ac.id, ac.code, ac.name
+                          AND gl.voucher_date >= '$fromDate 00:00:00'
+                          AND gl.voucher_date <= '$toDate 23:59:59'
+                WHERE ac.type = 'Asset' AND (ac.name LIKE '%Cash%' OR ac.name LIKE '%Bank%')
+                GROUP BY ac.id, ac.code, ac.name, ac.opening_balance
                 ORDER BY ac.code";
         
         $result = $this->db->query($sql);
@@ -344,10 +361,11 @@ class ReportController {
         
         // Single optimized query for all primary types
         $sql = "SELECT ac.type, 
-                       SUM(CASE WHEN ac.type IN ('Liability', 'Equity', 'Income') THEN gl.credit - gl.debit ELSE gl.debit - gl.credit END) as net_balance
+                       SUM(CASE WHEN ac.type IN ('Liability', 'Equity', 'Income') THEN gl.credit - gl.debit ELSE gl.debit - gl.credit END) as tx_balance,
+                       (SELECT SUM(opening_balance) FROM account_chart WHERE type = ac.type) as ob_sum
                 FROM general_ledger gl
                 JOIN account_chart ac ON gl.account_id = ac.id
-                WHERE DATE(gl.voucher_date) <= ?
+                WHERE gl.voucher_date <= ?
                 GROUP BY ac.type";
         
         $stmt = $this->db->prepare($sql);
@@ -358,7 +376,7 @@ class ReportController {
         $typeMap = [];
         if ($res) {
             while($row = $res->fetch_assoc()) {
-                $typeMap[$row['type']] = (float)$row['net_balance'];
+                $typeMap[$row['type']] = (float)$row['tx_balance'] + (float)$row['ob_sum'];
             }
         }
         $stmt->close();

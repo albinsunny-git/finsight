@@ -24,11 +24,13 @@ class InsightsController {
         }
         
         // Helper to get totals for a specific month
-        $getTotals = function($m, $y) {
+            $start = "$y-$m-01 00:00:00";
+            $end = date('Y-m-t 23:59:59', strtotime($start));
+            
             $sql = "SELECT ac.type, COALESCE(SUM(gl.credit - gl.debit), 0) as credit_sum, COALESCE(SUM(gl.debit - gl.credit), 0) as debit_sum
                     FROM general_ledger gl
                     JOIN account_chart ac ON gl.account_id = ac.id
-                    WHERE MONTH(gl.voucher_date) = $m AND YEAR(gl.voucher_date) = $y
+                    WHERE gl.voucher_date >= '$start' AND gl.voucher_date <= '$end'
                     AND ac.type IN ('Income', 'Expense')
                     GROUP BY ac.type";
             
@@ -75,12 +77,14 @@ class InsightsController {
             $insights[] = $text;
         }
         
-        // 2. Top Expense
+        $startStr = "$year-$month-01 00:00:00";
+        $endStr = date('Y-m-t 23:59:59', strtotime($startStr));
+
         $sqlTop = "SELECT ac.name, SUM(gl.debit - gl.credit) as total
                    FROM general_ledger gl
                    JOIN account_chart ac ON gl.account_id = ac.id
                    WHERE ac.type = 'Expense' 
-                   AND MONTH(gl.voucher_date) = $month AND YEAR(gl.voucher_date) = $year
+                   AND gl.voucher_date >= '$startStr' AND gl.voucher_date <= '$endStr'
                    GROUP BY ac.id
                    ORDER BY total DESC LIMIT 1";
         $topRes = $this->db->query($sqlTop);
@@ -107,7 +111,9 @@ class InsightsController {
         }
         
         // 4. Calculate Business Health Score based on overall Accounts (Assets vs Liabilities)
-        $sqlAccounts = "SELECT ac.type, COALESCE(SUM(gl.debit - gl.credit), 0) as debit_sum, COALESCE(SUM(gl.credit - gl.debit), 0) as credit_sum
+        $sqlAccounts = "SELECT ac.type, 
+                        SUM(CASE WHEN ac.type = 'Asset' THEN gl.debit - gl.credit ELSE gl.credit - gl.debit END) as tx_balance,
+                        (SELECT SUM(opening_balance) FROM account_chart WHERE type = ac.type) as ob_sum
                         FROM general_ledger gl
                         JOIN account_chart ac ON gl.account_id = ac.id
                         WHERE ac.type IN ('Asset', 'Liability')
@@ -118,9 +124,9 @@ class InsightsController {
         $totalLiabilities = 0;
         while ($row = $accRes->fetch_assoc()) {
             if ($row['type'] == 'Asset') {
-                $totalAssets = (float)$row['debit_sum'];
+                $totalAssets = (float)$row['tx_balance'] + (float)$row['ob_sum'];
             } elseif ($row['type'] == 'Liability') {
-                $totalLiabilities = (float)$row['credit_sum'];
+                $totalLiabilities = (float)$row['tx_balance'] + (float)$row['ob_sum'];
             }
         }
 

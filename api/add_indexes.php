@@ -2,39 +2,22 @@
 require_once __DIR__ . '/../config/Database.php';
 
 $db = new Database();
+$conn = $db->getConnection();
 
-$indexes = [
-    ['table' => 'users', 'column' => 'username', 'name' => 'idx_username'],
-    ['table' => 'vouchers', 'column' => 'voucher_date', 'name' => 'idx_voucher_date'],
-    ['table' => 'voucher_details', 'column' => 'account_id', 'name' => 'idx_account_id'],
-    ['table' => 'voucher_details', 'column' => 'voucher_id', 'name' => 'idx_voucher_id']
+$queries = [
+    "ALTER TABLE general_ledger ADD INDEX idx_acc_date (account_id, voucher_date)",
+    "ALTER TABLE general_ledger ADD INDEX idx_date (voucher_date)",
+    "ALTER TABLE vouchers ADD INDEX idx_status_date (status, voucher_date)",
+    "ALTER TABLE voucher_details ADD INDEX idx_voucher_id (voucher_id)",
+    "ALTER TABLE voucher_details ADD INDEX idx_acc_id (account_id)"
 ];
 
-echo "Database Indexing Utility\n";
-echo "--------------------------\n";
-
-foreach ($indexes as $idx) {
-    try {
-        echo "Processing Index: {$idx['name']} on {$idx['table']}({$idx['column']})... ";
-        
-        // Check if index exists
-        $check = $db->query("SELECT COUNT(*) as exists_count 
-                           FROM INFORMATION_SCHEMA.STATISTICS 
-                           WHERE table_schema = DATABASE() 
-                           AND table_name = '{$idx['table']}' 
-                           AND index_name = '{$idx['name']}'");
-        
-        $row = $check->fetch_assoc();
-        
-        if ($row['exists_count'] > 0) {
-            echo "Already exists.\n";
-        } else {
-            $db->query("CREATE INDEX {$idx['name']} ON {$idx['table']}({$idx['column']})");
-            echo "Created successfully.\n";
-        }
-    } catch (Exception $e) {
-        echo "Error: " . $e->getMessage() . "\n";
+foreach ($queries as $sql) {
+    echo "Executing: $sql... ";
+    if ($conn->query($sql)) {
+        echo "SUCCESS!\n";
+    } else {
+        echo "FAILED (maybe already exists): " . $conn->error . "\n";
     }
 }
-
-echo "\nDone.\n";
+?>
