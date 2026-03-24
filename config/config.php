@@ -32,6 +32,8 @@ define('GOOGLE_CLIENT_ID', '235402120316-oi9307meejpv5jlbtt7b4lfr4remn8js.apps.g
 define('FIREBASE_PROJECT_ID', 'finsight-1-a1ov'); // Extracted from provided Google Client ID structure
 define('MAIL_USER', 'sunnyalbin3640@gmail.com');
 define('MAIL_PASS', 'mdig dpag dila gfey');
+define('MAIL_HOST', 'smtp.gmail.com');
+define('MAIL_PORT', 587);
 
 // Meta
 date_default_timezone_set('UTC');
