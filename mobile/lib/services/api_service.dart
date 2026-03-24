@@ -7,9 +7,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 
 class ApiService {
-  // Use 10.0.2.2 for Android Emulator to access localhost
-  // Use your machine's IP address for physical device (e.g., 10.81.23.13)
-  // Use localhost for Windows/Web
+  // Custom URL can be set via the Settings dialog on the login screen
+  // for local development. Otherwise, the production Render URL is used.
   static String? _customBaseUrl;
 
   static void setCustomUrl(String url) {
@@ -24,18 +23,10 @@ class ApiService {
       return '$_customBaseUrl/api';
     }
     
-    // Auto-detect local development environment
-    if (kDebugMode) {
-      // In debug mode, prioritize the USB Reverse Bridge (adb reverse tcp:8080 tcp:80)
-      // which works for both emulators and physical devices.
-      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-        return 'http://localhost:8080/finsight/api';
-      }
-      return 'http://localhost/finsight/api';
-    }
-    
-    // Production Render URL
-    return 'http://10.0.2.2/finsight/api';
+    // Always use the production Render URL.
+    // For local development, use the Settings icon on the login screen
+    // to set a custom URL (e.g., http://10.0.2.2/finsight for emulator).
+    return 'https://finsight-1-a1ov.onrender.com/api';
   }
 
   // Helper to store session cookie

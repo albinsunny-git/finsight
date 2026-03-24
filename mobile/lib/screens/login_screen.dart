@@ -126,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             const SizedBox(height: 10),
             const Text(
-                'Current Default: http://localhost/finsight (Web)\nhttp://10.0.2.2/finsight (Emulator)\nhttp://127.0.0.1:8080/finsight (USB Reverse Bridge)'),
+                'Default: https://finsight-1-a1ov.onrender.com (Production)\nFor local dev, enter your PC IP or use 10.0.2.2 for Emulator'),
           ],
         ),
         actions: [

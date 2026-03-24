@@ -9,7 +9,6 @@ import 'package:finsight_mobile/screens/reports/cash_flow_screen.dart';
 import 'package:finsight_mobile/screens/reports/monthly_performance_screen.dart';
 import 'package:finsight_mobile/screens/reports/balance_sheet_screen.dart';
 import 'package:finsight_mobile/screens/reports/profit_loss_screen.dart';
-import 'package:finsight_mobile/screens/reports/audit_logs_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:finsight_mobile/config.dart';
 
@@ -26,7 +25,6 @@ class _ReportsHomeScreenState extends State<ReportsHomeScreen> {
   List<String> _labels = [];
   double _totalNet = 0;
   double _pctChange = 0;
-  String _userRole = '';
 
   @override
   void initState() {
@@ -36,16 +34,7 @@ class _ReportsHomeScreenState extends State<ReportsHomeScreen> {
   }
 
   Future<void> _loadRole() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userStr = prefs.getString('user_data');
-    if (userStr != null) {
-      final user = jsonDecode(userStr);
-      if (mounted) {
-        setState(() {
-          _userRole = (user['role'] ?? '').toString().toLowerCase();
-        });
-      }
-    }
+    // Role not needed for current reports list
   }
 
   Future<void> _loadTrendData() async {
@@ -313,22 +302,7 @@ class _ReportsHomeScreenState extends State<ReportsHomeScreen> {
         'icon': LucideIcons.bookOpen,
         'screen': const LedgerScreen(),
       },
-      {
-        'title': 'Financial Health Analysis',
-        'desc': 'AI-driven audit of solvency, liquidity, and margins.',
-        'icon': LucideIcons.activity,
-        'screen': const MonthlyPerformanceScreen(),
-      },
     ];
-
-    if (_userRole == 'admin' || _userRole == 'administrator') {
-      reports.add({
-        'title': 'System Audit Logs',
-        'desc': 'Comprehensive Tracking of User Actions & Approvals.',
-        'icon': LucideIcons.shieldCheck,
-        'screen': const AuditLogsScreen(),
-      });
-    }
 
     return Column(
       children: reports.map((r) => _buildReportCard(r, isDark)).toList(),

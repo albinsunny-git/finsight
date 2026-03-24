@@ -1,6 +1,17 @@
 <?php
 // Database Connection Class - Refactored to use DATABASE_URL with mysqli compatibility shim
 require_once __DIR__ . '/config.php';
+// Global Headers for API / CORS
+if (!headers_sent() && php_sapi_name() !== 'cli') {
+    header("Access-Control-Allow-Origin: *");
+    header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, Cookie");
+    header("Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE");
+    header("Access-Control-Allow-Credentials: true");
+    if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+        http_response_code(200);
+        exit();
+    }
+}
 
 class Database {
     private $pdo;
@@ -13,26 +24,27 @@ class Database {
         $dbUrl = defined('DATABASE_URL') ? DATABASE_URL : getenv("DATABASE_URL");
         
         if (!$dbUrl) {
-            $host = DB_HOST;
-            $db   = DB_NAME;
-            $user = DB_USER;
-            $pass = DB_PASS;
-            $port = DB_PORT ?: 5432;
+            $host = defined('DB_HOST') ? DB_HOST : 'localhost';
+            $db   = defined('DB_NAME') ? DB_NAME : '';
+            $user = defined('DB_USER') ? DB_USER : 'root';
+            $pass = defined('DB_PASS') ? DB_PASS : '';
+            $port = defined('DB_PORT') ? DB_PORT : 3306;
         } else {
             $parts = parse_url($dbUrl);
             $host = $parts["host"] ?? '';
-            $port = $parts["port"] ?? 5432;
+            $port = $parts["port"] ?? 3306;
             $user = $parts["user"] ?? '';
             $pass = $parts["pass"] ?? '';
             $db   = isset($parts["path"]) ? ltrim($parts["path"], "/") : '';
         }
 
         try {
-            $dsn = "pgsql:host=$host;port=$port;dbname=$db";
+            $dsn = "mysql:host=$host;port=$port;dbname=$db;charset=utf8mb4";
             $conn = new PDO($dsn, $user, $pass, [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES => false,
+                PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8mb4"
             ]);
             return $conn;
         } catch (PDOException $e) {

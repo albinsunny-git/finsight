@@ -16,11 +16,11 @@ if ($isLocalhost) {
     define('DB_PORT', '3306');
 } else {
     // RAILWAY MYSQL PRODUCTION
-    define('DB_HOST', 'turntable.proxy.rlwy.net');
-    define('DB_USER', 'root');
-    define('DB_PASS', 'JFdaAfOpwWsyXermUpsXMISgOyiqHDHO');
-    define('DB_NAME', 'railway');
-    define('DB_PORT', '43079');
+    define('DB_HOST', getenv('DB_HOST') ?: 'turntable.proxy.rlwy.net');
+    define('DB_USER', getenv('DB_USER') ?: 'root');
+    define('DB_PASS', getenv('DB_PASS') ?: 'JFdaAfOpwWsyXermUpsXMISgOyiqHDHO');
+    define('DB_NAME', getenv('DB_NAME') ?: 'railway');
+    define('DB_PORT', getenv('DB_PORT') ?: '43079');
 }
 
 // 3. Application Configuration

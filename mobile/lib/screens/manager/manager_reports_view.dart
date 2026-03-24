@@ -8,7 +8,6 @@ import 'package:finsight_mobile/screens/reports/profit_loss_screen.dart';
 import 'package:finsight_mobile/screens/reports/cash_flow_screen.dart';
 import 'package:finsight_mobile/screens/reports/ledger_screen.dart';
 import 'package:finsight_mobile/screens/reports/monthly_performance_screen.dart';
-import 'package:finsight_mobile/screens/manager/manager_access_logs_screen.dart';
 
 class ManagerReportsView extends StatefulWidget {
   final Map<String, dynamic> dashboardData;
@@ -131,37 +130,6 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
                       borderColor,
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const LedgerScreen())),
                     ),
-                    _buildReportItem(
-                      "Tax Compliance Summary",
-                      "Comprehensive summary for VAT, GST, or other statutory filings.",
-                      LucideIcons.briefcase,
-                      "Export Summary",
-                      accentPurple,
-                      cardColor,
-                      borderColor,
-                      onTap: () => _simulateDownload(context, "Tax_Compliance_Summary.pdf"),
-                    ),
-                    _buildReportItem(
-                      "Audit & Access Logs",
-                      "Security logs showing user logins, data access, and critical modifications.",
-                      LucideIcons.shieldCheck,
-                      "Audit Now",
-                      const Color(0xFF1F1F35),
-                      cardColor,
-                      borderColor,
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ManagerAccessLogsScreen())),
-                    ),
-                    _buildReportItem(
-                      "Financial Health Analysis",
-                      "AI-driven audit of solvency, liquidity, and margins.",
-                      LucideIcons.activity,
-                      "Analyze Now",
-                      const Color(0xFF10B981),
-                      cardColor,
-                      borderColor,
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const MonthlyPerformanceScreen())),
-                    ),
-
                     const SizedBox(height: 40),
                   ],
                 ),
@@ -427,29 +395,6 @@ class _ManagerReportsViewState extends State<ManagerReportsView> {
             ],
           ),
         ],
-      ),
-    );
-  }
-
-  void _simulateDownload(BuildContext context, String filename) async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) =>
-          const Center(child: CircularProgressIndicator(color: Color(0xFF8B5CF6))),
-    );
-
-    await Future.delayed(const Duration(seconds: 2));
-    if (!context.mounted) return;
-    Navigator.pop(context);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("Downloading $filename..."),
-        backgroundColor: const Color(0xFF10B981),
-        duration: const Duration(seconds: 3),
-        action:
-            SnackBarAction(label: "OPEN", textColor: Colors.white, onPressed: () {}),
       ),
     );
   }
