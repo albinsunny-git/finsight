@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:finsight_mobile/widgets/theme_toggle_button.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
@@ -30,17 +32,14 @@ class _AddVoucherScreenState extends State<AddVoucherScreen> {
   final _narrationController = TextEditingController();
   DateTime _selectedDate = DateTime.now();
 
-  // Entries
-  final List<Map<String, dynamic>> _entries = [];
+  final _amountDebitController = TextEditingController();
+  final _amountCreditController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _dateController.text = DateFormat('yyyy-MM-dd').format(_selectedDate);
     _fetchData();
-    // Add two initial rows
-    _addEntryRow();
-    _addEntryRow();
   }
 
   Future<void> _fetchData() async {
@@ -61,40 +60,13 @@ class _AddVoucherScreenState extends State<AddVoucherScreen> {
     }
   }
 
-  void _addEntryRow() {
-    setState(() {
-      _entries.add({
-        'account_id': null,
-        'description': '',
-        'debit': 0.0,
-        'credit': 0.0,
-        'ctrl_desc': TextEditingController(),
-        'ctrl_dr': TextEditingController(text: ''),
-        'ctrl_cr': TextEditingController(text: ''),
-      });
-    });
-  }
-
-  void _removeEntryRow(int index) {
-    setState(() {
-      _entries.removeAt(index);
-    });
-    _calculateTotals();
-  }
-
   double _totalDebit = 0;
   double _totalCredit = 0;
 
   void _calculateTotals() {
-    double dr = 0;
-    double cr = 0;
-    for (var entry in _entries) {
-      dr += double.tryParse(entry['ctrl_dr'].text) ?? 0;
-      cr += double.tryParse(entry['ctrl_cr'].text) ?? 0;
-    }
     setState(() {
-      _totalDebit = dr;
-      _totalCredit = cr;
+      _totalDebit = double.tryParse(_amountDebitController.text) ?? 0;
+      _totalCredit = double.tryParse(_amountCreditController.text) ?? 0;
     });
   }
 
@@ -150,17 +122,24 @@ class _AddVoucherScreenState extends State<AddVoucherScreen> {
 
     // Prepare Data
     List<Map<String, dynamic>> details = [];
-    for (var entry in _entries) {
-      if (entry['account_id'] == null) continue;
-      double dr = double.tryParse(entry['ctrl_dr'].text) ?? 0;
-      double cr = double.tryParse(entry['ctrl_cr'].text) ?? 0;
-
-      if (dr == 0 && cr == 0) continue;
-
+    
+    double dr = double.tryParse(_amountDebitController.text) ?? 0;
+    double cr = double.tryParse(_amountCreditController.text) ?? 0;
+    
+    if (_toAccountId != null) {
       details.add({
-        'account_id': entry['account_id'],
-        'description': entry['ctrl_desc'].text,
+        'account_id': _toAccountId,
+        'description': _narrationController.text.isNotEmpty ? _narrationController.text : 'Auto-generated Debit',
         'debit': dr,
+        'credit': 0.0,
+      });
+    }
+    
+    if (_fromAccountId != null) {
+      details.add({
+        'account_id': _fromAccountId,
+        'description': _narrationController.text.isNotEmpty ? _narrationController.text : 'Auto-generated Credit',
+        'debit': 0.0,
         'credit': cr,
       });
     }
@@ -172,13 +151,49 @@ class _AddVoucherScreenState extends State<AddVoucherScreen> {
       return;
     }
 
+    final prefs = await SharedPreferences.getInstance();
+    final userDataString = prefs.getString('user_data');
+    String role = 'accountant';
+    if (userDataString != null) {
+      final userData = jsonDecode(userDataString);
+      role = (userData['role']?.toString() ?? 'accountant').toLowerCase();
+    }
+    
+    String submitStatus = role.contains('accountant') ? 'Pending Approval' : 'Draft';
+    if (role.contains('admin') || role.contains('manager')) {
+      final shouldPost = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Post Voucher?'),
+          content: const Text('Do you want to post this voucher immediately to the General Ledger, or save it as a pending draft?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Save as Draft'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF6B00)),
+              child: const Text('Post Now', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      );
+      
+      if (shouldPost == null) {
+        setState(() => _isLoading = false);
+        return;
+      }
+      submitStatus = shouldPost ? 'Posted' : 'Draft';
+    }
+
     final data = {
       'voucher_type_id': _selectedTypeId,
       'from_account_id': _fromAccountId,
       'to_account_id': _toAccountId,
       'voucher_date': _dateController.text,
       'narration': _narrationController.text,
-      'status': 'Draft',
+      'status': submitStatus,
       'details': details,
     };
 
@@ -188,11 +203,11 @@ class _AddVoucherScreenState extends State<AddVoucherScreen> {
       setState(() => _isLoading = false);
       if (result['success']) {
         ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Voucher created successfully')));
+            const SnackBar(content: Text('Voucher saved successfully')));
         Navigator.pop(context, true);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(result['message'] ?? 'Failed to create')));
+            SnackBar(content: Text(result['message'] ?? 'Failed to save')));
       }
     }
   }
@@ -388,36 +403,45 @@ class _AddVoucherScreenState extends State<AddVoucherScreen> {
                                 ? 'Narration is required'
                                 : null,
                           ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _amountDebitController,
+                                  keyboardType: TextInputType.number,
+                                  style: TextStyle(color: textColor),
+                                  decoration: InputDecoration(
+                                    labelText: 'Debit Amount',
+                                    labelStyle: const TextStyle(color: Colors.greenAccent),
+                                    filled: true,
+                                    fillColor: inputColor,
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                                  ),
+                                  onChanged: (val) => _calculateTotals(),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _amountCreditController,
+                                  keyboardType: TextInputType.number,
+                                  style: TextStyle(color: textColor),
+                                  decoration: InputDecoration(
+                                    labelText: 'Credit Amount',
+                                    labelStyle: TextStyle(color: Theme.of(context).colorScheme.error),
+                                    filled: true,
+                                    fillColor: inputColor,
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                                  ),
+                                  onChanged: (val) => _calculateTotals(),
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-                    Text('Entries',
-                        style: GoogleFonts.plusJakartaSans(
-                            color: theme.textTheme.titleLarge?.color,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 12),
-
-                    // Entries List
-                    ..._entries.asMap().entries.map((entry) {
-                      int idx = entry.key;
-                      Map<String, dynamic> data = entry.value;
-                      return _buildEntryRow(idx, data, cardColor!, inputColor,
-                          textColor, hintColor);
-                    }),
-
-                    // Add Button
-                    const SizedBox(height: 12),
-                    OutlinedButton.icon(
-                      onPressed: _addEntryRow,
-                      icon: const Icon(LucideIcons.plus, size: 16),
-                      label: const Text('Add Line'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: theme.primaryColor,
-                        side: BorderSide(color: theme.primaryColor),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
                       ),
                     ),
 
@@ -489,122 +513,5 @@ class _AddVoucherScreenState extends State<AddVoucherScreen> {
     );
   }
 
-  Widget _buildEntryRow(int index, Map<String, dynamic> data, Color cardColor,
-      Color inputColor, Color textColor, Color hintColor) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: DropdownButtonFormField<int>(
-                  initialValue: data['account_id'],
-                  dropdownColor: cardColor,
-                  isExpanded: true,
-                  style: GoogleFonts.plusJakartaSans(color: textColor),
-                  decoration: InputDecoration(
-                    labelText: 'Account',
-                    labelStyle: TextStyle(color: hintColor),
-                    filled: true,
-                    fillColor: inputColor,
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none),
-                  ),
-                  items: _accounts.map((acc) {
-                    return DropdownMenuItem<int>(
-                      value: int.tryParse(acc['id'].toString()),
-                      child: Text("${acc['code']} - ${acc['name']}",
-                          style: TextStyle(color: textColor),
-                          overflow: TextOverflow.ellipsis),
-                    );
-                  }).toList(),
-                  onChanged: (val) {
-                    setState(() => data['account_id'] = val);
-                  },
-                ),
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                icon: const Icon(LucideIcons.trash2,
-                    color: Colors.redAccent, size: 20),
-                onPressed: () => _removeEntryRow(index),
-              )
-            ],
-          ),
-          const SizedBox(height: 8),
-          TextFormField(
-            controller: data['ctrl_desc'],
-            style: TextStyle(color: textColor),
-            decoration: InputDecoration(
-              labelText: 'Description',
-              labelStyle: TextStyle(color: hintColor),
-              filled: true,
-              fillColor: inputColor,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: TextFormField(
-                  controller: data['ctrl_dr'],
-                  keyboardType: TextInputType.number,
-                  style: TextStyle(color: textColor),
-                  decoration: InputDecoration(
-                    labelText: 'Debit',
-                    labelStyle: const TextStyle(color: Colors.greenAccent),
-                    filled: true,
-                    fillColor: inputColor,
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none),
-                  ),
-                  onChanged: (val) {
-                    _calculateTotals();
-                  },
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: TextFormField(
-                  controller: data['ctrl_cr'],
-                  keyboardType: TextInputType.number,
-                  style: TextStyle(color: textColor),
-                  decoration: InputDecoration(
-                    labelText: 'Credit',
-                    labelStyle:
-                        TextStyle(color: Theme.of(context).colorScheme.error),
-                    filled: true,
-                    fillColor: inputColor,
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide.none),
-                  ),
-                  onChanged: (val) => _calculateTotals(),
-                ),
-              ),
-            ],
-          )
-        ],
-      ),
-    );
-  }
+
 }

@@ -42,7 +42,10 @@ class ManagerDashboardView extends StatelessWidget {
     const Color borderColor = Color(0xFF1F1F35);
 
     // Calculate Pending Approvals
-    final int pendingApprovals = vouchers.where((v) => v['status'].toString().toLowerCase() == 'pending').length;
+    final int pendingApprovals = vouchers.where((v) {
+      final s = v['status'].toString().toLowerCase();
+      return s == 'pending' || s == 'pending approval';
+    }).length;
 
     return Scaffold(
       backgroundColor: bgColor,

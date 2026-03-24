@@ -1042,7 +1042,7 @@ async function loadVouchers() {
                                     <i class="fas fa-check-circle"></i> Post
                                 </button>` : ''}
 
-                            ${voucher.status === 'Pending Approval' && isAdmin ?
+                            ${voucher.status === 'Pending Approval' && user.role === 'manager' ?
                         `<button onclick="approveVoucher('${voucher.id}')" class="btn-sm" style="background:var(--success-color); color:white; display: flex; align-items: center; gap: 5px;">
                                     <i class="fas fa-check"></i> Approve
                                 </button>
@@ -1521,7 +1521,7 @@ async function viewVoucher(id) {
 
             // Show Admin controls if pending approval and user is admin/manager
             const user = JSON.parse(localStorage.getItem('user') || '{}');
-            const canApprove = (user.role === 'admin' || user.role === 'manager') && v.status === 'Pending Approval';
+            const canApprove = (user.role === 'manager') && v.status === 'Pending Approval';
 
             const footer = document.querySelector('#viewVoucherModal .modal-footer');
 

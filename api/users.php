@@ -61,6 +61,10 @@ class UserController {
         checkRole(['admin', 'manager']);
         
         $data = json_decode(file_get_contents('php://input'), true);
+
+        if ($_SESSION['role'] === 'manager' && isset($data['role']) && trim(strtolower($data['role'])) !== 'accountant') {
+            sendResponse(false, null, 'Managers can only create accountant users.', 403);
+        }
         
         $required = ['first_name', 'last_name', 'email', 'username', 'role'];
         foreach ($required as $field) {
@@ -137,6 +141,20 @@ class UserController {
 
         if (!$userId) {
             sendResponse(false, null, 'User ID is required', 400);
+        }
+
+        if ($_SESSION['role'] === 'manager') {
+            $stmtRole = $this->db->prepare("SELECT role FROM users WHERE id = ?");
+            $stmtRole->bind_param("i", $userId);
+            $stmtRole->execute();
+            if ($row = $stmtRole->get_result()->fetch_assoc()) {
+                if (strtolower($row['role']) !== 'accountant') {
+                    sendResponse(false, null, 'Managers can only manage accountant users.', 403);
+                }
+            }
+            if (!empty($data['role']) && trim(strtolower($data['role'])) !== 'accountant') {
+                sendResponse(false, null, 'Managers can only assign the accountant role.', 403);
+            }
         }
 
         $updateFields = [];
@@ -334,6 +352,17 @@ class UserController {
             sendResponse(false, null, 'User ID is required', 400);
         }
 
+        if ($_SESSION['role'] === 'manager') {
+            $stmtRole = $this->db->prepare("SELECT role FROM users WHERE id = ?");
+            $stmtRole->bind_param("i", $userId);
+            $stmtRole->execute();
+            if ($row = $stmtRole->get_result()->fetch_assoc()) {
+                if (strtolower($row['role']) !== 'accountant') {
+                    sendResponse(false, null, 'Managers can only manage accountant users.', 403);
+                }
+            }
+        }
+
         // Optionally allow 'activate' flag
         $activate = isset($data['activate']) ? (bool)$data['activate'] : false;
         $newStatus = $activate ? 1 : 0;
@@ -353,13 +382,24 @@ class UserController {
     }
 
     public function deleteUser() {
-        checkRole('admin');
+        checkRole(['admin', 'manager']);
         
         $data = json_decode(file_get_contents('php://input'), true);
         $userId = $data['user_id'] ?? null;
         
         if (!$userId) sendResponse(false, null, 'User ID is required', 400);
         
+        if ($_SESSION['role'] === 'manager') {
+            $stmtRole = $this->db->prepare("SELECT role FROM users WHERE id = ?");
+            $stmtRole->bind_param("i", $userId);
+            $stmtRole->execute();
+            if ($row = $stmtRole->get_result()->fetch_assoc()) {
+                if (strtolower($row['role']) !== 'accountant') {
+                    sendResponse(false, null, 'Managers can only delete accountant users.', 403);
+                }
+            }
+        }
+
         // Prevent deleting self
         if ($userId == $_SESSION['user_id']) {
             sendResponse(false, null, 'Cannot delete your own account', 400);

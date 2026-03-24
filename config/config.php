@@ -29,13 +29,16 @@ define('APP_URL', $isLocalhost ? 'http://localhost/finsight' : 'https://finsight
 
 // 4. Secrets
 define('GOOGLE_CLIENT_ID', '235402120316-oi9307meejpv5jlbtt7b4lfr4remn8js.apps.googleusercontent.com');
+define('FIREBASE_PROJECT_ID', 'finsight-1-a1ov'); // Extracted from provided Google Client ID structure
 define('MAIL_USER', 'sunnyalbin3640@gmail.com');
 define('MAIL_PASS', 'mdig dpag dila gfey');
 
 // Meta
 date_default_timezone_set('UTC');
 error_reporting($isLocalhost ? E_ALL : 0);
-ini_set('display_errors', $isLocalhost ? 1 : 0);
+ini_set('display_errors', 0); // Never display errors directly in API output
+ini_set('log_errors', 1);
+ini_set('error_log', __DIR__ . '/../php_error.log');
 
 // 5. Session Setup
 if (php_sapi_name() !== 'cli') {

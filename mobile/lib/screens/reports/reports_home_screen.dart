@@ -9,6 +9,8 @@ import 'package:finsight_mobile/screens/reports/cash_flow_screen.dart';
 import 'package:finsight_mobile/screens/reports/monthly_performance_screen.dart';
 import 'package:finsight_mobile/screens/reports/balance_sheet_screen.dart';
 import 'package:finsight_mobile/screens/reports/profit_loss_screen.dart';
+import 'package:finsight_mobile/screens/reports/audit_logs_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:finsight_mobile/config.dart';
 
 class ReportsHomeScreen extends StatefulWidget {
@@ -24,11 +26,26 @@ class _ReportsHomeScreenState extends State<ReportsHomeScreen> {
   List<String> _labels = [];
   double _totalNet = 0;
   double _pctChange = 0;
+  String _userRole = '';
 
   @override
   void initState() {
     super.initState();
     _loadTrendData();
+    _loadRole();
+  }
+
+  Future<void> _loadRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userStr = prefs.getString('user_data');
+    if (userStr != null) {
+      final user = jsonDecode(userStr);
+      if (mounted) {
+        setState(() {
+          _userRole = (user['role'] ?? '').toString().toLowerCase();
+        });
+      }
+    }
   }
 
   Future<void> _loadTrendData() async {
@@ -86,7 +103,6 @@ class _ReportsHomeScreenState extends State<ReportsHomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildTabs(isDark),
                   const SizedBox(height: 24),
                   _buildInsightCard(isDark),
                   const SizedBox(height: 32),
@@ -153,39 +169,6 @@ class _ReportsHomeScreenState extends State<ReportsHomeScreen> {
     );
   }
 
-  Widget _buildTabs(bool isDark) {
-    return Row(
-      children: [
-        _buildTab("Overview", true, isDark),
-        const SizedBox(width: 24),
-        _buildTab("Tax Filing", false, isDark),
-        const SizedBox(width: 24),
-        _buildTab("Audit Logs", false, isDark),
-      ],
-    );
-  }
-
-  Widget _buildTab(String label, bool active, bool isDark) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: active ? (isDark ? Colors.white : Colors.black) : Colors.grey,
-          ),
-        ),
-        if (active)
-          Container(
-            margin: const EdgeInsets.only(top: 4),
-            height: 2,
-            width: 20,
-            color: const Color(0xFF8B5CF6),
-          ),
-      ],
-    );
-  }
 
   Widget _buildInsightCard(bool isDark) {
     return Container(
@@ -337,6 +320,15 @@ class _ReportsHomeScreenState extends State<ReportsHomeScreen> {
         'screen': const MonthlyPerformanceScreen(),
       },
     ];
+
+    if (_userRole == 'admin' || _userRole == 'administrator') {
+      reports.add({
+        'title': 'System Audit Logs',
+        'desc': 'Comprehensive Tracking of User Actions & Approvals.',
+        'icon': LucideIcons.shieldCheck,
+        'screen': const AuditLogsScreen(),
+      });
+    }
 
     return Column(
       children: reports.map((r) => _buildReportCard(r, isDark)).toList(),

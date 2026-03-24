@@ -79,6 +79,9 @@ class _ManagerVouchersViewState extends State<ManagerVouchersView> {
 
     final filteredVouchers = widget.vouchers.where((v) {
       final s = v['status']?.toString().toLowerCase() ?? 'pending';
+      if (currentStatus == 'pending') {
+        return s == 'pending' || s == 'pending approval';
+      }
       return s == currentStatus;
     }).toList();
 

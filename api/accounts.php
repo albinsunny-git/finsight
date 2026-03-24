@@ -238,7 +238,7 @@ class AccountController {
     }
 
     public function deleteAccount() {
-        checkRole(['admin']);
+        checkRole(['admin', 'manager']);
         $data = json_decode(file_get_contents('php://input'), true);
         $accountId = $data['account_id'] ?? null;
 

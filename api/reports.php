@@ -101,71 +101,90 @@ class ReportController {
     }
     
     public function getAnalyticsData() {
-        // 1. Monthly Cash Flow (Last 6 Months)
+        // 1. Monthly Trends (Dynamic trailing 6 months based on actual latest data entry)
+        $latestRes = $this->db->query("SELECT MAX(voucher_date) as latest FROM vouchers WHERE status != 'Rejected'")->fetch_assoc();
+        $baseDate = ($latestRes && $latestRes['latest']) ? strtotime($latestRes['latest']) : time();
+        
         $months = [];
         for ($i = 5; $i >= 0; $i--) {
-            $months[] = date('Y-m', strtotime("-$i months"));
+            $months[] = date('Y-m', strtotime("-$i months", $baseDate));
         }
+
+        $fromDate = $months[0] . "-01";
+        $toDate = date('Y-m-t', $baseDate);
+        
+        // Optimized: Single query for all 6 months using conditional sums
+        $sql = "SELECT 
+                    DATE_FORMAT(v.voucher_date, '%Y-%m') as month_key,
+                    SUM(CASE WHEN ac.type = 'Income' THEN vd.credit - vd.debit ELSE 0 END) as income_sum,
+                    SUM(CASE WHEN ac.type = 'Expense' THEN vd.debit - vd.credit ELSE 0 END) as expense_sum
+                FROM voucher_details vd
+                JOIN vouchers v ON vd.voucher_id = v.id
+                JOIN account_chart ac ON vd.account_id = ac.id
+                WHERE v.status = 'Posted' 
+                AND v.voucher_date >= ? AND v.voucher_date <= ?
+                GROUP BY month_key";
+        
+        $stmt = $this->db->prepare($sql);
+        // Use full date range
+        $fullToDate = $toDate . " 23:59:59";
+        $stmt->bind_param("ss", $fromDate, $fullToDate);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        
+        $dataMap = [];
+        if ($res) {
+            while($row = $res->fetch_assoc()) {
+                $dataMap[$row['month_key']] = $row;
+            }
+        }
+        $stmt->close();
         
         $cashFlow = ['labels' => [], 'income' => [], 'expense' => []];
-        
         foreach ($months as $m) {
-            $parts = explode('-', $m);
-            $year = $parts[0];
-            $month = $parts[1];
+            $income = $dataMap[$m]['income_sum'] ?? 0;
+            $expense = $dataMap[$m]['expense_sum'] ?? 0;
             
-            // Income (Type = Income) - Include all non-rejected vouchers
-            $sqlInc = "SELECT COALESCE(ABS(SUM(vd.credit - vd.debit)), 0) as total FROM voucher_details vd
-                       JOIN vouchers v ON vd.voucher_id = v.id
-                       JOIN account_chart ac ON vd.account_id = ac.id
-                       WHERE ac.type = 'Income' AND v.status != 'Rejected'
-                       AND YEAR(v.voucher_date) = $year AND MONTH(v.voucher_date) = $month";
-            $incRes = $this->db->query($sqlInc)->fetch_assoc();
-            
-            // Expense (Type = Expense) - Include all non-rejected vouchers
-            $sqlExp = "SELECT COALESCE(SUM(vd.debit - vd.credit), 0) as total FROM voucher_details vd
-                       JOIN vouchers v ON vd.voucher_id = v.id
-                       JOIN account_chart ac ON vd.account_id = ac.id
-                       WHERE ac.type = 'Expense' AND v.status != 'Rejected'
-                       AND YEAR(v.voucher_date) = $year AND MONTH(v.voucher_date) = $month";
-            $expRes = $this->db->query($sqlExp)->fetch_assoc();
-            
-            $cashFlow['labels'][] = date('M Y', strtotime("$year-$month-01"));
-            $cashFlow['income'][] = (float)$incRes['total'];
-            $cashFlow['expense'][] = (float)$expRes['total'];
+            $cashFlow['labels'][] = date('M Y', strtotime($m . "-01"));
+            $cashFlow['income'][] = (float)$income;
+            $cashFlow['expense'][] = (float)$expense;
         }
         
         // 2. Account Type Distribution
         $sqlTypes = "SELECT ac.type, COUNT(*) as count FROM account_chart ac WHERE ac.is_active = 1 GROUP BY ac.type";
         $typeRes = $this->db->query($sqlTypes);
         $accountTypes = ['labels' => [], 'data' => []];
-        while($row = $typeRes->fetch_assoc()) {
-            $accountTypes['labels'][] = $row['type'];
-            $accountTypes['data'][] = (int)$row['count'];
+        if ($typeRes) {
+            while($row = $typeRes->fetch_assoc()) {
+                $accountTypes['labels'][] = $row['type'];
+                $accountTypes['data'][] = (int)$row['count'];
+            }
         }
  
-        // 3. Top 5 Expenses (Year to Date)
-        $currentYear = date('Y');
+        // 3. Top 5 Expenses (Year to Date based on latest entry year)
+        $currentYear = date('Y', $baseDate);
         $sqlTopExp = "SELECT ac.name, SUM(vd.debit - vd.credit) as total
                       FROM voucher_details vd
                       JOIN vouchers v ON vd.voucher_id = v.id
                       JOIN account_chart ac ON vd.account_id = ac.id
-                      WHERE ac.type = 'Expense' AND v.status != 'Rejected' AND YEAR(v.voucher_date) = $currentYear
+                      WHERE ac.type = 'Expense' AND v.status = 'Posted' AND YEAR(v.voucher_date) = $currentYear
                       GROUP BY ac.id
                       HAVING total > 0
                       ORDER BY total DESC LIMIT 5";
         $topExpRes = $this->db->query($sqlTopExp);
         $topExpenses = ['labels' => [], 'data' => []];
-        while($row = $topExpRes->fetch_assoc()) {
-            $topExpenses['labels'][] = $row['name'];
-            $topExpenses['data'][] = (float)$row['total'];
+        if ($topExpRes) {
+            while($row = $topExpRes->fetch_assoc()) {
+                $topExpenses['labels'][] = $row['name'];
+                $topExpenses['data'][] = (float)$row['total'];
+            }
         }
  
         sendResponse(true, [
             'cash_flow' => $cashFlow,
             'account_types' => $accountTypes,
             'top_expenses' => $topExpenses
-        ], 'Analytics data retrieved (Provisional)');
+        ], 'Analytics data retrieved (Dynamic Timeline)');
     }
 
     public function getTrialBalance() {
@@ -265,28 +284,28 @@ class ReportController {
              $effectiveInitialOB = $initialOB;
         }
 
-        // 2. Calculate movements (All Vouchers: Posted + Draft + Pending)
-        // Note: User requested "based on vouchers entered", implying inclusion of unposted/draft vouchers.
+        // 2. Calculate movements (Only Posted Vouchers)
+        // Note: Switched to 'Posted' status for "proper" financial reporting.
         
         $sqlPrev = "SELECT COALESCE(SUM(vd.debit), 0) as tot_debit, COALESCE(SUM(vd.credit), 0) as tot_credit 
                     FROM voucher_details vd
                     JOIN vouchers v ON vd.voucher_id = v.id
                     WHERE vd.account_id = $accountId 
                     AND v.voucher_date < '$fromDate'
-                    AND v.status != 'Rejected'"; // Exclude Rejected, include Draft/Posted/Pending
+                    AND v.status = 'Posted'";
                     
         $prevRes = $this->db->query($sqlPrev)->fetch_assoc();
         
         $prevMovement = ($prevRes['tot_debit'] - $prevRes['tot_credit']);
         $openingBalanceAsOfDate = $effectiveInitialOB + $prevMovement;
         
-        // 3. Fetch Transactions (All statuses except Rejected)
+        // 3. Fetch Transactions (Only Posted)
         $sql = "SELECT vd.id, v.voucher_date, v.voucher_number, v.narration, v.status, vd.debit, vd.credit, vd.description
                 FROM voucher_details vd
                 JOIN vouchers v ON vd.voucher_id = v.id
                 WHERE vd.account_id = $accountId 
                 AND v.voucher_date BETWEEN '$fromDate' AND '$toDate'
-                AND v.status != 'Rejected'
+                AND v.status = 'Posted'
                 ORDER BY v.voucher_date ASC, v.id ASC";
         
         $result = $this->db->query($sql);
@@ -321,39 +340,36 @@ class ReportController {
     
     public function getFinancialSummary() {
         checkAuth();
-        
         $asOnDate = $_GET['as_on_date'] ?? date('Y-m-d');
         
-        $summary = [];
+        // Single optimized query for all primary types
+        $sql = "SELECT ac.type, 
+                       SUM(CASE WHEN ac.type IN ('Liability', 'Equity', 'Income') THEN gl.credit - gl.debit ELSE gl.debit - gl.credit END) as net_balance
+                FROM general_ledger gl
+                JOIN account_chart ac ON gl.account_id = ac.id
+                WHERE DATE(gl.voucher_date) <= ?
+                GROUP BY ac.type";
         
-        // Assets
-        $result = $this->db->query("SELECT COALESCE(SUM(debit) - SUM(credit), 0) as total 
-                                   FROM general_ledger gl
-                                   JOIN account_chart ac ON gl.account_id = ac.id
-                                   WHERE ac.type = 'Asset' AND DATE(gl.voucher_date) <= '$asOnDate'");
-        $summary['assets'] = $result->fetch_assoc()['total'];
+        $stmt = $this->db->prepare($sql);
+        $stmt->bind_param("s", $asOnDate);
+        $stmt->execute();
+        $res = $stmt->get_result();
         
-        // Liabilities
-        $result = $this->db->query("SELECT COALESCE(SUM(credit) - SUM(debit), 0) as total 
-                                   FROM general_ledger gl
-                                   JOIN account_chart ac ON gl.account_id = ac.id
-                                   WHERE ac.type = 'Liability' AND DATE(gl.voucher_date) <= '$asOnDate'");
-        $summary['liabilities'] = $result->fetch_assoc()['total'];
+        $typeMap = [];
+        if ($res) {
+            while($row = $res->fetch_assoc()) {
+                $typeMap[$row['type']] = (float)$row['net_balance'];
+            }
+        }
+        $stmt->close();
         
-        // Equity
-        $result = $this->db->query("SELECT COALESCE(SUM(credit) - SUM(debit), 0) as total 
-                                   FROM general_ledger gl
-                                   JOIN account_chart ac ON gl.account_id = ac.id
-                                   WHERE ac.type = 'Equity' AND DATE(gl.voucher_date) <= '$asOnDate'");
-        $summary['equity'] = $result->fetch_assoc()['total'];
-        
-        // Income (Year to Date)
-        $result = $this->db->query("SELECT COALESCE(SUM(credit) - SUM(debit), 0) as total FROM general_ledger gl JOIN account_chart ac ON gl.account_id = ac.id WHERE ac.type = 'Income'");
-        $summary['total_income'] = (float)$result->fetch_assoc()['total'];
-
-        // Expense (Year to Date)
-        $result = $this->db->query("SELECT COALESCE(SUM(debit) - SUM(credit), 0) as total FROM general_ledger gl JOIN account_chart ac ON gl.account_id = ac.id WHERE ac.type = 'Expense'");
-        $summary['total_expense'] = (float)$result->fetch_assoc()['total'];
+        $summary = [
+            'assets' => $typeMap['Asset'] ?? 0,
+            'liabilities' => $typeMap['Liability'] ?? 0,
+            'equity' => $typeMap['Equity'] ?? 0,
+            'total_income' => $typeMap['Income'] ?? 0,
+            'total_expense' => $typeMap['Expense'] ?? 0
+        ];
 
         $summary['net_profit'] = $summary['total_income'] - $summary['total_expense'];
         
@@ -389,33 +405,57 @@ class ReportController {
 
     public function getPerformanceReport() {
         checkAuth();
-        
         $fromDate = $_GET['from'] ?? date('Y-m-01');
         $toDate = $_GET['to'] ?? date('Y-m-d');
         
-        // Get Total Income
-        $sqlInc = "SELECT COALESCE(SUM(vd.credit - vd.debit), 0) as total 
-                   FROM voucher_details vd
-                   JOIN vouchers v ON vd.voucher_id = v.id
-                   JOIN account_chart ac ON vd.account_id = ac.id
-                   WHERE ac.type = 'Income' AND v.status = 'Posted'
-                   AND v.voucher_date BETWEEN '$fromDate' AND '$toDate'";
-        $incRes = $this->db->query($sqlInc)->fetch_assoc();
+        // Combined query for performance
+        $sql = "SELECT ac.type, 
+                       SUM(CASE WHEN ac.type = 'Income' THEN vd.credit - vd.debit ELSE vd.debit - vd.credit END) as amount
+                FROM voucher_details vd
+                JOIN vouchers v ON vd.voucher_id = v.id
+                JOIN account_chart ac ON vd.account_id = ac.id
+                WHERE ac.type IN ('Income', 'Expense') AND v.status = 'Posted'
+                AND v.voucher_date BETWEEN ? AND ?
+                GROUP BY ac.type";
         
-        // Get Total Expense
-        $sqlExp = "SELECT COALESCE(SUM(vd.debit - vd.credit), 0) as total 
-                   FROM voucher_details vd
-                   JOIN vouchers v ON vd.voucher_id = v.id
-                   JOIN account_chart ac ON vd.account_id = ac.id
-                   WHERE ac.type = 'Expense' AND v.status = 'Posted'
-                   AND v.voucher_date BETWEEN '$fromDate' AND '$toDate'";
-        $expRes = $this->db->query($sqlExp)->fetch_assoc();
+        $stmt = $this->db->prepare($sql);
+        $fullToDate = $toDate . " 23:59:59";
+        $stmt->bind_param("ss", $fromDate, $fullToDate);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        
+        $perf = ['Income' => 0, 'Expense' => 0];
+        if ($res) {
+            while($row = $res->fetch_assoc()) {
+                $perf[$row['type']] = (float)$row['amount'];
+            }
+        }
+        $stmt->close();
         
         sendResponse(true, [
-            'total_income' => (float)$incRes['total'],
-            'total_expense' => (float)$expRes['total'],
+            'total_income' => $perf['Income'],
+            'total_expense' => $perf['Expense'],
             'period' => ['from' => $fromDate, 'to' => $toDate]
-        ], 'Performance report retrieved');
+        ], 'Performance report retrieved (Optimized)');
+    }
+
+    public function getAuditLogs() {
+        checkRole(['admin', 'administrator']);
+        
+        $sql = "SELECT a.id, a.action, a.entity_type, a.entity_id, a.created_at, 
+                       u.first_name, u.last_name, u.role, v.voucher_number
+                FROM audit_trail a
+                LEFT JOIN users u ON a.user_id = u.id
+                LEFT JOIN vouchers v ON a.entity_id = v.id AND a.entity_type = 'vouchers'
+                ORDER BY a.created_at DESC LIMIT 200";
+                
+        $result = $this->db->query($sql);
+        $logs = [];
+        while ($row = $result->fetch_assoc()) {
+            $logs[] = $row;
+        }
+        
+        sendResponse(true, $logs, 'Audit logs retrieved successfully');
     }
 }
 
@@ -450,6 +490,9 @@ switch ($type) {
         break;
     case 'performance':
         $report->getPerformanceReport();
+        break;
+    case 'audit-logs':
+        $report->getAuditLogs();
         break;
     default:
         sendResponse(false, null, 'Report type not found', 404);

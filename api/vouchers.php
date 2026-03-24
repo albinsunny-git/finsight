@@ -51,6 +51,9 @@ class VoucherController {
         $sql .= " ORDER BY v.voucher_date DESC, v.id DESC LIMIT 100";
         
         $result = $this->db->query($sql);
+        if (!$result) {
+            sendResponse(false, [], 'Database query error occurred', 500);
+        }
         $vouchers = [];
         
         while ($row = $result->fetch_assoc()) {
@@ -142,7 +145,7 @@ class VoucherController {
                  $status = 'Pending Approval';
             }
             
-            $stmt = $this->db->prepare("INSERT INTO vouchers (voucher_number, voucher_type_id, from_account_id, to_account_id, voucher_date, narration, status, created_by, approved_by, approved_at) 
+            $stmt = $this->db->prepare("INSERT INTO vouchers (voucher_number, voucher_type_id, from_account_id, to_account_id, voucher_date, narration, status, created_by, posted_by, posted_at) 
                                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $fromAcc = $data['from_account_id'] ?? null;
             $toAcc = $data['to_account_id'] ?? null;
@@ -269,6 +272,18 @@ class VoucherController {
         if (abs($voucher['total_debit'] - $voucher['total_credit']) > 0.01) {
             sendResponse(false, null, 'Debit and Credit do not match', 400);
         }
+
+        if ($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'administrator') {
+            $roleStmt = $this->db->prepare("SELECT role FROM users WHERE id = ?");
+            $roleStmt->bind_param("i", $voucher['created_by']);
+            $roleStmt->execute();
+            $authorData = $roleStmt->get_result()->fetch_assoc();
+            $roleStmt->close();
+
+            if ($authorData && strtolower($authorData['role']) === 'accountant') {
+                sendResponse(false, null, 'Vouchers drafted by accountants can only be approved by a Manager.', 403);
+            }
+        }
         
         $userId = $_SESSION['user_id'];
         $stmt = $this->db->prepare("UPDATE vouchers SET status = 'Posted', posted_by = ?, posted_at = NOW() WHERE id = ?");
@@ -311,6 +326,18 @@ class VoucherController {
         $stmt->execute();
         $voucher = $stmt->get_result()->fetch_assoc();
         $stmt->close();
+        
+        if ($_SESSION['role'] === 'admin' || $_SESSION['role'] === 'administrator') {
+            $roleStmt = $this->db->prepare("SELECT role FROM users WHERE id = ?");
+            $roleStmt->bind_param("i", $voucher['created_by']);
+            $roleStmt->execute();
+            $authorData = $roleStmt->get_result()->fetch_assoc();
+            $roleStmt->close();
+
+            if ($authorData && strtolower($authorData['role']) === 'accountant') {
+                sendResponse(false, null, 'Vouchers drafted by accountants can only be rejected by a Manager.', 403);
+            }
+        }
         
         $userId = $_SESSION['user_id'];
         $stmt = $this->db->prepare("UPDATE vouchers SET status = 'Rejected', rejected_by = ?, rejected_reason = ?, rejected_at = NOW() WHERE id = ?");
@@ -606,8 +633,8 @@ class VoucherController {
     public function getTimeline() {
         checkAuth();
         
-        $page = $_GET['page'] ?? 1;
-        $limit = $_GET['limit'] ?? 20;
+        $page = intval($_GET['page'] ?? 1);
+        $limit = intval($_GET['limit'] ?? 20);
         $offset = ($page - 1) * $limit;
         
         // Fetch vouchers with details
@@ -620,6 +647,9 @@ class VoucherController {
                 LIMIT $limit OFFSET $offset";
         
         $result = $this->db->query($sql);
+        if (!$result) {
+            sendResponse(false, [], 'Database query error occurred', 500);
+        }
         $timeline = [];
         
         while ($row = $result->fetch_assoc()) {

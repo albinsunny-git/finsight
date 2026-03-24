@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
 import 'package:finsight_mobile/services/api_service.dart';
 import 'package:finsight_mobile/screens/login_screen.dart';
+import 'dart:async';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -95,11 +96,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _selectedVoucherType = "All Types";
   final String _selectedAccountType = "All Accounts";
 
+  Timer? _pollingTimer;
+
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
     _loadUserData();
+    _startPolling();
   }
 
   @override
@@ -107,8 +111,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _pageController.dispose();
     _voucherSearchController.dispose();
     _accountSearchController.dispose();
+    _pollingTimer?.cancel();
     super.dispose();
   }
+
+  void _startPolling() {
+    _pollingTimer?.cancel();
+    _pollingTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      if (mounted) _loadUserData();
+    });
+  }
+
 
   void _navigateToPageIndex(int index) {
     if (!mounted) return;
@@ -272,15 +285,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
             }
 
             double revChange = prevIncome == 0
-                ? 0
+                ? (currIncome > 0 ? 100 : 0)
                 : ((currIncome - prevIncome) / prevIncome) * 100;
             double expChange = prevExpense == 0
-                ? 0
+                ? (currExpense > 0 ? 100 : 0)
                 : ((currExpense - prevExpense) / prevExpense) * 100;
             double prevProfit = prevIncome - prevExpense;
             double currProfit = currIncome - currExpense;
             double profChange = prevProfit == 0
-                ? 0
+                ? (currProfit > 0 ? 100 : (currProfit < 0 ? -100 : 0))
                 : ((currProfit - prevProfit) / prevProfit.abs()) * 100;
 
             _stats['revenue_trend'] = revChange >= 0
@@ -1810,35 +1823,57 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    double safeRevenue =
-        (double.tryParse(_stats['revenue']?.toString() ?? '0') ?? 0);
-    double safeExpense =
-        (double.tryParse(_stats['expenses']?.toString() ?? '0') ?? 0);
+    double safeRevenue = 0.0;
+    double safeExpense = 0.0;
 
-    // Generate real spots from dashboard data
-    List<FlSpot> incomeSpots = [const FlSpot(0, 0)];
-    List<FlSpot> profitSpots = [const FlSpot(0, 0)];
+    List<FlSpot> incomeSpots = [];
+    List<FlSpot> profitSpots = [];
 
-    if (_dashboardData.containsKey('analytics') &&
-        _dashboardData['analytics'] != null &&
-        _dashboardData['analytics'].containsKey('cash_flow')) {
-      final cf = _dashboardData['analytics']['cash_flow'];
-      if (cf['income'] != null && cf['income'] is List) {
-        final List incList = cf['income'];
-        incomeSpots = List.generate(incList.length,
-            (i) => FlSpot(i.toDouble(), (incList[i] as num).toDouble()));
+    if (_vouchers.isNotEmpty) {
+      final validVouchers = _vouchers
+          .where((v) => v['status'] != 'Rejected')
+          .toList()
+          .reversed
+          .toList();
+          
+      if (validVouchers.isNotEmpty) {
+        for (int i = 0; i < validVouchers.length; i++) {
+          final v = validVouchers[i];
+          final type = (v['voucher_type_name'] ?? '').toString().toLowerCase();
+          double amt = double.tryParse(v['total_debit']?.toString() ?? '0') ?? 0.0;
+
+          if (type == 'receipt') {
+            safeRevenue += amt;
+          } else if (type == 'payment') {
+            safeExpense += amt;
+          }
+
+          incomeSpots.add(FlSpot(i.toDouble(), safeRevenue));
+          profitSpots.add(FlSpot(i.toDouble(), safeRevenue - safeExpense));
+        }
       }
-      if (cf['income'] != null && cf['expense'] != null) {
-        final List incList = cf['income'];
-        final List expList = cf['expense'];
-        int len =
-            incList.length < expList.length ? incList.length : expList.length;
-        profitSpots = List.generate(len, (i) {
-          double profit =
-              (incList[i] as num).toDouble() - (expList[i] as num).toDouble();
-          return FlSpot(i.toDouble(), profit);
-        });
-      }
+    }
+
+    if (incomeSpots.isEmpty) {
+      incomeSpots = [const FlSpot(0, 0), const FlSpot(1, 0)];
+      profitSpots = [const FlSpot(0, 0), const FlSpot(1, 0)];
+    } else if (incomeSpots.length == 1) {
+      incomeSpots.insert(0, const FlSpot(-1, 0));
+      profitSpots.insert(0, const FlSpot(-1, 0));
+    }
+
+    String incomeTrendStr = "+0.0%";
+    String profitTrendStr = "+0.0%";
+    if (incomeSpots.length >= 2) {
+      double currInc = incomeSpots.last.y;
+      double prevInc = incomeSpots[incomeSpots.length - 2].y;
+      double revChange = prevInc == 0 ? (currInc > 0 ? 100 : 0) : ((currInc - prevInc) / prevInc) * 100;
+      incomeTrendStr = revChange >= 0 ? '+${revChange.toStringAsFixed(1)}%' : '${revChange.toStringAsFixed(1)}%';
+
+      double currProf = profitSpots.last.y;
+      double prevProf = profitSpots[profitSpots.length - 2].y;
+      double profChange = prevProf == 0 ? (currProf > 0 ? 100 : (currProf < 0 ? -100 : 0)) : ((currProf - prevProf) / prevProf.abs()) * 100;
+      profitTrendStr = profChange >= 0 ? '+${profChange.toStringAsFixed(1)}%' : '${profChange.toStringAsFixed(1)}%';
     }
 
     return SingleChildScrollView(
@@ -1850,8 +1885,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _buildPremiumChartCard(
               title: "CASH FLOW",
               amount: "₹${NumberFormat('#,##0.00').format(safeRevenue)}",
-              percentage: _stats['revenue_trend'],
-              isPositive: !_stats['revenue_trend'].toString().contains('-'),
+              percentage: incomeTrendStr,
+              isPositive: !incomeTrendStr.contains('-'),
               spots: incomeSpots.length < 2
                   ? [const FlSpot(0, 0), const FlSpot(1, 1)]
                   : incomeSpots,
@@ -1863,8 +1898,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               title: "PROFIT TREND",
               amount:
                   "${(safeRevenue - safeExpense) >= 0 ? '+' : ''}₹${NumberFormat('#,##0.00').format(safeRevenue - safeExpense)}",
-              percentage: _stats['profit_trend'],
-              isPositive: !_stats['profit_trend'].toString().contains('-'),
+              percentage: profitTrendStr,
+              isPositive: !profitTrendStr.contains('-'),
               spots: profitSpots.length < 2
                   ? [const FlSpot(0, 0), const FlSpot(1, 0.5)]
                   : profitSpots,

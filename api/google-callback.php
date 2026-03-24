@@ -89,7 +89,7 @@ try {
                 [$user['id']]
             );
             
-            $db->logAudit(
+            logAudit(
                 $user['id'],
                 'LOGIN',
                 'user',
@@ -144,10 +144,10 @@ try {
             exit;
         }
         
-        $userId = $db->connection->insert_id;
+        $userId = $db->getConnection()->insert_id;
         
         // Log the signup
-        $db->logAudit(
+        logAudit(
             $userId,
             'REGISTER',
             'user',

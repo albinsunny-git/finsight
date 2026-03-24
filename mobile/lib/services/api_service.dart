@@ -24,8 +24,18 @@ class ApiService {
       return '$_customBaseUrl/api';
     }
     
+    // Auto-detect local development environment
+    if (kDebugMode) {
+      // In debug mode, prioritize the USB Reverse Bridge (adb reverse tcp:8080 tcp:80)
+      // which works for both emulators and physical devices.
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+        return 'http://localhost:8080/finsight/api';
+      }
+      return 'http://localhost/finsight/api';
+    }
+    
     // Production Render URL
-    return 'https://finsight-1-a1ov.onrender.com/api';
+    return 'http://10.0.2.2/finsight/api';
   }
 
   // Helper to store session cookie

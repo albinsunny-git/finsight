@@ -73,6 +73,10 @@
                 </div>
 
                 <div class="header-actions">
+                    <button class="btn-icon" id="notificationBtn">
+                        <i class="fas fa-bell"></i>
+                        <span class="notification-badge"></span>
+                    </button>
 
                     <div class="user-menu">
                         <div class="user-avatar" id="userAvatar">A</div>
@@ -177,6 +181,24 @@
         function closeModal(id) {
             document.getElementById(id).classList.remove('active');
         }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const userStr = localStorage.getItem('user');
+            if(userStr) {
+                const user = JSON.parse(userStr);
+                if(user.role === 'manager') {
+                    const sel = document.getElementById('newUserRole');
+                    if(sel) {
+                        Array.from(sel.options).forEach(opt => {
+                            if(opt.value !== 'accountant') { 
+                                opt.disabled = true; 
+                                opt.style.display = 'none'; 
+                            }
+                        });
+                    }
+                }
+            }
+        });
     </script>
 </body>
 

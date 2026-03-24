@@ -200,7 +200,7 @@ class _VoucherDetailScreenState extends State<VoucherDetailScreen> {
     // Check Permissions
     final isOwner =
         (voucher['created_by'].toString() == widget.currentUserId.toString());
-    final isAdminOrManager = ['manager', 'admin', 'administrator']
+    final isAdminOrManager = ['manager']
         .contains(widget.userRole.toLowerCase());
 
     return Scaffold(

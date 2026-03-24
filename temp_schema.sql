@@ -1,9 +1,3 @@
--- FinSight Accounting Software Database Schema
--- MySQL Database for accounting, balance sheet, and P&L management
-
--- Create Database
-CREATE DATABASE IF NOT EXISTS finsight_db;
-USE finsight_db;
 
 -- Users Table
 CREATE TABLE IF NOT EXISTS users (
@@ -139,7 +133,7 @@ CREATE TABLE IF NOT EXISTS profit_loss (
 -- Audit Trail Table
 CREATE TABLE IF NOT EXISTS audit_trail (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT,
+    user_id INT NOT NULL,
     action VARCHAR(100) NOT NULL,
     entity_type VARCHAR(50) NOT NULL,
     entity_id INT,
@@ -178,19 +172,6 @@ CREATE TABLE IF NOT EXISTS fiscal_periods (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (closed_by) REFERENCES users(id) ON DELETE SET NULL,
     UNIQUE KEY unique_period_dates (start_date, end_date)
-);
-
--- Notifications Table (Fix for Accountant Approvals)
-CREATE TABLE IF NOT EXISTS notifications (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    user_id INT NOT NULL,
-    title VARCHAR(255) NOT NULL,
-    message TEXT NOT NULL,
-    type VARCHAR(50) DEFAULT 'system',
-    related_id INT,
-    is_read BOOLEAN DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Insert Default Roles/Voucher Types

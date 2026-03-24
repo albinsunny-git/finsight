@@ -37,13 +37,20 @@ class Database {
         }
     }
     
-    public function query($sql) {
+    public function query($sql, $params = []) {
         if (!$this->pdo) return false;
         try {
-            $stmt = $this->pdo->query($sql);
+            if (empty($params)) {
+                $stmt = $this->pdo->query($sql);
+            } else {
+                $stmt = $this->pdo->prepare($sql);
+                $stmt->execute(is_array($params) ? $params : [$params]);
+            }
+
             if (!$stmt) return false;
             return new ShimResult($stmt);
         } catch (PDOException $e) {
+            error_log("Database Query Error: " . $e->getMessage() . " | SQL: $sql");
             return false;
         }
     }
@@ -53,7 +60,8 @@ class Database {
             $stmt = $this->pdo->prepare($sql);
             return new ShimStatement($stmt, $this->pdo);
         } catch (PDOException $e) {
-            return false;
+            error_log("DB Prepare Error on SQL: " . $sql . " => " . $e->getMessage());
+            throw new Exception("PDO PREPARE FAILED: " . $e->getMessage() . " => " . $sql);
         }
     }
     
@@ -134,18 +142,26 @@ class ShimStatement {
 class ShimResult {
     private $stmt;
     public $num_rows;
+    private $data = null;
+    private $index = 0;
 
     public function __construct($stmt) {
         $this->stmt = $stmt;
-        $this->num_rows = $stmt->rowCount();
+        // For SELECT statements, rowCount() is not always reliable.
+        // We fetch all to be 100% sure of the count.
+        $this->data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $this->num_rows = count($this->data);
     }
 
     public function fetch_assoc() {
-        return $this->stmt->fetch(PDO::FETCH_ASSOC);
+        if ($this->index < $this->num_rows) {
+            return $this->data[$this->index++];
+        }
+        return false;
     }
 
     public function fetch_all($mode = PDO::FETCH_ASSOC) {
-        return $this->stmt->fetchAll($mode);
+        return $this->data;
     }
     
     public function close() {
@@ -180,6 +196,9 @@ class ConnectionProxy {
 // Helper Functions
 if (!function_exists('sendResponse')) {
     function sendResponse($success, $data = null, $message = '', $code = 200) {
+        if (!headers_sent()) {
+            header('Content-Type: application/json');
+        }
         http_response_code($code);
         echo json_encode([
             'success' => $success,
@@ -203,17 +222,24 @@ function generateToken($length = 32) {
 }
 
 function logAudit($userId, $action, $entityType, $entityId, $oldValue = null, $newValue = null) {
-    $db = new Database();
-    $ipAddress = $_SERVER['REMOTE_ADDR'] ?? '';
-    $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? '';
-    
-    $finalUserId = (empty($userId) || $userId === 0) ? null : $userId;
-    
-    $stmt = $db->prepare("INSERT INTO audit_trail (user_id, action, entity_type, entity_id, old_value, new_value, ip_address, user_agent) 
-                          VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-    if ($stmt) {
-        $stmt->bind_param("ississss", $finalUserId, $action, $entityType, $entityId, $oldValue, $newValue, $ipAddress, $userAgent);
-        $stmt->execute();
+    try {
+        $db = new Database();
+        $ipAddress = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+        $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'System';
+        
+        // Handle guest or failed logins
+        $finalUserId = (empty($userId) || $userId === 0) ? null : $userId;
+        
+        $stmt = $db->prepare("INSERT INTO audit_trail (user_id, action, entity_type, entity_id, old_value, new_value, ip_address, user_agent) 
+                              VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        if ($stmt) {
+            $stmt->bind_param("ississss", $finalUserId, $action, $entityType, $entityId, $oldValue, $newValue, $ipAddress, $userAgent);
+            $stmt->execute();
+            $stmt->close();
+        }
+    } catch (Exception $e) {
+        // Fail silently but log if possible. Don't block the main action due to audit failure.
+        error_log("Audit logging failed: " . $e->getMessage());
     }
 }
 

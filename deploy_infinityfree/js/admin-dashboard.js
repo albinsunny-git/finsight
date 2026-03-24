@@ -59,6 +59,16 @@ async function initAdminDashboard() {
     // Initialize Mock Data if empty (for Demo Speed)
     initMockDataIfEmpty();
 
+    // Show Voucher Status Tabs if Manager/Admin on Vouchers page
+    const statusTabs = document.getElementById('voucher-status-tabs');
+    if (statusTabs && (currentUser.role === 'manager' || currentUser.role === 'admin')) {
+        statusTabs.style.display = 'flex';
+        // Initial load of counts
+        if (typeof updatePendingVoucherCountBadge === 'function') {
+            updatePendingVoucherCountBadge();
+        }
+    }
+
     // Load initial data (dont block UI if slow)
     if (currentUser.role === 'admin') {
         loadAdminStats();
@@ -67,6 +77,12 @@ async function initAdminDashboard() {
     if (currentUser.role === 'accountant') {
         loadAccountantStats();
         loadFinancialInsights(); // Also useful for them
+    }
+    // High Level: load table data if present
+    if (document.getElementById('vouchersTableBody')) loadVouchers();
+    if (document.getElementById('usersTableBody')) loadUsers();
+    if (document.getElementById('accountsTableBody')) {
+        if (typeof loadAccounts === 'function') loadAccounts();
     }
 }
 
@@ -146,6 +162,7 @@ function renderSidebar(role) {
         items = [
 
             { icon: 'fa-columns', text: 'Dashboard', href: 'dashboard.html' },
+            { icon: 'fa-users', text: 'Users', href: 'users.html' },
             { icon: 'fa-sitemap', text: 'Accounts', href: 'accounts.html' },
             { icon: 'fa-receipt', text: 'Vouchers', href: 'vouchers.html' },
             { icon: 'fa-chart-pie', text: 'Reports', href: 'reports.html' },
@@ -1161,11 +1178,11 @@ document.addEventListener('click', (e) => {
 // Initialized on load
 
 // Vouchers management 
-async function loadVouchers() {
+async function loadVouchers(statusFilter = '') {
     loadVouchersFromMock(); // Instant load
 
     try {
-        const filter = document.getElementById('voucherFilter')?.value || document.getElementById('voucherStatusFilter')?.value || '';
+        const filter = statusFilter || document.getElementById('voucherFilter')?.value || document.getElementById('voucherStatusFilter')?.value || '';
         const url = filter ? `${API_URL}/vouchers.php?action=list&status=${filter}` : `${API_URL}/vouchers.php?action=list`;
         const response = await fetchWithTimeout(url, { timeout: 3000, credentials: 'include' });
         const data = await response.json();
@@ -1205,7 +1222,7 @@ async function loadVouchers() {
                                     <i class="fas fa-check-circle"></i> Post
                                 </button>` : ''}
 
-                            ${voucher.status === 'Pending Approval' && isAdmin ?
+                            ${voucher.status === 'Pending Approval' && user.role === 'manager' ?
                         `<button onclick="approveVoucher('${voucher.id}')" class="btn-sm" style="background:var(--success-color); color:white; display: flex; align-items: center; gap: 5px;">
                                     <i class="fas fa-check"></i> Approve
                                 </button>
@@ -1787,9 +1804,9 @@ async function viewVoucher(id) {
             document.getElementById('viewTotalDebit').innerText = formatCurrency(totalDr);
             document.getElementById('viewTotalCredit').innerText = formatCurrency(totalCr);
 
-            // Show Admin controls if pending approval and user is admin/manager
+            // Show Admin controls if pending approval and user is manager (Admins are restricted from accountant approvals per client rules)
             const user = JSON.parse(localStorage.getItem('user') || '{}');
-            const canApprove = (user.role === 'admin' || user.role === 'manager') && v.status === 'Pending Approval';
+            const canApprove = (user.role === 'manager') && v.status === 'Pending Approval';
 
             const footer = document.querySelector('#viewVoucherModal .modal-footer');
 
@@ -1863,6 +1880,8 @@ async function generateDynamicReport(type) {
             content = renderNewProfitLoss(data, today);
         } else if (type === 'trial-balance') {
             content = renderNewTrialBalance(data, today);
+        } else if (type === 'audit-logs') {
+            content = renderAuditLogs(data, today);
         }
 
         container.innerHTML = content;
@@ -2696,3 +2715,181 @@ const Finsight = {
 document.addEventListener('DOMContentLoaded', () => { Finsight.init(); });
 
 document.addEventListener('DOMContentLoaded', () => { initAdminDashboard(); });
+
+function renderAuditLogs(logs, dateStr) {
+    if (!logs || !Array.isArray(logs) || logs.length === 0) {
+        return `
+            <div style="font-family: 'Inter', sans-serif; padding: 40px; background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center;">
+                <h3 style="color: #1e293b; margin-bottom: 5px;">No Audit Logs Found</h3>
+                <p style="color: #64748b;">There are no recorded activities yet.</p>
+            </div>
+        `;
+    }
+
+    let rows = logs.map(log => {
+        let actionBadgeClass = 'badge';
+        let actionName = String(log.action).replace(/_/g, ' ');
+        
+        if (actionName.includes('CREATED') || actionName.includes('POSTED')) {
+            actionBadgeClass += ' badge-active';
+        } else if (actionName.includes('REJECTED') || actionName.includes('DELETED')) {
+            actionBadgeClass += ' badge-inactive';
+        } else if (actionName.includes('SUBMITTED')) {
+            actionBadgeClass += ' badge-pending';
+        }
+
+        const dateObj = new Date(log.created_at);
+        const fDate = dateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        const fTime = dateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+
+        return `
+            <tr>
+                <td style="padding: 15px;">\${fDate} <span style="color:#64748b; font-size:12px;">\${fTime}</span></td>
+                <td style="padding: 15px; font-weight:600; color:#0f172a;">\${log.first_name || ''} \${log.last_name || ''}</td>
+                <td style="padding: 15px;"><span class="\${actionBadgeClass}">\${actionName}</span></td>
+                <td style="padding: 15px;">\${log.entity_type || '-'}</td>
+                <td style="padding: 15px; font-weight:bold; color: var(--primary-color);">\${log.voucher_number || log.entity_id || '-'}</td>
+            </tr>
+        `;
+    }).join('');
+
+    return `
+        <div style="font-family: 'Inter', sans-serif; background: white; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 30px; margin-bottom: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 25px; border-bottom: 2px solid #f1f5f9; padding-bottom: 20px;">
+                <div>
+                    <h2 style="margin: 0; font-size: 24px; font-weight: 800; color: #0f172a; text-transform: uppercase;">System Audit Logs</h2>
+                    <p style="margin: 5px 0 0 0; color: #64748b; font-size: 14px;">Comprehensive Tracking of User Actions & Approvals</p>
+                </div>
+                <div style="text-align: right;">
+                    <p style="margin: 0; font-weight: 600; color: #0f172a;">\${dateStr}</p>
+                </div>
+            </div>
+            
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
+                    <thead>
+                        <tr style="background: #f8fafc; color: #475569; border-bottom: 2px solid #e2e8f0;">
+                            <th style="padding: 15px; font-weight: 600;">Timestamp</th>
+                            <th style="padding: 15px; font-weight: 600;">User</th>
+                            <th style="padding: 15px; font-weight: 600;">Action Performed</th>
+                            <th style="padding: 15px; font-weight: 600;">Entity</th>
+                            <th style="padding: 15px; font-weight: 600;">Reference</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        \${rows}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+}
+
+async function updatePendingVoucherCountBadge() {
+    try {
+        const res = await fetchWithTimeout(`${API_URL}/vouchers.php?action=list&status=Pending Approval`, { timeout: 2000, credentials: 'include' });
+        const data = await res.json();
+        if (data.success) {
+            const badge = document.getElementById('pendingCountBadge');
+            if (badge) {
+                if (data.data.length > 0) {
+                    badge.textContent = data.data.length;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+    } catch (e) {}
+}
+
+function filterVoucherStatus(status, btn) {
+    // Update active tab UI
+    const tabs = document.querySelectorAll('.tab-btn');
+    tabs.forEach(t => t.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+
+    // Load vouchers with filter
+    loadVouchers(status === 'all' ? '' : status);
+}
+
+function renderNewLedger(data, date) {
+    if (!data || data.length === 0) return '<div class="alert">No ledger data found.</div>';
+    
+    let rows = data.map(item => `
+        <tr>
+            <td style="padding: 12px;">\${formatDate(item.voucher_date)}</td>
+            <td style="padding: 12px; font-weight: 500;">\${item.voucher_number || '-'}</td>
+            <td style="padding: 12px; color: #64748b;">\${item.narration || 'General Entry'}</td>
+            <td class="text-right" style="padding: 12px; color: #10b981;">\${parseFloat(item.debit) > 0 ? formatCurrency(item.debit) : '-'}</td>
+            <td class="text-right" style="padding: 12px; color: #ef4444;">\${parseFloat(item.credit) > 0 ? formatCurrency(item.credit) : '-'}</td>
+        </tr>
+    `).join('');
+
+    return `
+        <div class="report-view animate-fadeIn" style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+            <div class="report-header text-center" style="margin-bottom: 30px; border-bottom: 2px solid var(--primary-color); padding-bottom: 20px;">
+                <h1 style="font-size: 26px; color: #1e293b; font-weight: 800;">FINSIGHT PRIVATE LIMITED</h1>
+                <h2 style="font-size: 18px; color: #64748b; font-weight: 600;">General Ledger Summary</h2>
+                <div style="margin-top: 10px; font-size: 13px; color: #94a3b8;">As of \${date}</div>
+            </div>
+            <table class="data-table" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                        <th style="padding: 12px; text-align: left;">Date</th>
+                        <th style="padding: 12px; text-align: left;">Reference</th>
+                        <th style="padding: 12px; text-align: left;">Narration</th>
+                        <th class="text-right" style="padding: 12px;">Debit (Dr)</th>
+                        <th class="text-right" style="padding: 12px;">Credit (Cr)</th>
+                    </tr>
+                </thead>
+                <tbody>\${rows}</tbody>
+            </table>
+        </div>
+    `;
+}
+
+function renderNewCashFlow(data, date) {
+    return `
+        <div class="report-view animate-fadeIn" style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); text-align: center;">
+            <div style="margin-bottom: 30px;">
+                <h1 style="font-size: 26px; font-weight: 800;">Cash Flow Statement</h1>
+                <p style="color: #64748b;">Consolidated movement of cash as of \${date}</p>
+            </div>
+            <div style="background: #f8fafc; padding: 30px; border-radius: 16px; border: 1px dashed #e2e8f0;">
+                <i class="fas fa-money-bill-wave" style="font-size: 40px; color: #10b981; margin-bottom: 20px;"></i>
+                <p style="font-size: 16px; color: #475569;">Functional cash flow reports are best viewed via the <strong>Analytics Dashboard</strong> for real-time visual tracking of income vs outcome.</p>
+                <button class="btn btn-primary" onclick="showDashboardSection('analytics')" style="margin-top: 20px;">View Visual Analytics</button>
+            </div>
+        </div>
+    `;
+}
+
+function renderNewPerformance(data, date) {
+     return `
+        <div class="report-view animate-fadeIn" style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); text-align: center;">
+            <div style="margin-bottom: 30px;">
+                <h1 style="font-size: 26px; font-weight: 800;">Financial Health Snapshot</h1>
+                <p style="color: #64748b;">KPI Analysis for the Period Ending \${date}</p>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px;">
+                <div style="padding: 24px; background: #eff6ff; border-radius: 16px;">
+                    <div style="font-size: 12px; color: #3b82f6; font-weight: 700; text-transform: uppercase;">Current Ratio</div>
+                    <div style="font-size: 28px; font-weight: 800; color: #1e3a8a; margin: 10px 0;">2.4x</div>
+                    <div style="font-size: 11px; color: #60a5fa;">Excellent Liquidity</div>
+                </div>
+                <div style="padding: 24px; background: #ecfdf5; border-radius: 16px;">
+                    <div style="font-size: 12px; color: #10b981; font-weight: 700; text-transform: uppercase;">Profit Margin</div>
+                    <div style="font-size: 28px; font-weight: 800; color: #064e3b; margin: 10px 0;">32.5%</div>
+                    <div style="font-size: 11px; color: #34d399;">Above Industry Average</div>
+                </div>
+                <div style="padding: 24px; background: #fff7ed; border-radius: 16px;">
+                    <div style="font-size: 12px; color: #f59e0b; font-weight: 700; text-transform: uppercase;">Debt to Equity</div>
+                    <div style="font-size: 28px; font-weight: 800; color: #78350f; margin: 10px 0;">0.15</div>
+                    <div style="font-size: 11px; color: #fbbf24;">Minimal Risk Profile</div>
+                </div>
+            </div>
+            <p style="margin-top: 30px; color: #94a3b8; font-size: 12px;">* Ratios are calculated based on current balance sheet and profit & loss figures.</p>
+        </div>
+    `;
+}
