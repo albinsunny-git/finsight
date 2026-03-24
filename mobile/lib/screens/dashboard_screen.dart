@@ -204,17 +204,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _updateNavigationForRole(normalizedRole);
 
     try {
-      final dashboardStats = await _apiService.getDashboardStats();
-      final vouchersList = await _apiService.getVouchers();
-      final accountsList = await _apiService.getAccounts();
+      // Parallelize all API calls for much faster performance
+      final results = await Future.wait([
+        _apiService.getDashboardStats(),
+        _apiService.getVouchers(),
+        _apiService.getAccounts(),
+        _apiService.getProfitLoss(),
+        _apiService.getNotifications(),
+        (normalizedRole.contains('admin') || normalizedRole.contains('manager'))
+            ? _apiService.getUsers()
+            : Future.value([]),
+      ]);
 
-      final pnlList = await _apiService.getProfitLoss();
-      final notifs = await _apiService.getNotifications();
-      List<dynamic> usersList = [];
-
-      if (normalizedRole.contains('admin') || normalizedRole.contains('manager')) {
-        usersList = await _apiService.getUsers();
-      }
+      final Map<String, dynamic> dashboardStats = results[0] as Map<String, dynamic>;
+      final List<dynamic> vouchersList = results[1] as List<dynamic>;
+      final List<dynamic> accountsList = results[2] as List<dynamic>;
+      final List<dynamic> pnlList = results[3] as List<dynamic>;
+      final Map<String, dynamic> notifs = results[4] as Map<String, dynamic>;
+      final List<dynamic> usersList = results[5] as List<dynamic>;
 
       if (mounted) {
         setState(() {
