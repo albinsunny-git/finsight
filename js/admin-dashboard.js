@@ -114,7 +114,7 @@ async function initAdminDashboard() {
 
     // Bind APK Download
     document.querySelectorAll('.btn-get-app').forEach(btn => {
-        btn.href = `${window.BASE_PATH}/mobile/flutter-apk/app-release.apk`;
+        btn.href = `${window.BASE_PATH}/downloads/finsight.apk`;
         btn.setAttribute('download', 'finsight_mobile.apk');
     });
 

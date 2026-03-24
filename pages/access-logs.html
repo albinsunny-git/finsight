@@ -73,8 +73,20 @@
                 </a>
             </nav>
 
-            <div class="sidebar-footer" id="sidebarFooter">
-                <!-- Dynamic user profile will be injected here -->
+            <div class="sidebar-footer">
+                <a href="../downloads/finsight.apk" class="btn-get-app" style="display: flex; align-items: center; gap: 10px; background: var(--gs-accent); color: #000; padding: 12px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 0.85rem; margin-bottom: 20px; transition: all 0.3s ease;">
+                    <i class="fab fa-android" style="font-size: 1.1rem;"></i>
+                    <span>Get Android App</span>
+                </a>
+
+                <div id="sidebarFooter">
+                    <!-- Dynamic user profile will be injected here -->
+                </div>
+
+                <button onclick="logout()" class="btn-logout" style="margin-top: 15px; background: transparent; border: 1px solid var(--gs-border); color: var(--gs-muted); width: 100%; padding: 10px; border-radius: 8px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all 0.3s ease;">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
             </div>
         </aside>
 
