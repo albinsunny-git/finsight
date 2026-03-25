@@ -1830,43 +1830,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    double safeRevenue = 0.0;
-    double safeExpense = 0.0;
+    final summary = _dashboardData['summary'] as Map<String, dynamic>?;
+    final analytics = _dashboardData['analytics'] as Map<String, dynamic>?;
+    final cashFlowData = analytics?['cash_flow'] as Map<String, dynamic>?;
+
+    double safeRevenue = (summary?['total_income'] as num?)?.toDouble() ?? 0.0;
+    double netProfit = (summary?['net_profit'] as num?)?.toDouble() ?? 0.0;
 
     List<FlSpot> incomeSpots = [];
     List<FlSpot> profitSpots = [];
 
-    if (_vouchers.isNotEmpty) {
-      final validVouchers = _vouchers
-          .where((v) => v['status'] != 'Rejected')
-          .toList()
-          .reversed
-          .toList();
-          
-      if (validVouchers.isNotEmpty) {
-        for (int i = 0; i < validVouchers.length; i++) {
-          final v = validVouchers[i];
-          final type = (v['voucher_type_name'] ?? '').toString().toLowerCase();
-          double amt = double.tryParse(v['total_debit']?.toString() ?? '0') ?? 0.0;
-
-          if (type == 'receipt') {
-            safeRevenue += amt;
-          } else if (type == 'payment') {
-            safeExpense += amt;
-          }
-
-          incomeSpots.add(FlSpot(i.toDouble(), safeRevenue));
-          profitSpots.add(FlSpot(i.toDouble(), safeRevenue - safeExpense));
-        }
+    if (cashFlowData != null && cashFlowData['income'] != null) {
+      final List<dynamic> incomeList = cashFlowData['income'];
+      final List<dynamic> expenseList = cashFlowData['expense'] ?? [];
+      
+      for (int i = 0; i < incomeList.length; i++) {
+        double inc = (incomeList[i] as num).toDouble();
+        double exp = i < expenseList.length ? (expenseList[i] as num).toDouble() : 0.0;
+        
+        incomeSpots.add(FlSpot(i.toDouble(), inc));
+        profitSpots.add(FlSpot(i.toDouble(), inc - exp));
       }
     }
 
+    // Fallback if no analytics data or empty
     if (incomeSpots.isEmpty) {
-      incomeSpots = [const FlSpot(0, 0), const FlSpot(1, 0)];
-      profitSpots = [const FlSpot(0, 0), const FlSpot(1, 0)];
-    } else if (incomeSpots.length == 1) {
-      incomeSpots.insert(0, const FlSpot(-1, 0));
-      profitSpots.insert(0, const FlSpot(-1, 0));
+      if (_vouchers.isNotEmpty) {
+        final vd = _vouchers.take(5).toList().reversed.toList();
+        double r = 0, e = 0;
+        for (int i = 0; i < vd.length; i++) {
+          final type = (vd[i]['voucher_type_name'] ?? '').toString().toLowerCase();
+          double amt = double.tryParse(vd[i]['total_debit']?.toString() ?? '0') ?? 0;
+          if (type == 'receipt') r += amt; else if (type == 'payment') e += amt;
+          incomeSpots.add(FlSpot(i.toDouble(), r));
+          profitSpots.add(FlSpot(i.toDouble(), r - e));
+        }
+      } else {
+        incomeSpots = [const FlSpot(0, 0), const FlSpot(1, 0)];
+        profitSpots = [const FlSpot(0, 0), const FlSpot(1, 0)];
+      }
     }
 
     String incomeTrendStr = "+0.0%";
@@ -1900,11 +1902,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               isDark: isDark,
             ),
             const SizedBox(height: 16),
-            // Line Chart 2: Profit Trend
             _buildPremiumChartCard(
               title: "PROFIT TREND",
               amount:
-                  "${(safeRevenue - safeExpense) >= 0 ? '+' : ''}₹${NumberFormat('#,##0.00').format(safeRevenue - safeExpense)}",
+                  "${netProfit >= 0 ? '+' : ''}₹${NumberFormat('#,##0.00').format(netProfit)}",
               percentage: profitTrendStr,
               isPositive: !profitTrendStr.contains('-'),
               spots: profitSpots.length < 2
