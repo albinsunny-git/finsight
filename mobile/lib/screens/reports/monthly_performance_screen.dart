@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:finsight_mobile/config.dart';
+import 'package:finsight_mobile/services/api_service.dart';
 
 class MonthlyPerformanceScreen extends StatefulWidget {
   const MonthlyPerformanceScreen({super.key});
@@ -28,9 +27,8 @@ class _MonthlyPerformanceScreenState extends State<MonthlyPerformanceScreen> {
       final from = "${now.year}-${now.month.toString().padLeft(2, '0')}-01";
       final to = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
       
-      final response = await http.get(
-        Uri.parse("${AppConfig.apiUrl}/reports.php?type=performance&from=$from&to=$to"),
-      );
+      final api = ApiService();
+      final response = await api.get("${ApiService.baseUrl}/reports.php?type=performance&from=$from&to=$to");
       
       final json = jsonDecode(response.body);
       if (json['success']) {
@@ -38,12 +36,12 @@ class _MonthlyPerformanceScreenState extends State<MonthlyPerformanceScreen> {
           _data = json['data'];
           _isLoading = false;
         });
+      } else {
+         setState(() => _isLoading = false);
       }
     } catch (e) {
       debugPrint("Report Load Error: $e");
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
 

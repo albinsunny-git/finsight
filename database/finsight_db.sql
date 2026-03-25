@@ -108,7 +108,8 @@ CREATE TABLE IF NOT EXISTS general_ledger (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (account_id) REFERENCES account_chart(id) ON DELETE RESTRICT,
     FOREIGN KEY (voucher_id) REFERENCES vouchers(id) ON DELETE CASCADE,
-    INDEX idx_account_date (account_id, voucher_date)
+    INDEX idx_account_date (account_id, voucher_date),
+    INDEX idx_voucher_date (voucher_date)
 );
 
 -- Balance Sheet Entries Table

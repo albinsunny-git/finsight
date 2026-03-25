@@ -11,17 +11,21 @@ class ReportController {
     
     public function getBalanceSheet() {
         checkAuth();
-        
         $asOnDate = $_GET['as_on_date'] ?? date('Y-m-d');
         
-        // 1. Get all accounts with their cumulative balances (Opening + All Movements)
         $sql = "SELECT ac.id, ac.code, ac.name, ac.type, ac.sub_type, ac.opening_balance,
-                       (SELECT SUM(COALESCE(gl.debit, 0)) FROM general_ledger gl WHERE gl.account_id = ac.id AND gl.voucher_date <= '$asOnDate 23:59:59') as total_debit,
-                       (SELECT SUM(COALESCE(gl.credit, 0)) FROM general_ledger gl WHERE gl.account_id = ac.id AND gl.voucher_date <= '$asOnDate 23:59:59') as total_credit
+                       SUM(COALESCE(gl.debit, 0)) as total_debit,
+                       SUM(COALESCE(gl.credit, 0)) as total_credit
                 FROM account_chart ac
-                WHERE ac.is_active = TRUE";
+                LEFT JOIN general_ledger gl ON ac.id = gl.account_id AND gl.voucher_date <= ?
+                WHERE ac.is_active = TRUE
+                GROUP BY ac.id";
         
-        $result = $this->db->query($sql);
+        $stmt = $this->db->prepare($sql);
+        $fullToDate = $asOnDate . " 23:59:59";
+        $stmt->bind_param("s", $fullToDate);
+        $stmt->execute();
+        $result = $stmt->get_result();
         $accounts = [];
         $netProfitRetained = 0;
         
@@ -77,18 +81,23 @@ class ReportController {
 
     public function getProfitLoss() {
         checkAuth();
-        
         $fromDate = $_GET['from_date'] ?? date('Y-01-01');
         $toDate = $_GET['to_date'] ?? date('Y-m-d');
         
-        // P&L shows income and expenses for a period
         $sql = "SELECT ac.id, ac.code, ac.name, ac.type, ac.sub_type,
-                       (SELECT SUM(COALESCE(gl.debit, 0)) FROM general_ledger gl WHERE gl.account_id = ac.id AND gl.voucher_date >= '$fromDate 00:00:00' AND gl.voucher_date <= '$toDate 23:59:59') as total_debit,
-                       (SELECT SUM(COALESCE(gl.credit, 0)) FROM general_ledger gl WHERE gl.account_id = ac.id AND gl.voucher_date >= '$fromDate 00:00:00' AND gl.voucher_date <= '$toDate 23:59:59') as total_credit
+                       SUM(COALESCE(gl.debit, 0)) as total_debit,
+                       SUM(COALESCE(gl.credit, 0)) as total_credit
                 FROM account_chart ac
-                WHERE ac.type IN ('Income', 'Expense') AND ac.is_active = TRUE";
+                LEFT JOIN general_ledger gl ON ac.id = gl.account_id AND gl.voucher_date >= ? AND gl.voucher_date <= ?
+                WHERE ac.type IN ('Income', 'Expense') AND ac.is_active = TRUE
+                GROUP BY ac.id";
         
-        $result = $this->db->query($sql);
+        $stmt = $this->db->prepare($sql);
+        $fullFromDate = $fromDate . " 00:00:00";
+        $fullToDate = $toDate . " 23:59:59";
+        $stmt->bind_param("ss", $fullFromDate, $fullToDate);
+        $stmt->execute();
+        $result = $stmt->get_result();
         $accounts = [];
         
         while ($row = $result->fetch_assoc()) {
@@ -114,7 +123,7 @@ class ReportController {
     
     public function getAnalyticsData() {
         // 1. Monthly Trends (Dynamic trailing 6 months based on actual latest data entry)
-        $latestRes = $this->db->query("SELECT MAX(voucher_date) as latest FROM vouchers WHERE status != 'Rejected'")->fetch_assoc();
+        $latestRes = $this->db->query("SELECT MAX(voucher_date) as latest FROM general_ledger")->fetch_assoc();
         $baseDate = ($latestRes && $latestRes['latest']) ? strtotime($latestRes['latest']) : time();
         
         $months = [];
@@ -125,16 +134,14 @@ class ReportController {
         $fromDate = $months[0] . "-01";
         $toDate = date('Y-m-t', $baseDate);
         
-        // Optimized: Single query for all 6 months using conditional sums
+        // Optimized: Single query for all 6 months using general_ledger (reporting-ready)
         $sql = "SELECT 
-                    DATE_FORMAT(v.voucher_date, '%Y-%m') as month_key,
-                    SUM(CASE WHEN ac.type = 'Income' THEN vd.credit - vd.debit ELSE 0 END) as income_sum,
-                    SUM(CASE WHEN ac.type = 'Expense' THEN vd.debit - vd.credit ELSE 0 END) as expense_sum
-                FROM voucher_details vd
-                JOIN vouchers v ON vd.voucher_id = v.id
-                JOIN account_chart ac ON vd.account_id = ac.id
-                WHERE v.status = 'Posted' 
-                AND v.voucher_date >= ? AND v.voucher_date <= ?
+                    DATE_FORMAT(gl.voucher_date, '%Y-%m') as month_key,
+                    SUM(CASE WHEN ac.type = 'Income' THEN gl.credit - gl.debit ELSE 0 END) as income_sum,
+                    SUM(CASE WHEN ac.type = 'Expense' THEN gl.debit - gl.credit ELSE 0 END) as expense_sum
+                FROM general_ledger gl
+                JOIN account_chart ac ON gl.account_id = ac.id
+                WHERE gl.voucher_date >= ? AND gl.voucher_date <= ?
                 GROUP BY month_key";
         
         $stmt = $this->db->prepare($sql);
@@ -456,14 +463,13 @@ class ReportController {
         $fromDate = $_GET['from'] ?? date('Y-m-01');
         $toDate = $_GET['to'] ?? date('Y-m-d');
         
-        // Combined query for performance
+        // High-performance query using general_ledger which is already indexed for dates and accounts
         $sql = "SELECT ac.type, 
-                       SUM(CASE WHEN ac.type = 'Income' THEN vd.credit - vd.debit ELSE vd.debit - vd.credit END) as amount
-                FROM voucher_details vd
-                JOIN vouchers v ON vd.voucher_id = v.id
-                JOIN account_chart ac ON vd.account_id = ac.id
-                WHERE ac.type IN ('Income', 'Expense') AND v.status = 'Posted'
-                AND v.voucher_date BETWEEN ? AND ?
+                       SUM(CASE WHEN ac.type = 'Income' THEN gl.credit - gl.debit ELSE gl.debit - gl.credit END) as amount
+                FROM general_ledger gl
+                JOIN account_chart ac ON gl.account_id = ac.id
+                WHERE ac.type IN ('Income', 'Expense')
+                AND gl.voucher_date BETWEEN ? AND ?
                 GROUP BY ac.type";
         
         $stmt = $this->db->prepare($sql);
