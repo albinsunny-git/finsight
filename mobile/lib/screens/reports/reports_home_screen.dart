@@ -27,6 +27,9 @@ class _ReportsHomeScreenState extends State<ReportsHomeScreen> {
   double _totalNet = 0;
   double _pctChange = 0;
 
+  // Use Brand Orange for Admin
+  static const Color primaryColor = Color(0xFFFF6B00);
+
   @override
   void initState() {
     super.initState();
@@ -83,7 +86,7 @@ class _ReportsHomeScreenState extends State<ReportsHomeScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F111A) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       body: CustomScrollView(
         slivers: [
           _buildSliverAppBar(isDark),
@@ -122,7 +125,7 @@ class _ReportsHomeScreenState extends State<ReportsHomeScreen> {
       floating: false,
       pinned: true,
       elevation: 0,
-      backgroundColor: isDark ? const Color(0xFF0F111A) : Colors.white,
+      backgroundColor: isDark ? const Color(0xFF0F172A) : Colors.white,
       flexibleSpace: FlexibleSpaceBar(
         titlePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         title: Column(
@@ -164,9 +167,9 @@ class _ReportsHomeScreenState extends State<ReportsHomeScreen> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1429),
+        color: isDark ? const Color(0xFF1E293B) : const Color(0xFF1A1D23), // Dark Slate for insights
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: const Color(0xFF8B5CF6).withOpacity(0.1)),
+        border: Border.all(color: primaryColor.withOpacity(0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -218,7 +221,7 @@ class _ReportsHomeScreenState extends State<ReportsHomeScreen> {
           SizedBox(
             height: 120,
             child: _isLoadingTrend
-                ? const Center(child: CircularProgressIndicator(color: Color(0xFF8B5CF6)))
+                ? const Center(child: CircularProgressIndicator(color: primaryColor))
                 : BarChart(
                     BarChartData(
                       gridData: FlGridData(show: false),
@@ -250,7 +253,7 @@ class _ReportsHomeScreenState extends State<ReportsHomeScreen> {
                           barRods: [
                             BarChartRodData(
                               toY: _netProfits[i],
-                              color: const Color(0xFF8B5CF6),
+                              color: primaryColor,
                               width: 14,
                               borderRadius: BorderRadius.circular(4),
                             ),
@@ -315,9 +318,16 @@ class _ReportsHomeScreenState extends State<ReportsHomeScreen> {
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A1429) : Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF8B5CF6).withOpacity(0.05)),
+        border: Border.all(color: primaryColor.withOpacity(0.05)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -325,10 +335,10 @@ class _ReportsHomeScreenState extends State<ReportsHomeScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF8B5CF6).withOpacity(0.05),
+              color: primaryColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Icon(r['icon'], color: const Color(0xFF8B5CF6), size: 24),
+            child: Icon(r['icon'], color: primaryColor, size: 24),
           ),
           const SizedBox(height: 16),
           Text(
@@ -357,7 +367,7 @@ class _ReportsHomeScreenState extends State<ReportsHomeScreen> {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => r['screen']));
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF8B5CF6),
+                    backgroundColor: primaryColor,
                     foregroundColor: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

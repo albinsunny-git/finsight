@@ -39,16 +39,16 @@ class AppTheme {
   static const Color amethystSurfaceLighter = Color(0xFF1F1F35);
   static const Color amethystAccent = Color(0xFFD8B4FE);
 
-  // --- Light Theme ---
+  // --- Light Theme (Default for Admin/Accountants) ---
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
-      primaryColor: amethystPrimary,
+      primaryColor: primaryOrange,
       scaffoldBackgroundColor: lightBackground,
       colorScheme: const ColorScheme.light(
-        primary: amethystPrimary,
-        secondary: amethystPrimaryLight,
+        primary: primaryOrange,
+        secondary: secondaryOrange,
         surface: whiteSurface,
         onSurface: textDark,
         onPrimary: Colors.white,
@@ -82,7 +82,7 @@ class AppTheme {
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: whiteSurface,
-        selectedItemColor: amethystPrimary,
+        selectedItemColor: primaryOrange,
         unselectedItemColor: textMutedDark,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
@@ -92,8 +92,61 @@ class AppTheme {
     );
   }
 
-  // --- Dark Theme ---
+  // --- Dark Theme (Default for Admin/Accountants) ---
   static ThemeData get darkTheme {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      primaryColor: primaryOrange,
+      scaffoldBackgroundColor: darkBackground,
+      colorScheme: const ColorScheme.dark(
+        primary: primaryOrange,
+        secondary: secondaryOrange,
+        surface: darkSurface,
+        onSurface: textLight,
+        onPrimary: Colors.white,
+        error: error,
+      ),
+      dividerColor: const Color(0xFF1F1F35),
+      cardTheme: CardThemeData(
+        color: darkSurface,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: const BorderSide(color: Color(0xFF1F1F35), width: 1),
+        ),
+      ),
+      textTheme:
+          GoogleFonts.plusJakartaSansTextTheme(ThemeData.dark().textTheme)
+              .apply(
+        bodyColor: Colors.white,
+        displayColor: Colors.white,
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: darkBackground,
+        elevation: 0,
+        centerTitle: false,
+        iconTheme: IconThemeData(color: textLight),
+        titleTextStyle: TextStyle(
+          color: textLight,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: darkBackground,
+        selectedItemColor: primaryOrange,
+        unselectedItemColor: Color(0xFF64748B),
+        type: BottomNavigationBarType.fixed,
+        elevation: 0,
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
+      ),
+    );
+  }
+
+  // --- Manager Dashboard Theme (Amethyst) ---
+  static ThemeData get managerTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,

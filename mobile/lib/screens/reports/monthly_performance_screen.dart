@@ -52,7 +52,7 @@ class _MonthlyPerformanceScreenState extends State<MonthlyPerformanceScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F111A) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -75,7 +75,7 @@ class _MonthlyPerformanceScreenState extends State<MonthlyPerformanceScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF8B5CF6)))
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFFFF6B00)))
           : _data == null
               ? const Center(child: Text("Failed to load report data"))
               : SingleChildScrollView(
@@ -100,9 +100,9 @@ class _MonthlyPerformanceScreenState extends State<MonthlyPerformanceScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFF8B5CF6).withOpacity(0.1),
+        color: const Color(0xFFFF6B00).withOpacity(0.1),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFF8B5CF6).withOpacity(0.2)),
+        border: Border.all(color: const Color(0xFFFF6B00).withOpacity(0.2)),
       ),
       child: Column(
         children: [
@@ -111,7 +111,7 @@ class _MonthlyPerformanceScreenState extends State<MonthlyPerformanceScreen> {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 12,
               fontWeight: FontWeight.w800,
-              color: const Color(0xFF8B5CF6),
+              color: const Color(0xFFFF6B00),
               letterSpacing: 1.5,
             ),
           ),
@@ -162,11 +162,11 @@ class _MonthlyPerformanceScreenState extends State<MonthlyPerformanceScreen> {
           const Color(0xFFF59E0B),
           prefix: net < 0 ? "-" : "+",
         ),
-        _buildMetricCard(
+          _buildMetricCard(
           "PROFIT MARGIN",
           "$margin%",
           LucideIcons.percent,
-          const Color(0xFF8B5CF6),
+          const Color(0xFFFF6B00),
         ),
       ],
     );
@@ -238,7 +238,7 @@ class _MonthlyPerformanceScreenState extends State<MonthlyPerformanceScreen> {
         const SizedBox(height: 16),
         _buildProgressBar("Profitability Index", margin / 100, const Color(0xFF10B981)),
         const SizedBox(height: 16),
-        _buildProgressBar("Expense Efficiency", (100 - (margin > 0 ? margin : 0)) / 100, const Color(0xFF8B5CF6)),
+        _buildProgressBar("Expense Efficiency", (100 - (margin > 0 ? margin : 0)) / 100, const Color(0xFFFF6B00)),
       ],
     );
   }
@@ -248,7 +248,7 @@ class _MonthlyPerformanceScreenState extends State<MonthlyPerformanceScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1A1429) : Colors.white,
+        color: isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -283,8 +283,8 @@ class _MonthlyPerformanceScreenState extends State<MonthlyPerformanceScreen> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFF8B5CF6).withOpacity(0.05),
-        border: Border(left: BorderSide(color: const Color(0xFF8B5CF6), width: 4)),
+        color: const Color(0xFFFF6B00).withOpacity(0.05),
+        border: Border(left: BorderSide(color: const Color(0xFFFF6B00), width: 4)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

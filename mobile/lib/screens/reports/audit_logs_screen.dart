@@ -52,7 +52,7 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F111A) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: Text("System Audit Logs",
             style: GoogleFonts.plusJakartaSans(
@@ -63,7 +63,7 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
         iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFF8B5CF6)))
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFFFF6B00)))
           : _logs.isEmpty
               ? Center(
                   child: Text("No audit logs found.",
@@ -77,7 +77,7 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
                       final log = _logs[index];
                       final action = log['action'].toString().replaceAll('_', ' ');
                       final date = log['created_at'] != null ? DateTime.tryParse(log['created_at']) : null;
-                      final fDate = date != null ? "\${date.day}/\${date.month}/\${date.year} \${date.hour.toString().padLeft(2, '0')}:\${date.minute.toString().padLeft(2, '0')}" : "Unknown";
+                      final fDate = date != null ? "${date.day}/${date.month}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}" : "Unknown";
 
                       Color actionColor = Colors.grey;
                       IconData actionIcon = LucideIcons.activity;
@@ -97,9 +97,9 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
                         margin: const EdgeInsets.only(bottom: 16),
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: isDark ? const Color(0xFF1A1429) : Colors.white,
+                          color: isDark ? const Color(0xFF1E293B) : Colors.white,
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: const Color(0xFF8B5CF6).withOpacity(0.05)),
+                          border: Border.all(color: const Color(0xFFFF6B00).withOpacity(0.05)),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.02),
@@ -133,7 +133,7 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    "User: \${log['first_name'] ?? ''} \${log['last_name'] ?? ''}",
+                                    "User: ${log['first_name'] ?? ''} ${log['last_name'] ?? ''}",
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 13,
                                       color: Colors.grey,
@@ -141,11 +141,11 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    "Reference: \${log['voucher_number'] ?? log['entity_id']}",
+                                    "Reference: ${log['voucher_number'] ?? log['entity_id']}",
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w600,
-                                      color: const Color(0xFF8B5CF6),
+                                      color: const Color(0xFFFF6B00),
                                     ),
                                   ),
                                 ],

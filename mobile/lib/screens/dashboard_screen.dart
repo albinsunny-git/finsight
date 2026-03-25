@@ -382,7 +382,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     if (isManager) {
       return Theme(
-        data: AppTheme.darkTheme,
+        data: AppTheme.managerTheme,
         child: mainScaffold,
       );
     }
