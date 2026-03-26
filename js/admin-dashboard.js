@@ -2375,10 +2375,21 @@ function renderNewBalanceSheet(accounts, date) {
 
             <div style="margin-top: 40px; padding: 20px; background: var(--bg-body); border-radius: 15px; border: 1px solid var(--border-color);">
                 ${Math.abs(totalAssets - (totalLiabilities + totalEquity)) > 0.01 ? `
-                    <div style="color: var(--danger-color); display: flex; align-items: center; gap: 12px; font-weight: 600;">
-                        <i class="fas fa-exclamation-triangle" style="font-size: 18px;"></i>
-                        <span>System notice: This statement is out of balance by ${formatCurrency(Math.abs(totalAssets - (totalLiabilities + totalEquity)))}.</span>
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                        <div style="color: var(--danger-color); display: flex; align-items: center; gap: 12px; font-weight: 600;">
+                            <div style="width: 40px; height: 40px; background: var(--danger-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fas fa-exclamation-triangle" style="font-size: 16px; color: white;"></i>
+                            </div>
+                            <div>
+                                <strong style="display: block; font-size: 15px;">Out of Balance</strong>
+                                <span style="font-size: 12px; opacity: 0.85;">Difference: ${formatCurrency(Math.abs(totalAssets - (totalLiabilities + totalEquity)))}</span>
+                            </div>
+                        </div>
+                        <button id="bs-diag-btn" onclick="fetchBalanceSheetDiagnostics()" style="padding: 10px 20px; background: var(--danger-color, #ef4444); color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;">
+                            <i class="fas fa-stethoscope"></i> View Diagnostics
+                        </button>
                     </div>
+                    <div id="bs-diagnostics-container" style="display: none; margin-top: 20px;"></div>
                 ` : `
                     <div style="color: var(--success-color); display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 13px;">
                         <i class="fas fa-check-circle" style="font-size: 18px;"></i>
@@ -2388,6 +2399,183 @@ function renderNewBalanceSheet(accounts, date) {
             </div>
         </div>
     `;
+}
+
+async function fetchBalanceSheetDiagnostics() {
+    const btn = document.getElementById('bs-diag-btn');
+    const container = document.getElementById('bs-diagnostics-container');
+    if (!btn || !container) return;
+
+    if (container.style.display === 'block') {
+        container.style.display = 'none';
+        btn.innerHTML = '<i class="fas fa-stethoscope"></i> View Diagnostics';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+    container.style.display = 'block';
+    container.innerHTML = `
+        <div style="text-align: center; padding: 30px; color: var(--text-muted, #94a3b8);">
+            <i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 10px;"></i>
+            <p style="margin: 0; font-size: 13px;">Running balance sheet validation checks...</p>
+        </div>`;
+
+    try {
+        const res = await fetchWithTimeout(`${API_URL}/reports.php?type=balance-sheet-validation`, { credentials: 'include' });
+        const json = await res.json();
+
+        if (!json.success) {
+            container.innerHTML = `<div style="color: var(--danger-color); padding: 15px; font-size: 13px;"><i class="fas fa-times-circle"></i> ${json.message || 'Validation failed.'}</div>`;
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-stethoscope"></i> Retry Diagnostics';
+            return;
+        }
+
+        const data = json.data;
+        let html = '';
+
+        html += `
+            <div style="padding: 14px 16px; background: var(--bg-card, white); border-radius: 10px; margin-bottom: 12px; border: 1px solid var(--border-color, #fecaca);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <span style="font-weight: 700; font-size: 14px; color: var(--text-main);">Validation Summary</span>
+                        <span style="font-size: 12px; color: var(--text-muted); margin-left: 8px;">${data.issue_count} issue(s) found</span>
+                    </div>
+                    <div style="display: flex; gap: 16px; font-size: 12px;">
+                        <span style="color: var(--text-muted);"><strong>Assets:</strong> ${formatCurrency(data.total_assets)}</span>
+                        <span style="color: var(--text-muted);"><strong>Liab+Eq:</strong> ${formatCurrency(data.total_liabilities_equity)}</span>
+                        <span style="color: var(--danger-color); font-weight: 700;">&Delta; ${formatCurrency(Math.abs(data.difference))}</span>
+                    </div>
+                </div>
+            </div>`;
+
+        if (data.issues.length === 0) {
+            html += `<div style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px;">
+                <i class="fas fa-info-circle"></i> No specific data integrity issues found. The imbalance may be due to rounding or manual adjustments.
+            </div>`;
+        }
+
+        data.issues.forEach((issue, idx) => {
+            const severityColors = {
+                critical: { bg: 'rgba(239,68,68,0.08)', border: 'var(--danger-color, #ef4444)', icon: 'fa-times-circle', color: '#dc2626', label: '#dc2626' },
+                high: { bg: 'rgba(249,115,22,0.08)', border: '#f97316', icon: 'fa-exclamation-circle', color: '#ea580c', label: '#ea580c' },
+                warning: { bg: 'rgba(234,179,8,0.08)', border: '#eab308', icon: 'fa-exclamation-triangle', color: '#ca8a04', label: '#ca8a04' }
+            };
+            const s = severityColors[issue.severity] || severityColors.warning;
+
+            html += `
+                <div style="margin-bottom: 12px; background: ${s.bg}; border: 1px solid ${s.border}30; border-radius: 10px; overflow: hidden;">
+                    <div onclick="document.getElementById('bs-issue-${idx}').style.display = document.getElementById('bs-issue-${idx}').style.display === 'none' ? 'block' : 'none'; this.querySelector('.chevron').classList.toggle('fa-chevron-down'); this.querySelector('.chevron').classList.toggle('fa-chevron-up');"
+                         style="padding: 14px 16px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <i class="fas ${s.icon}" style="color: ${s.color}; font-size: 16px;"></i>
+                            <div>
+                                <strong style="font-size: 14px; color: var(--text-main);">${issue.title}</strong>
+                                <p style="margin: 3px 0 0; font-size: 12px; color: var(--text-muted);">${issue.description}</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="padding: 3px 10px; background: ${s.color}18; border-radius: 12px; font-size: 11px; font-weight: 600; color: ${s.label}; text-transform: uppercase;">${issue.severity}</span>
+                            <i class="fas fa-chevron-down chevron" style="color: var(--text-muted); font-size: 12px;"></i>
+                        </div>
+                    </div>
+                    <div id="bs-issue-${idx}" style="display: none; padding: 0 16px 14px; border-top: 1px solid ${s.border}20;">`;
+
+            if (issue.type === 'opening_balance') {
+                html += `
+                    <div style="margin-top: 12px;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                            <thead><tr style="background: rgba(0,0,0,0.04);">
+                                <th style="text-align: left; padding: 8px 12px; font-weight: 600; color: var(--text-muted);">Account Type</th>
+                                <th style="text-align: right; padding: 8px 12px; font-weight: 600; color: var(--text-muted);">Opening Balance</th>
+                                <th style="text-align: right; padding: 8px 12px; font-weight: 600; color: var(--text-muted);">Accounts</th>
+                            </tr></thead>
+                            <tbody>
+                                ${issue.details.map(d => `
+                                    <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                        <td style="padding: 8px 12px; color: var(--text-main);">${d.type}</td>
+                                        <td style="padding: 8px 12px; text-align: right; color: var(--text-main); font-weight: 500;">${formatCurrency(d.total_opening_balance)}</td>
+                                        <td style="padding: 8px 12px; text-align: right; color: var(--text-muted);">${d.account_count}</td>
+                                    </tr>`).join('')}
+                            </tbody>
+                            <tfoot><tr style="background: rgba(0,0,0,0.04); font-weight: 700;">
+                                <td style="padding: 8px 12px;">Difference (Dr - Cr)</td>
+                                <td colspan="2" style="padding: 8px 12px; text-align: right; color: var(--danger-color);">${formatCurrency(issue.difference)}</td>
+                            </tr></tfoot>
+                        </table>
+                    </div>`;
+            }
+
+            if (issue.type === 'unbalanced_vouchers') {
+                html += `
+                    <div style="margin-top: 12px; overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 13px; min-width: 500px;">
+                            <thead><tr style="background: rgba(0,0,0,0.04);">
+                                <th style="text-align: left; padding: 8px 10px; font-weight: 600; color: var(--text-muted);">Voucher</th>
+                                <th style="text-align: left; padding: 8px 10px; font-weight: 600; color: var(--text-muted);">Date</th>
+                                <th style="text-align: left; padding: 8px 10px; font-weight: 600; color: var(--text-muted);">Status</th>
+                                <th style="text-align: right; padding: 8px 10px; font-weight: 600; color: var(--text-muted);">Debit</th>
+                                <th style="text-align: right; padding: 8px 10px; font-weight: 600; color: var(--text-muted);">Credit</th>
+                                <th style="text-align: right; padding: 8px 10px; font-weight: 600; color: var(--danger-color);">Difference</th>
+                            </tr></thead>
+                            <tbody>
+                                ${issue.vouchers.map(v => `
+                                    <tr style="border-bottom: 1px solid rgba(0,0,0,0.05); cursor: pointer;" onclick="typeof viewVoucher === 'function' && viewVoucher(${v.voucher_id})" title="Click to view voucher">
+                                        <td style="padding: 8px 10px; color: var(--gs-accent); font-weight: 500;">${v.voucher_number || '#' + v.voucher_id}</td>
+                                        <td style="padding: 8px 10px; color: var(--text-muted);">${v.voucher_date || '-'}</td>
+                                        <td style="padding: 8px 10px;"><span style="padding: 2px 8px; background: ${v.status === 'Posted' ? 'rgba(16,185,129,0.15)' : 'rgba(245,158,11,0.15)'}; color: ${v.status === 'Posted' ? 'var(--success-color)' : '#f59e0b'}; border-radius: 10px; font-size: 11px; font-weight: 600;">${v.status}</span></td>
+                                        <td style="padding: 8px 10px; text-align: right; color: var(--text-main);">${formatCurrency(v.total_dr)}</td>
+                                        <td style="padding: 8px 10px; text-align: right; color: var(--text-main);">${formatCurrency(v.total_cr)}</td>
+                                        <td style="padding: 8px 10px; text-align: right; color: var(--danger-color); font-weight: 700;">${formatCurrency(v.diff)}</td>
+                                    </tr>`).join('')}
+                            </tbody>
+                            <tfoot><tr style="background: rgba(0,0,0,0.04); font-weight: 700;">
+                                <td colspan="5" style="padding: 8px 10px; color: var(--text-main);">Total Impact</td>
+                                <td style="padding: 8px 10px; text-align: right; color: var(--danger-color);">${formatCurrency(issue.total_impact)}</td>
+                            </tr></tfoot>
+                        </table>
+                    </div>`;
+            }
+
+            if (issue.type === 'abnormal_balances') {
+                html += `
+                    <div style="margin-top: 12px; overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 13px; min-width: 500px;">
+                            <thead><tr style="background: rgba(0,0,0,0.04);">
+                                <th style="text-align: left; padding: 8px 10px; font-weight: 600; color: var(--text-muted);">Code</th>
+                                <th style="text-align: left; padding: 8px 10px; font-weight: 600; color: var(--text-muted);">Account</th>
+                                <th style="text-align: left; padding: 8px 10px; font-weight: 600; color: var(--text-muted);">Type</th>
+                                <th style="text-align: right; padding: 8px 10px; font-weight: 600; color: var(--text-muted);">Balance</th>
+                                <th style="text-align: left; padding: 8px 10px; font-weight: 600; color: var(--text-muted);">Issue</th>
+                            </tr></thead>
+                            <tbody>
+                                ${issue.accounts.map(a => `
+                                    <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                        <td style="padding: 8px 10px; color: var(--text-muted); font-family: monospace;">${a.code}</td>
+                                        <td style="padding: 8px 10px; color: var(--text-main); font-weight: 500;">${a.name}</td>
+                                        <td style="padding: 8px 10px;"><span style="padding: 2px 8px; background: rgba(var(--gs-accent-rgb),0.15); color: var(--gs-accent); border-radius: 10px; font-size: 11px; font-weight: 600;">${a.type}</span></td>
+                                        <td style="padding: 8px 10px; text-align: right; color: var(--danger-color); font-weight: 600;">${formatCurrency(a.computed_balance)}</td>
+                                        <td style="padding: 8px 10px; color: #f59e0b; font-size: 12px;">${a.issue}</td>
+                                    </tr>`).join('')}
+                            </tbody>
+                        </table>
+                    </div>`;
+            }
+
+            html += `</div></div>`;
+        });
+
+        container.innerHTML = html;
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Diagnostics';
+
+    } catch (err) {
+        console.error('Diagnostics error:', err);
+        container.innerHTML = `<div style="color: var(--danger-color); padding: 15px; font-size: 13px;"><i class="fas fa-times-circle"></i> Failed to load diagnostics: ${err.message}</div>`;
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-stethoscope"></i> Retry Diagnostics';
+    }
 }
 
 function renderNewProfitLoss(accounts, date) {
