@@ -11,7 +11,7 @@ class ReportController {
     
     public function getBalanceSheet() {
         checkAuth();
-        $asOnDate = $_GET['as_on_date'] ?? date('Y-m-d');
+        $asOnDate = $_GET['as_on_date'] ?? $_GET['to'] ?? $_GET['to_date'] ?? date('Y-m-d');
         
         $sql = "SELECT ac.id, ac.code, ac.name, ac.type, ac.sub_type, ac.opening_balance,
                        SUM(COALESCE(gl.debit, 0)) as total_debit,
@@ -81,8 +81,8 @@ class ReportController {
 
     public function getProfitLoss() {
         checkAuth();
-        $fromDate = $_GET['from_date'] ?? date('Y-01-01');
-        $toDate = $_GET['to_date'] ?? date('Y-m-d');
+        $fromDate = $_GET['from_date'] ?? $_GET['from'] ?? date('Y-01-01');
+        $toDate = $_GET['to_date'] ?? $_GET['to'] ?? date('Y-m-d');
         
         $sql = "SELECT ac.id, ac.code, ac.name, ac.type, ac.sub_type,
                        SUM(COALESCE(gl.debit, 0)) as total_debit,
@@ -208,7 +208,7 @@ class ReportController {
 
     public function getTrialBalance() {
         checkAuth();
-        $asOnDate = $_GET['as_on_date'] ?? date('Y-m-d');
+        $asOnDate = $_GET['as_on_date'] ?? $_GET['to'] ?? $_GET['to_date'] ?? date('Y-m-d');
         
         $sql = "SELECT ac.id, ac.code, ac.name, ac.type, ac.opening_balance,
                        (SELECT SUM(COALESCE(gl.debit, 0)) FROM general_ledger gl WHERE gl.account_id = ac.id AND gl.voucher_date <= '$asOnDate 23:59:59') as td,
@@ -262,8 +262,8 @@ class ReportController {
     public function getCashFlow() {
         checkAuth();
         
-        $fromDate = $_GET['from_date'] ?? date('Y-01-01');
-        $toDate = $_GET['to_date'] ?? date('Y-m-d');
+        $fromDate = $_GET['from_date'] ?? $_GET['from'] ?? date('Y-01-01');
+        $toDate = $_GET['to_date'] ?? $_GET['to'] ?? date('Y-m-d');
         
         // Fetch all Cash/Bank Asset accounts
         $sql = "SELECT id, code, name, opening_balance FROM account_chart 
@@ -307,8 +307,8 @@ class ReportController {
         checkAuth();
         
         $accountId = $_GET['account_id'] ?? null;
-        $fromDate = $_GET['from'] ?? date('Y-m-01');
-        $toDate = $_GET['to'] ?? date('Y-m-d');
+        $fromDate = $_GET['from_date'] ?? $_GET['from'] ?? date('Y-m-01');
+        $toDate = $_GET['to_date'] ?? $_GET['to'] ?? date('Y-m-d');
         
         if (!$accountId) {
             sendResponse(false, null, 'Account ID is required', 400);
@@ -394,7 +394,7 @@ class ReportController {
     
     public function getFinancialSummary() {
         checkAuth();
-        $asOnDate = $_GET['as_on_date'] ?? date('Y-m-d');
+        $asOnDate = $_GET['as_on_date'] ?? $_GET['to'] ?? $_GET['to_date'] ?? date('Y-m-d');
         
         // Single optimized query for all primary types
         $sql = "SELECT ac.type, 
@@ -495,7 +495,7 @@ class ReportController {
 
     public function getBalanceSheetValidation() {
         checkAuth();
-        $asOnDate = $_GET['as_on_date'] ?? date('Y-m-d');
+        $asOnDate = $_GET['as_on_date'] ?? $_GET['to'] ?? $_GET['to_date'] ?? date('Y-m-d');
         $fullToDate = $asOnDate . " 23:59:59";
         $issues = [];
         
