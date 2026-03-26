@@ -493,6 +493,180 @@ class ReportController {
         ], 'Performance report retrieved (Optimized)');
     }
 
+    public function getBalanceSheetValidation() {
+        checkAuth();
+        $asOnDate = $_GET['as_on_date'] ?? date('Y-m-d');
+        $fullToDate = $asOnDate . " 23:59:59";
+        $issues = [];
+        
+        // 1. Check Opening Balance discrepancy
+        $obSql = "SELECT type,
+                         SUM(CASE WHEN type IN ('Asset','Expense') THEN opening_balance ELSE 0 END) as dr_ob,
+                         SUM(CASE WHEN type IN ('Liability','Equity','Income') THEN opening_balance ELSE 0 END) as cr_ob
+                  FROM account_chart WHERE is_active = TRUE";
+        $obRes = $this->db->query($obSql);
+        
+        $obByType = "SELECT type, SUM(opening_balance) as total_ob, COUNT(*) as cnt
+                      FROM account_chart WHERE is_active = TRUE GROUP BY type";
+        $obTypeRes = $this->db->query($obByType);
+        $obDetails = [];
+        $totalDrOB = 0;
+        $totalCrOB = 0;
+        while ($row = $obTypeRes->fetch_assoc()) {
+            $ob = (float)$row['total_ob'];
+            if (in_array($row['type'], ['Asset', 'Expense'])) {
+                $totalDrOB += $ob;
+            } else {
+                $totalCrOB += $ob;
+            }
+            $obDetails[] = [
+                'type' => $row['type'],
+                'total_opening_balance' => $ob,
+                'account_count' => (int)$row['cnt']
+            ];
+        }
+        $obDiff = round($totalDrOB - $totalCrOB, 2);
+        if (abs($obDiff) > 0.01) {
+            $issues[] = [
+                'type' => 'opening_balance',
+                'severity' => 'high',
+                'title' => 'Opening Balance Mismatch',
+                'description' => 'Total debit-side opening balances (Assets + Expenses) do not equal credit-side (Liabilities + Equity + Income).',
+                'difference' => $obDiff,
+                'debit_total' => $totalDrOB,
+                'credit_total' => $totalCrOB,
+                'details' => $obDetails
+            ];
+        }
+        
+        // 2. Check for unbalanced vouchers in general_ledger
+        $uvSql = "SELECT gl.voucher_id, v.voucher_number, v.voucher_date, v.status, v.narration,
+                         SUM(gl.debit) as total_dr, SUM(gl.credit) as total_cr,
+                         ROUND(SUM(gl.debit) - SUM(gl.credit), 2) as diff
+                  FROM general_ledger gl
+                  JOIN vouchers v ON gl.voucher_id = v.id
+                  WHERE gl.voucher_date <= ?
+                  GROUP BY gl.voucher_id
+                  HAVING ABS(SUM(gl.debit) - SUM(gl.credit)) > 0.01
+                  ORDER BY ABS(diff) DESC
+                  LIMIT 15";
+        $uvStmt = $this->db->prepare($uvSql);
+        $uvStmt->bind_param("s", $fullToDate);
+        $uvStmt->execute();
+        $uvResult = $uvStmt->get_result();
+        $unbalancedVouchers = [];
+        while ($row = $uvResult->fetch_assoc()) {
+            $unbalancedVouchers[] = $row;
+        }
+        $uvStmt->close();
+        
+        if (count($unbalancedVouchers) > 0) {
+            $totalUvDiff = array_sum(array_column($unbalancedVouchers, 'diff'));
+            $issues[] = [
+                'type' => 'unbalanced_vouchers',
+                'severity' => 'critical',
+                'title' => 'Unbalanced Voucher Entries',
+                'description' => count($unbalancedVouchers) . ' voucher(s) have mismatched debit/credit totals in the general ledger.',
+                'total_impact' => round($totalUvDiff, 2),
+                'count' => count($unbalancedVouchers),
+                'vouchers' => $unbalancedVouchers
+            ];
+        }
+        
+        // 3. Check accounts with balances going against their natural direction
+        $abnSql = "SELECT ac.id, ac.code, ac.name, ac.type, ac.sub_type, ac.opening_balance,
+                          SUM(COALESCE(gl.debit, 0)) as total_debit,
+                          SUM(COALESCE(gl.credit, 0)) as total_credit
+                   FROM account_chart ac
+                   LEFT JOIN general_ledger gl ON ac.id = gl.account_id AND gl.voucher_date <= ?
+                   WHERE ac.is_active = TRUE AND ac.type IN ('Asset', 'Liability', 'Equity')
+                   GROUP BY ac.id";
+        $abnStmt = $this->db->prepare($abnSql);
+        $abnStmt->bind_param("s", $fullToDate);
+        $abnStmt->execute();
+        $abnResult = $abnStmt->get_result();
+        $abnormalAccounts = [];
+        while ($row = $abnResult->fetch_assoc()) {
+            $ob = (float)$row['opening_balance'];
+            $dr = (float)$row['total_debit'];
+            $cr = (float)$row['total_credit'];
+            
+            if ($row['type'] === 'Asset') {
+                $balance = ($ob + $dr) - $cr;
+                if ($balance < -0.01) {
+                    $row['computed_balance'] = $balance;
+                    $row['issue'] = 'Asset account has negative (credit) balance';
+                    $abnormalAccounts[] = $row;
+                }
+            } else {
+                // Liability/Equity natural credit
+                $balance = ($ob + $cr) - $dr;
+                if ($balance < -0.01) {
+                    $row['computed_balance'] = -$balance;
+                    $row['issue'] = $row['type'] . ' account has debit balance (unusual)';
+                    $abnormalAccounts[] = $row;
+                }
+            }
+        }
+        $abnStmt->close();
+        
+        if (count($abnormalAccounts) > 0) {
+            $issues[] = [
+                'type' => 'abnormal_balances',
+                'severity' => 'warning',
+                'title' => 'Accounts with Unusual Balance Direction',
+                'description' => count($abnormalAccounts) . ' account(s) have balances opposite to their natural direction.',
+                'count' => count($abnormalAccounts),
+                'accounts' => $abnormalAccounts
+            ];
+        }
+        
+        // 4. Compute overall summary
+        // Re-run the balance sheet totals quickly
+        $bsSql = "SELECT ac.type, ac.opening_balance, 
+                         SUM(COALESCE(gl.debit, 0)) as td, SUM(COALESCE(gl.credit, 0)) as tc
+                  FROM account_chart ac
+                  LEFT JOIN general_ledger gl ON ac.id = gl.account_id AND gl.voucher_date <= ?
+                  WHERE ac.is_active = TRUE
+                  GROUP BY ac.id, ac.type, ac.opening_balance";
+        $bsStmt = $this->db->prepare($bsSql);
+        $bsStmt->bind_param("s", $fullToDate);
+        $bsStmt->execute();
+        $bsResult = $bsStmt->get_result();
+        
+        $totalAssets = 0;
+        $totalLiabEquity = 0;
+        $netProfit = 0;
+        
+        while ($row = $bsResult->fetch_assoc()) {
+            $ob = (float)$row['opening_balance'];
+            $dr = (float)$row['td'];
+            $cr = (float)$row['tc'];
+            
+            if ($row['type'] === 'Asset') {
+                $totalAssets += ($ob + $dr) - $cr;
+            } else if (in_array($row['type'], ['Liability', 'Equity'])) {
+                $totalLiabEquity += ($ob + $cr) - $dr;
+            } else if ($row['type'] === 'Income') {
+                $netProfit += ($cr - $dr);
+            } else if ($row['type'] === 'Expense') {
+                $netProfit -= ($dr - $cr);
+            }
+        }
+        $bsStmt->close();
+        
+        $totalLiabEquity += $netProfit;
+        $difference = round($totalAssets - $totalLiabEquity, 2);
+        
+        sendResponse(true, [
+            'difference' => $difference,
+            'total_assets' => round($totalAssets, 2),
+            'total_liabilities_equity' => round($totalLiabEquity, 2),
+            'issue_count' => count($issues),
+            'issues' => $issues
+        ], 'Balance sheet validation completed');
+    }
+    
     public function getAuditLogs() {
         checkRole(['admin', 'administrator']);
         
@@ -544,6 +718,9 @@ switch ($type) {
         break;
     case 'performance':
         $report->getPerformanceReport();
+        break;
+    case 'balance-sheet-validation':
+        $report->getBalanceSheetValidation();
         break;
     case 'audit-logs':
         $report->getAuditLogs();

@@ -1716,7 +1716,25 @@ async function generateDynamicReport(type) {
                         </table>
                     </div>
                 </div>
-                ${Math.abs(totalAssets - totalLiabEqui) > 1 ? `<div style="margin-top:20px; color: var(--danger-color); text-align:center;"><i class="fas fa-exclamation-triangle"></i> Balance sheet out of balance by ${formatCurrency(Math.abs(totalAssets - totalLiabEqui))}</div>` : ''}
+                ${Math.abs(totalAssets - totalLiabEqui) > 1 ? `
+                    <div id="bs-validation-panel" style="margin-top: 20px;">
+                        <div style="padding: 15px 18px; background: linear-gradient(135deg, #fee2e2, #fef2f2); border-radius: 10px; border-left: 4px solid var(--danger-color); color: #b91c1c;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <i class="fas fa-exclamation-triangle" style="font-size: 18px;"></i>
+                                    <div>
+                                        <strong>Out of Balance</strong>
+                                        <span style="font-size: 12px; opacity: 0.85; margin-left: 8px;">Difference: ${formatCurrency(Math.abs(totalAssets - totalLiabEqui))}</span>
+                                    </div>
+                                </div>
+                                <button id="bs-diag-btn" onclick="fetchBalanceSheetDiagnostics()" style="padding: 8px 16px; background: var(--danger-color, #ef4444); color: white; border: none; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                                    <i class="fas fa-stethoscope"></i> View Diagnostics
+                                </button>
+                            </div>
+                            <div id="bs-diagnostics-container" style="display: none; margin-top: 16px;"></div>
+                        </div>
+                    </div>
+                ` : ''}
             </div>
         `;
     }
